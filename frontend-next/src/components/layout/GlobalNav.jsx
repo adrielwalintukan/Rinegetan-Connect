@@ -13,10 +13,7 @@ import { cn } from "@/lib/utils";
 export const GlobalNav = () => {
     const [open, setOpen] = useState(false);
     const pathname = usePathname();
-
-    useEffect(() => {
-        setOpen(false);
-    }, [pathname]);
+    const closeMenu = () => setOpen(false);
 
     useEffect(() => {
         document.body.style.overflow = open ? "hidden" : "";
@@ -35,13 +32,14 @@ export const GlobalNav = () => {
                 className="sticky top-0 z-50 border-b border-navy/[0.07] bg-background/85 backdrop-blur-xl"
             >
                 <div className="container-site flex h-[4.5rem] items-center justify-between gap-4">
-                <EntityLockup compact />
+                <EntityLockup compact onClick={closeMenu} />
 
                 <nav aria-label="Navigasi utama" className="hidden items-center gap-1 xl:flex">
                     {NAV_LINKS.slice(1).map((link) => (
                         <Link
                             key={link.href}
                             href={link.href}
+                            onClick={closeMenu}
                             data-testid={link.testId}
                             className={cn(
                                 "rounded-full px-3.5 py-2 text-[0.8125rem] font-medium transition-colors duration-200",
@@ -58,6 +56,7 @@ export const GlobalNav = () => {
                 <div className="hidden items-center gap-2.5 xl:flex">
                     <Link
                         href="/kontak#berkunjung"
+                        onClick={closeMenu}
                         data-testid="nav-cta-saya-ingin-berkunjung"
                         className="rounded-full px-4 py-2.5 text-[0.8125rem] font-semibold text-navy transition-colors duration-200 hover:bg-navy/[0.06]"
                     >
@@ -65,6 +64,7 @@ export const GlobalNav = () => {
                     </Link>
                     <Link
                         href="/pelayanan#alkitab"
+                        onClick={closeMenu}
                         data-testid="nav-cta-pelajari-alkitab"
                         className="group inline-flex items-center gap-1.5 rounded-full bg-navy px-5 py-2.5 text-[0.8125rem] font-semibold text-white transition-[background-color,transform] duration-300 hover:-translate-y-0.5 hover:bg-navy-600"
                     >
@@ -108,6 +108,7 @@ export const GlobalNav = () => {
                                 >
                                     <Link
                                         href={link.href}
+                                        onClick={closeMenu}
                                         data-testid={`mobile-${link.testId}`}
                                         className={cn(
                                             "group flex items-baseline gap-4 border-b border-white/10 py-4",
@@ -138,6 +139,7 @@ export const GlobalNav = () => {
                             </div>
                             <Link
                                 href="/pelayanan#alkitab"
+                                onClick={closeMenu}
                                 data-testid="mobile-cta-pelajari-alkitab"
                                 className="btn-sabbath w-full"
                             >
@@ -145,6 +147,7 @@ export const GlobalNav = () => {
                             </Link>
                             <Link
                                 href="/kontak#berkunjung"
+                                onClick={closeMenu}
                                 data-testid="mobile-cta-berkunjung"
                                 className="inline-flex w-full items-center justify-center rounded-full border border-white/25 px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
                             >

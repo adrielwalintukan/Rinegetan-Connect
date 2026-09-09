@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- Phase 1 keeps external static fallback images. */
 import { BookOpen, HeartHandshake, Sparkles } from "lucide-react";
 import { ChapterHeading } from "./ChapterHeading";
 import { Reveal } from "@/components/motion/Reveal";

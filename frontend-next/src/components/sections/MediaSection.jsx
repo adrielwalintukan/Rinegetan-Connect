@@ -1,6 +1,6 @@
+/* eslint-disable @next/next/no-img-element -- Phase 1 keeps external static fallback images. */
 import Link from "next/link";
 import { ArrowUpRight, Play } from "lucide-react";
-import { ChapterHeading } from "./ChapterHeading";
 import { Reveal } from "@/components/motion/Reveal";
 import { MEDIA_ITEMS } from "@/data/content";
 

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- Phase 1 keeps external static fallback images. */
 import Link from "next/link";
 import { ArrowUpRight, CalendarDays, Clock, MapPin } from "lucide-react";
 import { ChapterHeading } from "./ChapterHeading";

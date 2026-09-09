@@ -21,7 +21,8 @@ const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
 const builtRoutes = new Set(
   Object.keys(manifest)
     .filter((route) => route.endsWith("/page"))
-    .map((route) => (route === "/page" ? "/" : route.slice(0, -"/page".length))),
+    .map((route) => route.replace(/\/\([^/]+\)/g, ""))
+    .map((route) => route.slice(0, -"/page".length) || "/"),
 );
 const missingRoutes = expectedRoutes.filter((route) => !builtRoutes.has(route));
 

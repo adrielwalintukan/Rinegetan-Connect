@@ -3,9 +3,10 @@ import { AdventistSymbol } from "./AdventistSymbol";
 import { CHURCH } from "@/data/content";
 import { cn } from "@/lib/utils";
 
-export const EntityLockup = ({ dark = false, compact = false }) => (
+export const EntityLockup = ({ dark = false, compact = false, onClick }) => (
     <Link
         href="/"
+        onClick={onClick}
         data-testid="brand-lockup"
         aria-label={`${CHURCH.name} — kembali ke Beranda`}
         className="group flex items-center gap-3"
