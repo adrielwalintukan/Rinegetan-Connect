@@ -22,6 +22,7 @@
 
 - **Label:** chore, frontend, docs, priority:high
 - **Sprint:** 1
+- **Status:** selesai
 - **Dependencies:** P2-000
 - **Acceptance criteria:** daftar rute, komponen, asset, data contoh, design token, test ID, dan perilaku responsive terdokumentasi; tidak ada rute publik yang terlewat dari kontrak refactor.
 

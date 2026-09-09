@@ -7,6 +7,7 @@ Dokumentasi ini adalah fondasi perencanaan dan implementasi Rinegetan Connect un
 - [PRD lintas Phase 1–5](01-product/PRD.md)
 - [Sistem desain](02-design/DESIGN-SYSTEM.md)
 - [Arsitektur target](03-architecture/ARCHITECTURE.md)
+- [Inventaris kontrak Phase 1](03-architecture/PHASE-1-INVENTORY.md)
 - [Model data dan RLS](03-architecture/DATA-MODEL-AND-RLS.md)
 - [Keamanan dan privasi](03-architecture/SECURITY-PRIVACY.md)
 - [Roadmap](04-delivery/ROADMAP.md)
