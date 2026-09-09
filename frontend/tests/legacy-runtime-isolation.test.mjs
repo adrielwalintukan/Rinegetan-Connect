@@ -52,3 +52,23 @@ test("Phase 1 presentation is present without the legacy client runtime", () => 
     assert.equal(manifest.includes(token) || source.includes(token), false, token);
   }
 });
+
+test("global navigation exposes the current page to assistive technology", () => {
+  const globalNav = readFileSync(
+    join(projectRoot, "src/components/layout/GlobalNav.jsx"),
+    "utf8",
+  );
+  const activeState = 'aria-current={pathname === link.href ? "page" : undefined}';
+
+  assert.equal(
+    globalNav.split(activeState).length - 1,
+    2,
+    "Navigasi desktop dan seluler harus menandai rute aktif dengan aria-current",
+  );
+});
+
+test("Next development server does not write managed agent files", () => {
+  const nextConfig = readFileSync(join(projectRoot, "next.config.ts"), "utf8");
+
+  assert.match(nextConfig, /agentRules:\s*false/);
+});

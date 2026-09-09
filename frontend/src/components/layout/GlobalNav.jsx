@@ -40,6 +40,7 @@ export const GlobalNav = () => {
                             key={link.href}
                             href={link.href}
                             onClick={closeMenu}
+                            aria-current={pathname === link.href ? "page" : undefined}
                             data-testid={link.testId}
                             className={cn(
                                 "rounded-full px-3.5 py-2 text-[0.8125rem] font-medium transition-colors duration-200",
@@ -109,6 +110,7 @@ export const GlobalNav = () => {
                                     <Link
                                         href={link.href}
                                         onClick={closeMenu}
+                                        aria-current={pathname === link.href ? "page" : undefined}
                                         data-testid={`mobile-${link.testId}`}
                                         className={cn(
                                             "group flex items-baseline gap-4 border-b border-white/10 py-4",
