@@ -1,0 +1,45 @@
+name: Feature
+description: Usulkan atau rencanakan satu hasil produk yang terukur.
+title: "[Feature]: "
+labels:
+  - feature
+  - ready
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Hasil yang diinginkan
+      description: Jelaskan masalah pengguna dan hasil terukur, bukan sekadar solusi teknis.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope dan non-scope
+      description: Tuliskan apa yang termasuk dan sengaja tidak termasuk.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Daftar perilaku yang dapat diuji.
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Rencana verifikasi
+      description: Unit, integration, E2E, visual, atau RLS test yang harus dibuat.
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Keamanan dan privasi
+      options:
+        - label: Issue ini tidak menyentuh data privat, Auth, RLS, Storage, atau secret.
+        - label: Issue ini menyentuh area tersebut dan checklist keamanan/RLS akan disertakan.

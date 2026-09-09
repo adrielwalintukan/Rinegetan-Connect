@@ -1,0 +1,39 @@
+name: Bug report
+description: Laporkan perilaku yang tidak sesuai dengan kontrak produk.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Deskripsi masalah
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Langkah reproduksi
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Perilaku harapan dan aktual
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Bukti aman
+      description: Sertakan screenshot/log yang telah disanitasi. Jangan masukkan password, token, data doa, atau PII.
+  - type: checkboxes
+    id: security
+    attributes:
+      label: Dampak
+      options:
+        - label: Ini dapat menyangkut keamanan atau privasi dan perlu diprioritaskan.

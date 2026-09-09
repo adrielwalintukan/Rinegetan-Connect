@@ -14,6 +14,8 @@ Dokumentasi ini adalah fondasi perencanaan dan implementasi Rinegetan Connect un
 - [Runbook deployment](04-delivery/DEPLOYMENT-RUNBOOK.md)
 - [Runbook backup dan pemulihan](04-delivery/BACKUP-RESTORE-RUNBOOK.md)
 - [Workflow Git dan Pull Request](04-delivery/GIT-WORKFLOW.md)
+- [Sprint plan Phase 2](04-delivery/PHASE-2-SPRINT-PLAN.md)
+- [Issue backlog Phase 2](04-delivery/PHASE-2-ISSUE-BACKLOG.md)
 - [Operasi konten](04-delivery/CONTENT-OPERATIONS.md)
 - [Integrasi Sekolah Sabat](05-integrations/SABBATH-SCHOOL-ADVENTECH.md)
 - [Strategi pengujian](06-quality/TEST-STRATEGY.md)
