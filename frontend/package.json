@@ -64,7 +64,8 @@
   "scripts": {
     "start": "craco start",
     "build": "craco build",
-    "test": "craco test"
+    "test": "craco test",
+    "postinstall": "node -e \"const fs=require('fs'),p='node_modules/ajv-keywords/node_modules/ajv';if(!fs.existsSync(p)&&fs.existsSync('node_modules/schema-utils/node_modules/ajv')){fs.mkdirSync('node_modules/ajv-keywords/node_modules',{recursive:true});fs.cpSync('node_modules/schema-utils/node_modules/ajv',p,{recursive:true})}\""
   },
   "browserslist": {
     "production": [
