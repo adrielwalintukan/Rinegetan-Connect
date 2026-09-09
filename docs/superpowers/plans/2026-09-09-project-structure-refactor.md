@@ -110,7 +110,7 @@ Expected: FAIL because the default scaffold has not produced a build manifest an
 
 - [ ] **Step 3: Replace only the scaffold configuration**
 
-Keep the current Next.js 16 / React 19 versions, then add the presentation dependencies actually used by Phase 1: `framer-motion`, `lenis`, `lucide-react`, `clsx`, and `tailwind-merge`. Replace Tailwind 4-only configuration with Tailwind CSS 3.4, PostCSS, Autoprefixer, and a typed configuration that carries the original navy/Sabbath tokens, font stacks, content glob `./src/**/*.{js,jsx,ts,tsx}`, and `tailwindcss-animate` plugin.
+Keep the current Next.js 16 / React 19 versions, then add the presentation dependencies actually used by Phase 1: `framer-motion`, `lenis`, `lucide-react`, `sonner`, `clsx`, and `tailwind-merge`. Replace Tailwind 4-only configuration with Tailwind CSS 3.4, PostCSS, Autoprefixer, and a typed configuration that carries the original navy/Sabbath tokens, font stacks, content glob `./src/**/*.{js,jsx,ts,tsx}`, and `tailwindcss-animate` plugin.
 
 Add these scripts without a preinstall/postinstall workaround:
 
