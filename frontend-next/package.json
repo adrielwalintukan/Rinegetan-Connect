@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:routes": "node --test tests/public-route-contract.test.mjs"
+    "test:routes": "node --test tests/*.test.mjs"
   },
   "dependencies": {
     "clsx": "2.1.1",
