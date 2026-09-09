@@ -1,12 +1,11 @@
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { AdventistSymbol } from "./AdventistSymbol";
 import { CHURCH } from "@/data/content";
 import { cn } from "@/lib/utils";
 
-export const EntityLockup = ({ dark = false, compact = false, onClick }) => (
+export const EntityLockup = ({ dark = false, compact = false }) => (
     <Link
-        href="/"
-        onClick={onClick}
+        to="/"
         data-testid="brand-lockup"
         aria-label={`${CHURCH.name} — kembali ke Beranda`}
         className="group flex items-center gap-3"

@@ -413,7 +413,7 @@ Then move the verified temporary Next directory to its final root path. Confirm 
 
 - [ ] **Step 3: Update repository integration files**
 
-Keep the CI workflow's frontend working directory at `frontend`; it now runs `npm ci` and `npm run build` against Next.js. Rename the job display name to `Next.js production build` so check output is unambiguous. Retain the legacy backend syntax job until the later Supabase foundation validation authorizes its archival.
+Keep the CI workflow's frontend working directory at `frontend`; it now runs `npm ci` and `npm run build` against Next.js. Use Node.js 22 because current Supabase client libraries no longer support Node.js 20. Rename the job display name to `Next.js production build` so check output is unambiguous. Retain the legacy backend syntax job until the later Supabase foundation validation authorizes its archival.
 
 Add these ignore patterns without unignoring current source:
 

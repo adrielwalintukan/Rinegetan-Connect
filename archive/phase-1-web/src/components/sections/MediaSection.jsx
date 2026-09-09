@@ -1,6 +1,6 @@
-/* eslint-disable @next/next/no-img-element -- Phase 1 keeps external static fallback images. */
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { ArrowUpRight, Play } from "lucide-react";
+import { ChapterHeading } from "./ChapterHeading";
 import { Reveal } from "@/components/motion/Reveal";
 import { MEDIA_ITEMS } from "@/data/content";
 
@@ -31,7 +31,7 @@ export const MediaSection = () => {
                     </Reveal>
                     <Reveal delay={0.1}>
                         <Link
-                            href="/media"
+                            to="/media"
                             data-testid="media-view-all"
                             className="group inline-flex items-center gap-2 rounded-full border border-white/25 px-6 py-3 text-[0.8125rem] font-semibold text-white transition-colors hover:bg-white/10"
                         >

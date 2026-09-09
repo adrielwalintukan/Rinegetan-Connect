@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";
 import { GridGuides } from "@/components/layout/CreationGrid";
@@ -28,7 +28,7 @@ export const VisitCTA = () => (
                 </p>
                 <div className="mt-9 flex flex-wrap gap-3">
                     <Link
-                        to="/kontak#berkunjung"
+                        href="/kontak#berkunjung"
                         data-testid="visit-cta-button"
                         className="btn-primary group"
                     >
@@ -38,7 +38,7 @@ export const VisitCTA = () => (
                             aria-hidden="true"
                         />
                     </Link>
-                    <Link to="/sekolah-sabat" data-testid="visit-cta-ss" className="btn-secondary">
+                    <Link href="/sekolah-sabat" data-testid="visit-cta-ss" className="btn-secondary">
                         Tentang Sekolah Sabat
                     </Link>
                 </div>

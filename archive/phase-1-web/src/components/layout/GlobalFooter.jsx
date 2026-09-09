@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { Facebook, Instagram, Youtube, MapPin, Phone, Mail, Clock } from "lucide-react";
 import { EntityLockup } from "@/components/identity/EntityLockup";
 import { AdventistSymbol } from "@/components/identity/AdventistSymbol";
@@ -59,7 +59,7 @@ export const GlobalFooter = () => (
                     {NAV_LINKS.map((link) => (
                         <li key={link.href}>
                             <Link
-                                href={link.href}
+                                to={link.href}
                                 data-testid={`footer-link-${link.href === "/" ? "beranda" : link.href.slice(1)}`}
                                 className="text-sm text-white/70 transition-colors hover:text-sabbath-400"
                             >

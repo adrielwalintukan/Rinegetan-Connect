@@ -1,3 +1,5 @@
+"use client";
+
 import { motion } from "framer-motion";
 
 export const Reveal = ({ children, delay = 0, y = 28, className }) => (

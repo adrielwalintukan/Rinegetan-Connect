@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+/* eslint-disable @next/next/no-img-element -- Phase 1 keeps external static fallback images. */
+import Link from "next/link";
 import { ArrowUpRight, CalendarDays, Clock, MapPin } from "lucide-react";
 import { ChapterHeading } from "./ChapterHeading";
 import { Reveal } from "@/components/motion/Reveal";
@@ -65,7 +66,7 @@ export const EventsSection = () => (
                 />
                 <Reveal delay={0.1}>
                     <Link
-                        to="/kegiatan"
+                        href="/kegiatan"
                         data-testid="events-view-all"
                         className="btn-secondary group !px-6 !py-3 text-[0.8125rem]"
                     >

@@ -1,3 +1,5 @@
+"use client";
+
 import { motion } from "framer-motion";
 
 export const KineticLines = ({ lines, className, delay = 0.15 }) => (
