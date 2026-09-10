@@ -23,7 +23,7 @@ Menutup Sprint 1 dengan baseline visual yang dapat ditinjau, lalu menyiapkan int
 
 ### Baseline visual
 
-`@playwright/test` 1.63.0 dipasang sebagai dev dependency frontend. `playwright.config.ts` membangun lalu menjalankan Next production server pada port lokal khusus dan test di `tests/visual/public-routes.spec.ts`, sehingga HMR development tidak memengaruhi hasil interaksi.
+`@playwright/test` 1.63.0 dipasang sebagai dev dependency frontend. `playwright.config.ts` membangun lalu menjalankan Next production server pada port lokal khusus dan test di `tests/visual/public-routes.spec.ts`, sehingga HMR development tidak memengaruhi hasil interaksi. Setiap route menunggu `domcontentloaded`, konten utama, dan font; test tidak menunggu `networkidle` karena media pihak ketiga dapat tetap membuka koneksi tanpa memengaruhi layout.
 
 - Snapshot beranda bersifat viewport-only, bukan full-page, agar artefak review tetap kecil dan fokus pada Creation Grid, identitas, navigasi, serta layout atas.
 - Snapshot menggunakan animasi dinonaktifkan dan caret disembunyikan. Perubahan snapshot hanya diterima melalui command update eksplisit dan review Git.

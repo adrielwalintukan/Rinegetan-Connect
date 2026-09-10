@@ -58,7 +58,7 @@ const viewports = [
 ];
 ```
 
-For every route and viewport, navigate with `waitUntil: "networkidle"` and assert the document does not have horizontal overflow:
+For every route and viewport, navigate with `waitUntil: "domcontentloaded"`, wait until `main` is visible and `document.fonts.ready` resolves, then assert the document does not have horizontal overflow. Do not wait for `networkidle`: remote media can keep requests open after the route and layout are ready.
 
 ```ts
 expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width);
