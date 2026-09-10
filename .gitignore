@@ -90,9 +90,14 @@ android-sdk/
 .env
 .env.*
 *.env
+!.env.example
 credentials.json
 *.key
 .credentials
+
+# Supabase CLI generated metadata and local service state
+supabase/.temp/
+.supabase/
 
 # Legacy Emergent workspace artifacts (superseded by docs/ and current CI)
 .emergent/
