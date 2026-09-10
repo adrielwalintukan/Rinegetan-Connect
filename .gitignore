@@ -88,3 +88,11 @@ android-sdk/
 credentials.json
 *.key
 .credentials
+
+# Legacy Emergent workspace artifacts (superseded by docs/ and current CI)
+.emergent/
+memory/
+test_reports/
+test_result.md
+design_guidelines.json
+.gitconfig
