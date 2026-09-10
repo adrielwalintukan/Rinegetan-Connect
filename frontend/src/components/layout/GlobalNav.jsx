@@ -1,5 +1,8 @@
+"use client";
+
 import { useEffect, useState } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X, ArrowUpRight } from "lucide-react";
 import { EntityLockup } from "@/components/identity/EntityLockup";
@@ -9,11 +12,8 @@ import { cn } from "@/lib/utils";
 
 export const GlobalNav = () => {
     const [open, setOpen] = useState(false);
-    const location = useLocation();
-
-    useEffect(() => {
-        setOpen(false);
-    }, [location.pathname]);
+    const pathname = usePathname();
+    const closeMenu = () => setOpen(false);
 
     useEffect(() => {
         document.body.style.overflow = open ? "hidden" : "";
@@ -32,38 +32,40 @@ export const GlobalNav = () => {
                 className="sticky top-0 z-50 border-b border-navy/[0.07] bg-background/85 backdrop-blur-xl"
             >
                 <div className="container-site flex h-[4.5rem] items-center justify-between gap-4">
-                <EntityLockup compact />
+                <EntityLockup compact onClick={closeMenu} />
 
                 <nav aria-label="Navigasi utama" className="hidden items-center gap-1 xl:flex">
                     {NAV_LINKS.slice(1).map((link) => (
-                        <NavLink
+                        <Link
                             key={link.href}
-                            to={link.href}
+                            href={link.href}
+                            onClick={closeMenu}
+                            aria-current={pathname === link.href ? "page" : undefined}
                             data-testid={link.testId}
-                            className={({ isActive }) =>
-                                cn(
-                                    "rounded-full px-3.5 py-2 text-[0.8125rem] font-medium transition-colors duration-200",
-                                    isActive
-                                        ? "bg-navy/[0.06] text-navy"
-                                        : "text-slate-500 hover:text-navy"
-                                )
-                            }
+                            className={cn(
+                                "rounded-full px-3.5 py-2 text-[0.8125rem] font-medium transition-colors duration-200",
+                                pathname === link.href
+                                    ? "bg-navy/[0.06] text-navy"
+                                    : "text-slate-500 hover:text-navy"
+                            )}
                         >
                             {link.label}
-                        </NavLink>
+                        </Link>
                     ))}
                 </nav>
 
                 <div className="hidden items-center gap-2.5 xl:flex">
                     <Link
-                        to="/kontak#berkunjung"
+                        href="/kontak#berkunjung"
+                        onClick={closeMenu}
                         data-testid="nav-cta-saya-ingin-berkunjung"
                         className="rounded-full px-4 py-2.5 text-[0.8125rem] font-semibold text-navy transition-colors duration-200 hover:bg-navy/[0.06]"
                     >
                         Saya Ingin Berkunjung
                     </Link>
                     <Link
-                        to="/pelayanan#alkitab"
+                        href="/pelayanan#alkitab"
+                        onClick={closeMenu}
                         data-testid="nav-cta-pelajari-alkitab"
                         className="group inline-flex items-center gap-1.5 rounded-full bg-navy px-5 py-2.5 text-[0.8125rem] font-semibold text-white transition-[background-color,transform] duration-300 hover:-translate-y-0.5 hover:bg-navy-600"
                     >
@@ -105,15 +107,15 @@ export const GlobalNav = () => {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.06 * i + 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                                 >
-                                    <NavLink
-                                        to={link.href}
+                                    <Link
+                                        href={link.href}
+                                        onClick={closeMenu}
+                                        aria-current={pathname === link.href ? "page" : undefined}
                                         data-testid={`mobile-${link.testId}`}
-                                        className={({ isActive }) =>
-                                            cn(
-                                                "group flex items-baseline gap-4 border-b border-white/10 py-4",
-                                                isActive ? "text-sabbath-400" : "text-white"
-                                            )
-                                        }
+                                        className={cn(
+                                            "group flex items-baseline gap-4 border-b border-white/10 py-4",
+                                            pathname === link.href ? "text-sabbath-400" : "text-white"
+                                        )}
                                     >
                                         <span className="font-mono text-xs text-sabbath-400/80">
                                             0{i + 1}
@@ -121,7 +123,7 @@ export const GlobalNav = () => {
                                         <span className="text-3xl font-bold tracking-tight transition-transform duration-300 group-hover:translate-x-2">
                                             {link.label}
                                         </span>
-                                    </NavLink>
+                                    </Link>
                                 </motion.div>
                             ))}
                         </nav>
@@ -138,14 +140,16 @@ export const GlobalNav = () => {
                                 </span>
                             </div>
                             <Link
-                                to="/pelayanan#alkitab"
+                                href="/pelayanan#alkitab"
+                                onClick={closeMenu}
                                 data-testid="mobile-cta-pelajari-alkitab"
                                 className="btn-sabbath w-full"
                             >
                                 Pelajari Alkitab
                             </Link>
                             <Link
-                                to="/kontak#berkunjung"
+                                href="/kontak#berkunjung"
+                                onClick={closeMenu}
                                 data-testid="mobile-cta-berkunjung"
                                 className="inline-flex w-full items-center justify-center rounded-full border border-white/25 px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
                             >
