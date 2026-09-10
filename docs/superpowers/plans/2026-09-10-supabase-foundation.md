@@ -26,8 +26,10 @@
 
 **Files:**
 
+- Modify: `.gitignore`
 - Modify: `frontend/package.json`
 - Modify: `frontend/package-lock.json`
+- Modify: `frontend/src/components/layout/PageShell.jsx`
 - Create: `frontend/playwright.config.ts`
 - Create: `frontend/tests/visual/public-routes.spec.ts`
 - Create: `frontend/tests/visual/public-routes.spec.ts-snapshots/home-desktop-chromium-win32.png`
@@ -40,10 +42,10 @@ Create `frontend/tests/visual/public-routes.spec.ts` with explicit, named viewpo
 const publicRoutes = [
   "/",
   "/tentang-kami",
-  "/ibadah",
+  "/kegiatan",
   "/pelayanan",
   "/media",
-  "/pengumuman",
+  "/sekolah-sabat",
   "/kontak",
 ];
 
@@ -100,7 +102,7 @@ Pin `@playwright/test` to `1.63.0` without a range. Install with:
 npm install --save-dev --save-exact @playwright/test@1.63.0 --registry=https://registry.npmjs.org
 ```
 
-Create `frontend/playwright.config.ts`. Run Chromium only, resolve tests under `./tests/visual`, use `http://127.0.0.1:3412`, start `npm run dev -- --port 3412`, reuse a developer-started server only outside CI, set a 30-second test timeout, and retain traces/screenshots only on failure. Keep screenshot names independent of the developer's machine by configuring one Chromium project named `chromium`.
+Create `frontend/playwright.config.ts`. Run Chromium only, resolve tests under `./tests/visual`, use `http://127.0.0.1:3412`, build then start the production server with `npm run build && npm run start -- --port 3412`, reuse a developer-started server only outside CI, set a 30-second test timeout, and retain traces/screenshots only on failure. This avoids unstable development-HMR behavior during interaction tests. Keep screenshot names independent of the developer's machine by configuring one Chromium project named `chromium`.
 
 **Step 4: Install the local Chromium test browser and generate the reviewed baseline.**
 
@@ -123,10 +125,12 @@ npm run test:visual
 
 Expected: 35 viewport overflow cases, keyboard/navigation checks, and the desktop home screenshot all pass. Treat unexpected layout behavior as a defect; adjust product styles only after reproducing it in the test.
 
+Make `#konten-utama` programmatically focusable with `tabIndex={-1}` so the skip link transfers keyboard focus as well as scrolling to the content. Ignore only generated `frontend/test-results/`, `frontend/playwright-report/`, and `frontend/blob-report/`; retain the reviewed Playwright snapshot in source control.
+
 **Step 6: Commit the baseline.**
 
 ```powershell
-git add frontend/package.json frontend/package-lock.json frontend/playwright.config.ts frontend/tests/visual
+git add .gitignore frontend/package.json frontend/package-lock.json frontend/playwright.config.ts frontend/src/components/layout/PageShell.jsx frontend/tests/visual
 git commit -m "test: add public visual baseline"
 ```
 
@@ -445,4 +449,3 @@ gh pr view --json number,url,baseRefName,headRefName,statusCheckRollup
 ```
 
 Confirm base is `development`, head is `feature/supabase-foundation`, all available CI checks are green, and the PR body accurately distinguishes P2-201's linkage/read-only work from future P2-202 schema work.
-

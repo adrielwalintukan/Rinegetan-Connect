@@ -8,7 +8,7 @@ Menutup Sprint 1 dengan baseline visual yang dapat ditinjau, lalu menyiapkan int
 
 ## Ruang lingkup
 
-1. P2-104 menambahkan pemeriksaan visual/responsif untuk tujuh URL publik Phase 1 pada viewport 320, 375, 768, 1024, dan 1440 px. Lima screenshot referensi halaman beranda disimpan untuk review visual; seluruh tujuh URL menjalani pemeriksaan tidak ada horizontal overflow. Uji juga memeriksa skip link, fokus keyboard, dan pembukaan/penutupan menu mobile.
+1. P2-104 menambahkan pemeriksaan visual/responsif untuk tujuh URL publik Phase 1 pada viewport 320, 375, 390, 768, dan 1440 px. Satu screenshot desktop beranda disimpan untuk review visual; seluruh tujuh URL menjalani pemeriksaan tidak ada horizontal overflow. Uji juga memeriksa skip link, fokus keyboard, dan pembukaan/penutupan menu mobile.
 2. P2-201 menambahkan Supabase CLI yang dipin, `supabase/config.toml`, kontrak environment, factory client browser/server yang terpisah, dan dokumentasi workflow developer.
 3. CLI lokal ditautkan ke project Supabase Singapore milik gereja melalui sesi developer terautentikasi. State tautan lokal, token, password database, dan key tidak dicommit.
 
@@ -23,7 +23,7 @@ Menutup Sprint 1 dengan baseline visual yang dapat ditinjau, lalu menyiapkan int
 
 ### Baseline visual
 
-`@playwright/test` 1.63.0 dipasang sebagai dev dependency frontend. `playwright.config.ts` menjalankan Next development server pada port lokal khusus dan test di `tests/visual/public-routes.spec.ts`.
+`@playwright/test` 1.63.0 dipasang sebagai dev dependency frontend. `playwright.config.ts` membangun lalu menjalankan Next production server pada port lokal khusus dan test di `tests/visual/public-routes.spec.ts`, sehingga HMR development tidak memengaruhi hasil interaksi.
 
 - Snapshot beranda bersifat viewport-only, bukan full-page, agar artefak review tetap kecil dan fokus pada Creation Grid, identitas, navigasi, serta layout atas.
 - Snapshot menggunakan animasi dinonaktifkan dan caret disembunyikan. Perubahan snapshot hanya diterima melalui command update eksplisit dan review Git.
@@ -64,7 +64,7 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 | --- | --- |
 | `frontend/package.json` dan `frontend/package-lock.json` | Dependency dan script Playwright/Supabase versi dipin. |
 | `frontend/playwright.config.ts` | Server test dan viewport baseline. |
-| `frontend/tests/visual/public-routes.spec.ts` | Overflow, keyboard/menu, dan lima snapshot beranda. |
+| `frontend/tests/visual/public-routes.spec.ts` | Overflow, keyboard/menu, dan satu snapshot desktop beranda. |
 | `frontend/tests/visual/public-routes.spec.ts-snapshots/` | Screenshot baseline yang ditinjau. |
 | `frontend/.env.example` | Nama environment public tanpa nilai. |
 | `frontend/src/lib/supabase/environment.ts` | Kontrak lazy environment untuk client Supabase. |
@@ -79,7 +79,7 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 
 1. Test kontrak P2-104 dan P2-201 ditulis lebih dahulu dan dibuktikan gagal.
 2. Implementasi minimum dilakukan sampai test hijau.
-3. Jalankan browser Chromium Playwright secara lokal, lalu review lima screenshot baseline.
+3. Jalankan browser Chromium Playwright secara lokal, lalu review screenshot baseline desktop beranda.
 4. Jalankan `npm run lint`, `npm run build`, `npm run test:routes`, dan `npm run test:visual`.
 5. Jalankan `npm run supabase --prefix frontend -- --help`; setelah CLI link, jalankan `npm run supabase --prefix frontend -- migration list --linked` tanpa menerapkan migration.
 6. Periksa `git diff --check`, `git status --ignored`, dan pencarian pola key/secret sebelum commit.
