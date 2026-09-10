@@ -5,7 +5,7 @@ select plan(12);
 select ok(to_regtype('public.staff_role') is not null, 'staff_role exists');
 select results_eq(
   $$
-    select enumlabel::text
+    select enumlabel::text collate "default"
     from pg_enum
     where enumtypid = to_regtype('public.staff_role')
     order by enumsortorder
