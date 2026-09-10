@@ -58,9 +58,16 @@ test("Supabase browser and server boundaries are separate and contain no privile
   }
 
   assert.match(readText(environmentModule), /getSupabasePublicEnvironment/);
+  assert.match(readText(environmentModule), /NEXT_PUBLIC_SUPABASE_URL/);
+  assert.match(readText(environmentModule), /NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY/);
   assert.match(readText(browserModule), /createBrowserClient/);
   assert.match(readText(browserModule), /createBrowserSupabaseClient/);
+  assert.match(readText(browserModule), /getSupabasePublicEnvironment/);
   assert.match(readText(serverModule), /createServerClient/);
   assert.match(readText(serverModule), /next\/headers/);
   assert.match(readText(serverModule), /createServerSupabaseClient/);
+  assert.match(readText(serverModule), /await cookies\(\)/);
+  assert.match(readText(serverModule), /getAll/);
+  assert.match(readText(serverModule), /setAll/);
+  assert.doesNotMatch(readText(serverModule), /getSession\(/);
 });
