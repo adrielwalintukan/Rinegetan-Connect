@@ -11,7 +11,7 @@ export const PageShell = ({ children }) => (
             Langsung ke konten utama
         </a>
         <GlobalNav />
-        <main id="konten-utama" className="flex-1">
+        <main id="konten-utama" tabIndex={-1} className="flex-1">
             {children}
         </main>
         <GlobalFooter />
