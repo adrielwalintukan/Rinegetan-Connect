@@ -1,11 +1,14 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { resolve } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const frontendRoot = fileURLToPath(new URL("..", import.meta.url));
 const repositoryRoot = resolve(frontendRoot, "..");
+const require = createRequire(import.meta.url);
+const validationPath = resolve(frontendRoot, "src", "lib", "staff", "validation.js");
 
 const readText = (path) => readFileSync(path, "utf8");
 
@@ -61,4 +64,87 @@ test("P2-203 browser and SSR public clients do not import the admin secret", () 
     assert.doesNotMatch(source, /SUPABASE_SECRET_KEY/);
     assert.doesNotMatch(source, /createSupabaseAdminClient/);
   }
+});
+
+test("staff validation module is loadable and trims valid invite input", () => {
+  let validation;
+  assert.doesNotThrow(() => {
+    validation = require(validationPath);
+  });
+
+  assert.deepEqual(
+    validation.parseInviteEditorPayload({
+      email: "  editor@example.com ",
+      displayName: "  Editor Rinegetan  ",
+    }),
+    { email: "editor@example.com", displayName: "Editor Rinegetan" },
+  );
+});
+
+test("staff validation rejects invalid invite input with a stable code", () => {
+  const { parseInviteEditorPayload } = require(validationPath);
+  const invalidPayloads = [
+    null,
+    {},
+    { email: "", displayName: "Editor" },
+    { email: "not-an-email", displayName: "Editor" },
+    { email: "editor@example.com", displayName: "" },
+    { email: "editor@example.com", displayName: "x".repeat(121) },
+  ];
+
+  for (const payload of invalidPayloads) {
+    assert.throws(
+      () => parseInviteEditorPayload(payload),
+      (error) => error?.code === "validation_error",
+    );
+  }
+});
+
+test("staff validation trims valid deactivation input", () => {
+  const { parseDeactivatePayload } = require(validationPath);
+
+  assert.deepEqual(
+    parseDeactivatePayload({
+      userId: "  66666666-6666-4666-8666-666666666666 ",
+      reason: "  Rotasi tugas  ",
+    }),
+    {
+      userId: "66666666-6666-4666-8666-666666666666",
+      reason: "Rotasi tugas",
+    },
+  );
+});
+
+test("staff validation rejects invalid deactivation input", () => {
+  const { parseDeactivatePayload } = require(validationPath);
+  const invalidPayloads = [
+    null,
+    { userId: "not-a-uuid", reason: "Rotasi" },
+    { userId: "66666666-6666-6666-6666-666666666666", reason: "" },
+    {
+      userId: "66666666-6666-6666-6666-666666666666",
+      reason: "x".repeat(241),
+    },
+  ];
+
+  for (const payload of invalidPayloads) {
+    assert.throws(
+      () => parseDeactivatePayload(payload),
+      (error) => error?.code === "validation_error",
+    );
+  }
+});
+
+test("staff server service verifies the current user and active Admin role", () => {
+  const serverModule = resolve(frontendRoot, "src", "lib", "staff", "server.ts");
+
+  assert.ok(existsSync(serverModule), "staff server service must exist");
+
+  const source = readText(serverModule);
+  assert.match(source, /requireActiveAdmin/);
+  assert.match(source, /auth\.getUser\(\)/);
+  assert.match(source, /from\("staff_roles"\)/);
+  assert.match(source, /from\("profiles"\)/);
+  assert.match(source, /role.*admin/);
+  assert.match(source, /is_active/);
 });
