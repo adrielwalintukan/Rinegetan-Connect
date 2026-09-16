@@ -60,3 +60,25 @@ test("P2-204 proxy matcher excludes static assets and API", () => {
   assert.match(source, /_next/);
   assert.match(source, /api/);
 });
+
+test("P2-204 staff server guard verifies Auth user plus active database role", () => {
+  const source = readText(resolve(frontendRoot, "src", "lib", "staff", "server.ts"));
+  assert.match(source, /requireActiveStaff/);
+  assert.match(source, /auth\.getUser\(\)/);
+  assert.match(source, /role.*admin.*editor|admin.*editor.*role/s);
+  assert.match(source, /is_active/);
+});
+
+test("P2-204 protected landing and logout are server boundaries", () => {
+  const layout = readText(
+    resolve(frontendRoot, "src", "app", "staff", "(protected)", "layout.tsx"),
+  );
+  const signout = readText(
+    resolve(frontendRoot, "src", "app", "auth", "signout", "route.ts"),
+  );
+  assert.match(layout, /requireActiveStaff/);
+  assert.match(layout, /redirect/);
+  assert.match(signout, /export\s+async\s+function\s+POST/);
+  assert.match(signout, /auth\.signOut\(\)/);
+  assert.doesNotMatch(`${layout}${signout}`, /SUPABASE_SECRET_KEY|createSupabaseAdminClient/);
+});

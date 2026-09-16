@@ -25,9 +25,7 @@ export const updateSupabaseSession = async (request: NextRequest) => {
     },
   });
 
-  const {
-    data: { claims },
-  } = await supabase.auth.getClaims();
+  const { data, error } = await supabase.auth.getClaims();
 
-  return { claims: claims ?? null, response };
+  return { claims: error || !data ? null : data.claims, response };
 };
