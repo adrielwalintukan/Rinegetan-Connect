@@ -13,7 +13,7 @@ Copy-Item .env.example .env.local
 npm run supabase -- --help
 ```
 
-Isi dua nilai publik di `.env.local` dari Connect/API settings project Supabase. Jangan memasukkan nilai, project ref, token, password, service-role key, atau secret key ke `.env.example` maupun dokumentasi.
+Isi dua nilai publik di `.env.local` dari Connect/API settings project Supabase. `SUPABASE_URL` dan `SUPABASE_SECRET_KEY` hanya diisi pada environment server lokal/deployment, tidak pada browser. Jangan memasukkan nilai, project ref, token, password, service-role key, atau secret key ke `.env.example` maupun dokumentasi.
 
 CLI adalah dependency project dan selalu dijalankan dari root repository melalui script frontend. Untuk menggunakan stack lokal, nyalakan Docker-compatible container runtime lalu jalankan:
 
@@ -70,6 +70,40 @@ npm run supabase --prefix frontend -- db push --linked --skip-vault
 
 Setelah push, verifikasi migration list dan Advisors remote secara read-only. Jangan menjalankan pgTAP fixture terhadap `--linked`; seluruh fixture test P2-202 hanya untuk database lokal dan selalu di-rollback.
 
+## P2-203 — bootstrap dan lifecycle staf
+
+Migration `20260916135514_p2_203_staff_bootstrap.sql` menambahkan tiga RPC terkontrol: `bootstrap_first_admin(text)`, `provision_invited_editor(uuid, text)`, dan `deactivate_staff(uuid, text)`. Ketiganya memakai `SECURITY DEFINER`, validasi Admin aktif, advisory lock yang relevan, audit log ter-redaksi, dan `EXECUTE` hanya untuk `authenticated`; tidak ada grant DML tabel kepada client.
+
+`SUPABASE_SECRET_KEY` hanya digunakan oleh `frontend/src/lib/supabase/admin.ts` dan Route Handler server. Ia diperlukan untuk Auth Admin API saat `POST /api/staff/invite-editor`; jika provisioning RPC gagal, route memanggil `auth.admin.deleteUser` sebagai kompensasi sebelum mengembalikan error aman. `POST /api/staff/deactivate` tidak pernah memakai secret client dan hanya memanggil RPC melalui session caller-scoped.
+
+Jalankan migration dan test lokal setelah stack Supabase hidup:
+
+```powershell
+npm run supabase --prefix frontend -- db push --local --skip-vault --yes
+npm run supabase --prefix frontend -- test db --local ../supabase/tests/p2_202_access_control.test.sql
+npm run supabase --prefix frontend -- test db --local ../supabase/tests/p2_203_staff_bootstrap.test.sql
+npm run supabase --prefix frontend -- db advisors --local --type security --level warn
+npm run supabase --prefix frontend -- db advisors --local --type performance --level warn
+```
+
+Bootstrap order:
+
+1. Pemilik membuat Auth user pertama melalui Dashboard Supabase atau Auth Admin API.
+2. User tersebut sign-in setelah P2-204 menyediakan UI/session flow, lalu server memanggil `bootstrap_first_admin` satu kali.
+3. Admin memakai `POST /api/staff/invite-editor` untuk mengundang dan memasangkan Editor.
+4. Admin memakai `POST /api/staff/deactivate` untuk menonaktifkan Editor; `profiles.is_active = false` langsung menghilangkan akses policy.
+
+Pada project Supabase hosted, matikan `enable_signup` dan `auth.email.enable_signup` melalui Dashboard/Auth configuration secara manual. `supabase/config.toml` hanya mengatur local workflow dan tidak mengubah hosted Auth otomatis. P2-204 memiliki halaman sign-in, reset password, refresh-session proxy, dan route guard UI; P2-203 tidak menyediakan public signup.
+
+Sebelum perubahan remote, pemilik project harus memeriksa migration set dan dry-run:
+
+```powershell
+npm run supabase --prefix frontend -- migration list --linked
+npm run supabase --prefix frontend -- db push --linked --dry-run --skip-vault
+```
+
+Jangan menjalankan pgTAP fixture terhadap `--linked`; semua fixture P2-203 hanya untuk database lokal dan di-rollback pada akhir test.
+
 ## Tahap berikutnya
 
-P2-203 akan menangani bootstrap dan lifecycle Admin/Editor tanpa signup publik. Content tables, audit-producing writes, Auth UI, Storage, dan Edge Functions tetap berada di issue berikutnya dan harus melalui migration serta policy terpisah.
+P2-204 melanjutkan sign-in, invitation acceptance, reset password, session refresh, dan route guard UI. Content tables, audit-producing CMS writes, Storage, dan Edge Functions tetap berada di issue berikutnya dan harus melalui migration serta policy terpisah.

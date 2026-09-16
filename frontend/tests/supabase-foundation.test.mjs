@@ -27,6 +27,8 @@ test("public Supabase environment example contains only blank public values", ()
   assert.deepEqual(source.split(/\r?\n/), [
     "NEXT_PUBLIC_SUPABASE_URL=",
     "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=",
+    "SUPABASE_URL=",
+    "SUPABASE_SECRET_KEY=",
   ]);
   assert.doesNotMatch(source, /SERVICE_ROLE|DATABASE_URL|kjxkmmjumrpafdublrbk|supabase\.co/i);
   assert.doesNotMatch(source, /=.+$/m);
