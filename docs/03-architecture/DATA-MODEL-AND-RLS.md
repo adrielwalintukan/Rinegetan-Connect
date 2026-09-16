@@ -90,7 +90,7 @@ Policy publik tidak boleh menggunakan kondisi sekadar status Published jika aset
 2. Berikan kembali SELECT anonim hanya untuk tabel/kolom konten yang benar-benar publik.
 3. Buat fungsi helper security definer yang sempit, misalnya is_admin() dan is_editor_or_admin(), dengan search_path tetap dan tanpa parameter dari klien.
 4. Role dibaca dari staff_roles milik auth.uid(); jangan dari raw user metadata.
-5. Masing-masing tabel mendapat policy per operasi: SELECT, INSERT, UPDATE, DELETE.
+5. Masing-masing tabel mendapat policy per operasi: SELECT, INSERT, UPDATE, DELETE. Jika beberapa persona berbagi operasi yang sama, gabungkan predicate dalam satu permissive policy agar tidak memunculkan `multiple_permissive_policies`.
 6. View publik harus dibuat aman; view tidak otomatis mewarisi RLS pada cara yang aman.
 7. Setiap migration berisi tabel + RLS + grants + policy + test dalam satu perubahan.
 

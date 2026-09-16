@@ -27,7 +27,7 @@ Setelah pemilik project menyelesaikan autentikasi dan link CLI secara lokal, com
 npm run supabase --prefix frontend -- migration list --linked
 ```
 
-P2-201 tidak menerapkan migrasi remote dan tidak menjalankan `db push`, `migration up`, seed, perubahan Auth, Storage, RLS, atau Data API. P2-202 akan membuat migrasi schema pertama melalui pull request yang ditinjau.
+P2-201 tidak menerapkan migrasi remote dan tidak menjalankan `db push`, `migration up`, seed, perubahan Auth, Storage, RLS, atau Data API. P2-202 menambahkan migration staff-access pertama melalui pull request yang ditinjau.
 
 ## Isi direktori
 
@@ -42,6 +42,34 @@ P2-201 tidak menerapkan migrasi remote dan tidak menjalankan `db push`, `migrati
 - Publishable key digunakan hanya melalui environment development/deployment ketika factory klien Supabase dipanggil; ia tidak dimasukkan ke source code atau screenshot.
 - Setiap tabel pada schema yang diekspos nantinya harus mengaktifkan RLS dan kebijakan yang diuji. Akses Data API serta `GRANT` juga harus ditinjau secara eksplisit—RLS saja bukan pengganti konfigurasi exposure API.
 
+## P2-202 — staff access foundation
+
+Migration `20260910151013_p2_202_access_control.sql` menyediakan enum `admin`/`editor`, `profiles`, `staff_roles`, `audit_logs`, helper authorization di schema `private`, trigger timestamp, explicit grants, dan RLS read-only. Tidak ada signup publik, user nyata, seed staf, client write, Storage, atau service-role key.
+
+Jalankan dari root repository setelah container runtime lokal aktif. Karena proses `npm --prefix frontend` berjalan dari direktori `frontend`, path test memakai `../supabase/tests`:
+
+```powershell
+npm run supabase --prefix frontend -- db reset --local --no-seed
+npm run supabase --prefix frontend -- test db --local ../supabase/tests/p2_202_access_control.test.sql
+npm run supabase --prefix frontend -- db advisors --local --type security --level warn
+npm run supabase --prefix frontend -- db advisors --local --type performance --level warn
+```
+
+Sebelum perubahan remote, pemilik project harus memeriksa migration set dan dry-run:
+
+```powershell
+npm run supabase --prefix frontend -- migration list --linked
+npm run supabase --prefix frontend -- db push --linked --dry-run --skip-vault
+```
+
+Hanya setelah dry-run menampilkan satu migration P2-202 yang diharapkan, pemilik project boleh menerapkannya:
+
+```powershell
+npm run supabase --prefix frontend -- db push --linked --skip-vault
+```
+
+Setelah push, verifikasi migration list dan Advisors remote secara read-only. Jangan menjalankan pgTAP fixture terhadap `--linked`; seluruh fixture test P2-202 hanya untuk database lokal dan selalu di-rollback.
+
 ## Tahap berikutnya
 
-Migrasi, RLS, Auth, Storage, dan Edge Functions akan dibuat pada pekerjaan setelah P2-201. PR tersebut harus memverifikasi migrasi dan policy terhadap lingkungan yang aman sebelum perubahan dapat diterapkan ke proyek Singapore.
+P2-203 akan menangani bootstrap dan lifecycle Admin/Editor tanpa signup publik. Content tables, audit-producing writes, Auth UI, Storage, dan Edge Functions tetap berada di issue berikutnya dan harus melalui migration serta policy terpisah.
