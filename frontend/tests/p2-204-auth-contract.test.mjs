@@ -40,3 +40,23 @@ test("P2-204 local Auth keeps public signup disabled", () => {
   const config = readText(resolve(repositoryRoot, "supabase", "config.toml"));
   assert.match(config, /^enable_signup\s*=\s*false\s*$/m);
 });
+
+test("P2-204 proxy owns SSR cookie refresh and optimistic staff redirect", () => {
+  const proxyPath = resolve(frontendRoot, "src", "proxy.ts");
+  const helperPath = resolve(frontendRoot, "src", "lib", "supabase", "proxy.ts");
+  assert.ok(existsSync(proxyPath));
+  assert.ok(existsSync(helperPath));
+  const source = `${readText(proxyPath)}\n${readText(helperPath)}`;
+  assert.match(source, /createServerClient/);
+  assert.match(source, /getClaims\(\)/);
+  assert.match(source, /NextResponse\.redirect/);
+  assert.match(source, /request\.cookies/);
+  assert.doesNotMatch(source, /SUPABASE_SECRET_KEY|createSupabaseAdminClient|getSession\(\)/);
+});
+
+test("P2-204 proxy matcher excludes static assets and API", () => {
+  const source = readText(resolve(frontendRoot, "src", "proxy.ts"));
+  assert.match(source, /matcher/);
+  assert.match(source, /_next/);
+  assert.match(source, /api/);
+});
