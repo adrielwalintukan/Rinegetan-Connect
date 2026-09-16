@@ -24,4 +24,12 @@ test("Supabase source-control boundary is present without project credentials", 
   const readme = readFileSync(join(supabaseRoot, "README.md"), "utf8");
   assert.match(readme, /tidak menerapkan migrasi remote/i);
   assert.match(readme, /jangan commit.*service-role/i);
+  assert.match(readme, /bootstrap_first_admin/);
+  assert.match(readme, /provision_invited_editor/);
+  assert.match(readme, /deactivate_staff/);
+  assert.match(readme, /SUPABASE_SECRET_KEY/);
+  assert.match(readme, /invite-editor/);
+  assert.match(readme, /deactivate/);
+  assert.match(readme, /hosted.*signup|signup.*hosted/i);
+  assert.match(readme, /deleteUser|kompensasi/i);
 });
