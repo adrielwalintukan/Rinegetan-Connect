@@ -73,7 +73,15 @@
 - **Label:** feature, auth, security, priority:critical
 - **Sprint:** 2
 - **Dependencies:** P2-202
-- **Acceptance criteria:** prosedur Admin pertama aman; Admin dapat invite/deactivate Editor; sign-in/reset berfungsi; tidak ada public signup.
+- **Acceptance criteria:** prosedur Admin pertama aman; Admin dapat invite/provision dan deactivate Editor; lifecycle mutation diaudit; tidak ada public signup.
+
+### P2-204 — Staff sign-in, invitation acceptance, reset password, session refresh, dan route guard
+
+- **Label:** feature, frontend, auth, security, priority:critical
+- **Sprint:** 2
+- **Status:** ready
+- **Dependencies:** P2-203
+- **Acceptance criteria:** Admin/Editor dapat sign-in; link invitation acceptance dan reset password dapat diselesaikan; session cookie direfresh; `/staff/*` terlindungi server-side; tidak ada public signup atau open redirect.
 
 ### P2-301 — Schema CMS konten publik
 

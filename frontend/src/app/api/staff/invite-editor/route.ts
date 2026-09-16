@@ -26,8 +26,12 @@ export async function POST(request: Request) {
     await requireActiveAdmin(client);
 
     const adminClient = createSupabaseAdminClient();
+    const callbackUrl = new URL("/auth/callback", request.url);
+    callbackUrl.searchParams.set("next", "/staff/update-password");
     const { data: inviteData, error: inviteError } =
-      await adminClient.auth.admin.inviteUserByEmail(payload.email);
+      await adminClient.auth.admin.inviteUserByEmail(payload.email, {
+        redirectTo: callbackUrl.toString(),
+      });
 
     if (inviteError || !inviteData.user) {
       return Response.json({ error: "invite_failed" }, { status: 502 });

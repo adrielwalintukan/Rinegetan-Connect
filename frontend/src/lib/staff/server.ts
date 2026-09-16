@@ -1,18 +1,25 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
-export class StaffAccessError extends Error {
-  code: "not_authenticated" | "not_admin";
+export type StaffRole = "admin" | "editor";
 
-  constructor(code: "not_authenticated" | "not_admin") {
+export class StaffAccessError extends Error {
+  code: "not_authenticated" | "not_staff" | "not_admin";
+
+  constructor(code: "not_authenticated" | "not_staff" | "not_admin") {
     super(code);
     this.name = "StaffAccessError";
     this.code = code;
   }
 }
 
-export const requireActiveAdmin = async (
+export type ActiveStaff = {
+  role: StaffRole;
+  user: User;
+};
+
+export const requireActiveStaff = async (
   client: SupabaseClient,
-): Promise<User> => {
+): Promise<ActiveStaff> => {
   const {
     data: { user },
     error: userError,
@@ -35,14 +42,30 @@ export const requireActiveAdmin = async (
       .maybeSingle(),
   ]);
 
+  const role = roleResult.data?.role;
+
   if (
     roleResult.error ||
     profileResult.error ||
-    roleResult.data?.role !== "admin" ||
+    !["admin", "editor"].includes(role ?? "") ||
     profileResult.data?.is_active !== true
   ) {
+    throw new StaffAccessError("not_staff");
+  }
+
+  return {
+    role: role as StaffRole,
+    user,
+  };
+};
+
+export const requireActiveAdmin = async (
+  client: SupabaseClient,
+): Promise<User> => {
+  const staff = await requireActiveStaff(client);
+  if (staff.role !== "admin") {
     throw new StaffAccessError("not_admin");
   }
 
-  return user;
+  return staff.user;
 };
