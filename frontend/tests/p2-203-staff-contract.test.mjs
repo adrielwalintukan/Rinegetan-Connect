@@ -168,6 +168,9 @@ test("staff invitation route owns the server-only invite and compensation flow",
   assert.match(source, /requireActiveAdmin/);
   assert.match(source, /createSupabaseAdminClient/);
   assert.match(source, /auth\.admin\.inviteUserByEmail/);
+  assert.match(source, /redirectTo/);
+  assert.match(source, /auth\.callback|auth\/callback/);
+  assert.match(source, /update-password/);
   assert.match(source, /provision_invited_editor/);
   assert.match(source, /auth\.admin\.deleteUser/);
   assert.match(source, /status:\s*201/);

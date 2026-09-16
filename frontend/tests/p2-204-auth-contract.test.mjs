@@ -82,3 +82,26 @@ test("P2-204 protected landing and logout are server boundaries", () => {
   assert.match(signout, /auth\.signOut\(\)/);
   assert.doesNotMatch(`${layout}${signout}`, /SUPABASE_SECRET_KEY|createSupabaseAdminClient/);
 });
+
+test("P2-204 callback exchanges code and never trusts an external next URL", () => {
+  const path = resolve(frontendRoot, "src", "app", "auth", "callback", "route.ts");
+  assert.ok(existsSync(path));
+  const source = readText(path);
+  assert.match(source, /export\s+async\s+function\s+GET/);
+  assert.match(source, /exchangeCodeForSession/);
+  assert.match(source, /safeNextPath/);
+  assert.doesNotMatch(
+    source,
+    /console\.(log|error).*code|searchParams\.get\("code"\).*Response/,
+  );
+});
+
+test("P2-204 invitation route supplies callback redirect without secret exposure", () => {
+  const source = readText(
+    resolve(frontendRoot, "src", "app", "api", "staff", "invite-editor", "route.ts"),
+  );
+  assert.match(source, /redirectTo/);
+  assert.match(source, /auth\.callback|auth\/callback/);
+  assert.match(source, /update-password/);
+  assert.doesNotMatch(source, /NEXT_PUBLIC_SUPABASE_SECRET_KEY/);
+});
