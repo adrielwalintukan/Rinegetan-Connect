@@ -93,7 +93,9 @@ Bootstrap order:
 3. Admin memakai `POST /api/staff/invite-editor` untuk mengundang dan memasangkan Editor.
 4. Admin memakai `POST /api/staff/deactivate` untuk menonaktifkan Editor; `profiles.is_active = false` langsung menghilangkan akses policy.
 
-Pada project Supabase hosted, matikan `enable_signup` dan `auth.email.enable_signup` melalui Dashboard/Auth configuration secara manual. `supabase/config.toml` hanya mengatur local workflow dan tidak mengubah hosted Auth otomatis. P2-204 memiliki halaman sign-in, reset password, refresh-session proxy, dan route guard UI; P2-203 tidak menyediakan public signup.
+Pada project Supabase hosted, matikan `enable_signup` dan `auth.email.enable_signup` melalui Dashboard/Auth configuration secara manual. `supabase/config.toml` hanya mengatur local workflow dan tidak mengubah hosted Auth otomatis. P2-204 memiliki halaman sign-in, reset password, refresh-session proxy, callback `/auth/callback`, dan route guard UI; P2-203 tidak menyediakan public signup.
+
+Hosted Auth URL Configuration harus mengizinkan callback aplikasi yang digunakan Vercel/local, misalnya `/auth/callback`. Invite Editor dan reset password mengarahkan ke `/auth/callback?next=/staff/update-password`; daftar redirect URL harus dikelola pemilik project di Dashboard Supabase dan tidak diisi dari input pengguna.
 
 Sebelum perubahan remote, pemilik project harus memeriksa migration set dan dry-run:
 
@@ -106,4 +108,4 @@ Jangan menjalankan pgTAP fixture terhadap `--linked`; semua fixture P2-203 hanya
 
 ## Tahap berikutnya
 
-P2-204 melanjutkan sign-in, invitation acceptance, reset password, session refresh, dan route guard UI. Content tables, audit-producing CMS writes, Storage, dan Edge Functions tetap berada di issue berikutnya dan harus melalui migration serta policy terpisah.
+P2-204 melanjutkan sign-in, invitation acceptance, reset password, session refresh, logout, callback, dan route guard UI tanpa migration database baru atau `db push`. Content tables, audit-producing CMS writes, Storage, dan Edge Functions tetap berada di issue berikutnya dan harus melalui migration serta policy terpisah.

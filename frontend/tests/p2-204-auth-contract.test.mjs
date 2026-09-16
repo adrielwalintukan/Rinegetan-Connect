@@ -132,3 +132,16 @@ test("P2-204 Auth pages exist and invitation/reset update route is public to pro
   const redirectSource = readText(resolve(frontendRoot, "src", "lib", "auth", "redirect.js"));
   assert.match(redirectSource, /update-password/);
 });
+
+test("P2-204 documentation separates lifecycle from Auth UI/session work", () => {
+  const backlog = readText(
+    resolve(repositoryRoot, "docs", "04-delivery", "PHASE-2-ISSUE-BACKLOG.md"),
+  );
+  assert.match(backlog, /### P2-204/);
+  assert.match(
+    backlog,
+    /sign-in.*invitation acceptance.*reset password.*session refresh.*route guard/s,
+  );
+  const p203 = backlog.match(/### P2-203[\s\S]*?(?=### P2-204)/)?.[0] ?? "";
+  assert.doesNotMatch(p203, /sign-in\/reset berfungsi/);
+});
