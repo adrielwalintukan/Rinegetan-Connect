@@ -148,3 +148,50 @@ test("staff server service verifies the current user and active Admin role", () 
   assert.match(source, /role.*admin/);
   assert.match(source, /is_active/);
 });
+
+test("staff invitation route owns the server-only invite and compensation flow", () => {
+  const routePath = resolve(
+    frontendRoot,
+    "src",
+    "app",
+    "api",
+    "staff",
+    "invite-editor",
+    "route.ts",
+  );
+
+  assert.ok(existsSync(routePath), "invite-editor route must exist");
+
+  const source = readText(routePath);
+  assert.match(source, /export\s+async\s+function\s+POST/);
+  assert.match(source, /parseInviteEditorPayload/);
+  assert.match(source, /requireActiveAdmin/);
+  assert.match(source, /createSupabaseAdminClient/);
+  assert.match(source, /auth\.admin\.inviteUserByEmail/);
+  assert.match(source, /provision_invited_editor/);
+  assert.match(source, /auth\.admin\.deleteUser/);
+  assert.match(source, /status:\s*201/);
+  assert.doesNotMatch(source, /NEXT_PUBLIC_SUPABASE_SECRET_KEY/);
+});
+
+test("staff deactivation route delegates to the guarded lifecycle RPC", () => {
+  const routePath = resolve(
+    frontendRoot,
+    "src",
+    "app",
+    "api",
+    "staff",
+    "deactivate",
+    "route.ts",
+  );
+
+  assert.ok(existsSync(routePath), "deactivate route must exist");
+
+  const source = readText(routePath);
+  assert.match(source, /export\s+async\s+function\s+POST/);
+  assert.match(source, /parseDeactivatePayload/);
+  assert.match(source, /requireActiveAdmin/);
+  assert.match(source, /rpc\("deactivate_staff"/);
+  assert.match(source, /status:\s*204/);
+  assert.doesNotMatch(source, /createSupabaseAdminClient/);
+});
