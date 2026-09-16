@@ -105,3 +105,30 @@ test("P2-204 invitation route supplies callback redirect without secret exposure
   assert.match(source, /update-password/);
   assert.doesNotMatch(source, /NEXT_PUBLIC_SUPABASE_SECRET_KEY/);
 });
+
+test("P2-204 auth pages use browser client and keep errors generic", () => {
+  const files = [
+    "src/app/staff/login/LoginForm.tsx",
+    "src/app/staff/forgot-password/ForgotPasswordForm.tsx",
+    "src/app/staff/update-password/UpdatePasswordForm.tsx",
+  ];
+  const source = files.map((file) => readText(resolve(frontendRoot, file))).join("\n");
+  assert.match(source, /createBrowserSupabaseClient/);
+  assert.match(source, /signInWithPassword/);
+  assert.match(source, /resetPasswordForEmail/);
+  assert.match(source, /updateUser/);
+  assert.doesNotMatch(source, /createSupabaseAdminClient|SUPABASE_SECRET_KEY/);
+  assert.match(source, /tidak dapat|periksa kembali|terkirim|password/i);
+});
+
+test("P2-204 Auth pages exist and invitation/reset update route is public to proxy", () => {
+  for (const path of [
+    "src/app/staff/login/page.tsx",
+    "src/app/staff/forgot-password/page.tsx",
+    "src/app/staff/update-password/page.tsx",
+  ]) {
+    assert.ok(existsSync(resolve(frontendRoot, path)), path);
+  }
+  const redirectSource = readText(resolve(frontendRoot, "src", "lib", "auth", "redirect.js"));
+  assert.match(redirectSource, /update-password/);
+});
