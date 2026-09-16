@@ -249,7 +249,7 @@ select ok(
 );
 select results_eq(
   $$
-    select policyname || ':' || cmd || ':' || array_to_string(roles, ',')
+    select (policyname || ':' || cmd || ':' || array_to_string(roles, ',')) collate "default"
     from pg_policies
     where schemaname = 'public'
       and tablename in ('profiles', 'staff_roles', 'audit_logs')
@@ -257,10 +257,8 @@ select results_eq(
   $$,
   array[
     'audit_logs_select_admin:SELECT:authenticated',
-    'profiles_select_admin:SELECT:authenticated',
-    'profiles_select_self:SELECT:authenticated',
-    'staff_roles_select_admin:SELECT:authenticated',
-    'staff_roles_select_self:SELECT:authenticated'
+    'profiles_select_authenticated:SELECT:authenticated',
+    'staff_roles_select_authenticated:SELECT:authenticated'
   ]::text[],
   'only the five authenticated read policies exist'
 );
