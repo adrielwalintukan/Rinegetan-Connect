@@ -85,3 +85,81 @@ test("P2-403 triggerPublicRevalidation handles media entities and revalidates /m
     "Must revalidate homepage"
   );
 });
+
+test("P2-403 MediaLightbox component exists and declares WCAG accessibility contracts", () => {
+  const lightboxPath = resolve(
+    projectRoot,
+    "src/components/media/MediaLightbox.tsx"
+  );
+  assert.ok(existsSync(lightboxPath), "MediaLightbox.tsx should exist");
+
+  const source = readFileSync(lightboxPath, "utf8");
+  assert.ok(
+    source.includes('role="dialog"') || source.includes("role={'dialog'}"),
+    "Lightbox must declare role='dialog'"
+  );
+  assert.ok(
+    source.includes('aria-modal="true"') || source.includes("aria-modal={'true'}"),
+    "Lightbox must declare aria-modal='true'"
+  );
+  assert.ok(
+    source.includes("Escape") || source.includes('"Escape"'),
+    "Lightbox must listen to Escape key to close"
+  );
+  assert.ok(
+    source.includes("ArrowRight"),
+    "Lightbox must listen to ArrowRight key for next item"
+  );
+  assert.ok(
+    source.includes("ArrowLeft"),
+    "Lightbox must listen to ArrowLeft key for previous item"
+  );
+  assert.ok(
+    source.includes("aria-label"),
+    "Lightbox buttons must have descriptive aria-label"
+  );
+});
+
+test("P2-403 public MediaPage component provides two-tier layout, category pills, and empty state", () => {
+  const mediaPagePath = resolve(
+    projectRoot,
+    "src/components/pages/MediaPage.tsx"
+  );
+  assert.ok(existsSync(mediaPagePath), "MediaPage.tsx should exist");
+
+  const source = readFileSync(mediaPagePath, "utf8");
+  assert.ok(
+    source.includes("MediaLightbox"),
+    "MediaPage must import and render MediaLightbox"
+  );
+  assert.ok(
+    source.includes("EmptyState"),
+    "MediaPage must handle empty results using EmptyState"
+  );
+  assert.ok(
+    source.includes("album") || source.includes("Album"),
+    "MediaPage must support album-level filtering"
+  );
+  assert.ok(
+    source.includes("category") || source.includes("Category"),
+    "MediaPage must support category pill filtering"
+  );
+});
+
+test("P2-403 public media route page fetches public albums and assets server-side", () => {
+  const pagePath = resolve(
+    projectRoot,
+    "src/app/(public)/media/page.tsx"
+  );
+  assert.ok(existsSync(pagePath), "app/(public)/media/page.tsx should exist");
+
+  const source = readFileSync(pagePath, "utf8");
+  assert.ok(
+    source.includes("getPublicMediaAlbums"),
+    "Media route must call getPublicMediaAlbums"
+  );
+  assert.ok(
+    source.includes("getPublicMediaAssets"),
+    "Media route must call getPublicMediaAssets"
+  );
+});

@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
 import MediaPage from "@/components/pages/MediaPage";
+import {
+  getPublicMediaAlbums,
+  getPublicMediaAssets,
+} from "@/lib/public/queries";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Media & Galeri Jemaat",
@@ -11,6 +17,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Page() {
-  return <MediaPage />;
+export default async function Page() {
+  const [albums, assets] = await Promise.all([
+    getPublicMediaAlbums(),
+    getPublicMediaAssets(),
+  ]);
+
+  return <MediaPage initialAlbums={albums} initialAssets={assets} />;
 }
