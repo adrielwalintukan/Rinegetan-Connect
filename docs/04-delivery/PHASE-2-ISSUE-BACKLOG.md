@@ -126,7 +126,7 @@
 
 - **Label:** feature, database, media, security, priority:critical
 - **Sprint:** 4
-- **Status:** ready
+- **Status:** selesai
 - **Dependencies:** P2-202
 - **Acceptance criteria:** album/aset/consent model ada; policy storage dan query menolak pending/revoked/hidden; asset child tanpa izin tidak dapat terbit.
 
@@ -134,6 +134,7 @@
 
 - **Label:** feature, media, security, priority:high
 - **Sprint:** 4
+- **Status:** ready
 - **Dependencies:** P2-401
 - **Acceptance criteria:** type/size/pixel limit tervalidasi; derivative menghapus EXIF/geolocation; original tidak tersimpan pada pilot; kuota 1 GB terpantau.
 
