@@ -16,6 +16,9 @@ const DAYS_ID = [
     "Sabat (Sabtu)",
 ];
 
+/**
+ * @param {{ initialSchedules?: any[] | null }} props
+ */
 export default function SekolahSabatPage({ initialSchedules = null }) {
     const weekly = initialSchedules !== null
         ? initialSchedules.map((s) => ({

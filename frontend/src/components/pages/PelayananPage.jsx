@@ -3,6 +3,9 @@ import { DepartmentsSection } from "@/components/sections/DepartmentsSection";
 import { DigitalMinistrySection } from "@/components/sections/DigitalMinistrySection";
 import { Reveal } from "@/components/motion/Reveal";
 
+/**
+ * @param {{ initialDepartments?: any[] | null }} props
+ */
 export default function PelayananPage({ initialDepartments = null }) {
     return (
         <>

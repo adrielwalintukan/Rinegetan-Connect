@@ -9,6 +9,9 @@ import { MediaSection } from "@/components/sections/MediaSection";
 import { DigitalMinistrySection } from "@/components/sections/DigitalMinistrySection";
 import { VisitCTA } from "@/components/sections/VisitCTA";
 
+/**
+ * @param {{ announcements?: any[], events?: any[] | null }} props
+ */
 export default function HomePage({ announcements = [], events = null }) {
     return (
         <>

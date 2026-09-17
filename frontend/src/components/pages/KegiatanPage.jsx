@@ -9,6 +9,9 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { EVENTS, EVENT_CATEGORIES } from "@/data/content";
 import { cn } from "@/lib/utils";
 
+/**
+ * @param {{ initialEvents?: any[] | null }} props
+ */
 export default function KegiatanPage({ initialEvents = null }) {
     const allEvents = initialEvents !== null ? initialEvents : EVENTS;
     const [filter, setFilter] = useState("Semua");
