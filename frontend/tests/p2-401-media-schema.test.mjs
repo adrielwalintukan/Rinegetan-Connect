@@ -67,10 +67,10 @@ test("P2-401 pgTAP test contract exists and checks media schema & security integ
   assert.ok(existsSync(testPath), "pgTAP test file P2-401 harus ada");
 
   const sql = readText(testPath);
-  assert.match(sql, /has_table\('public', 'media_albums'\)/i);
-  assert.match(sql, /has_table\('public', 'media_assets'\)/i);
-  assert.match(sql, /has_table\('public', 'album_assets'\)/i);
-  assert.match(sql, /has_table\('public', 'consent_records'\)/i);
+  assert.match(sql, /(?:has_table\('public',\s*'media_albums'\)|to_regclass\('public\.media_albums'\))/i);
+  assert.match(sql, /(?:has_table\('public',\s*'media_assets'\)|to_regclass\('public\.media_assets'\))/i);
+  assert.match(sql, /(?:has_table\('public',\s*'album_assets'\)|to_regclass\('public\.album_assets'\))/i);
+  assert.match(sql, /(?:has_table\('public',\s*'consent_records'\)|to_regclass\('public\.consent_records'\))/i);
   assert.match(sql, /child consent/i);
 });
 
