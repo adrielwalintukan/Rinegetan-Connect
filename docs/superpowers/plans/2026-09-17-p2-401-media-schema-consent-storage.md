@@ -30,7 +30,7 @@
 - Consumes: Definisi skema pada design spec.
 - Produces: `frontend/src/types/media.ts` (`MediaAlbum`, `MediaAsset`, `AlbumAsset`, `ConsentRecord`, enums) dan `frontend/tests/p2-401-media-schema.test.mjs`.
 
-- [ ] **Step 1: Write failing schema contract test suite**
+- [x] **Step 1: Write failing schema contract test suite**
 
 Buat file `frontend/tests/p2-401-media-schema.test.mjs` yang memverifikasi:
 1. File migrasi `supabase/migrations/*_p2_401_media_schema_consent_storage.sql` ada.
@@ -40,16 +40,16 @@ Buat file `frontend/tests/p2-401-media-schema.test.mjs` yang memverifikasi:
 5. Storage bucket `media` terdaftar dengan `public = false`.
 6. TypeScript types file `frontend/src/types/media.ts` ada dan mengekspor tipe-tipe yang sesuai.
 
-- [ ] **Step 2: Run test suite to verify failure**
+- [x] **Step 2: Run test suite to verify failure**
 
 Jalankan: `node --test frontend/tests/p2-401-media-schema.test.mjs`
 Expected: FAIL karena file types dan migration belum dibuat.
 
-- [ ] **Step 3: Create TypeScript definitions**
+- [x] **Step 3: Create TypeScript definitions**
 
 Buat `frontend/src/types/media.ts` dengan interface lengkap sesuai spesifikasi desain.
 
-- [ ] **Step 4: Commit Task 1 scaffolding**
+- [x] **Step 4: Commit Task 1 scaffolding**
 
 ```bash
 git add frontend/src/types/media.ts frontend/tests/p2-401-media-schema.test.mjs
@@ -67,7 +67,7 @@ git commit -m "test(media): add P2-401 schema contract test suite and TypeScript
 - Consumes: Helper functions dari `private` schema (`is_admin`, `is_editor_or_admin`, `set_updated_at`).
 - Produces: Struktur database tabel `media_albums`, `media_assets`, `album_assets`, `consent_records`, bucket `media`, dan storage RLS policies.
 
-- [ ] **Step 1: Write the Supabase migration SQL**
+- [x] **Step 1: Write the Supabase migration SQL**
 
 Tulis `supabase/migrations/20260917220000_p2_401_media_schema_consent_storage.sql` berisi:
 1. Definisi enums: `media_category`, `media_processing_state`, `consent_status`, `subject_age_group`.
@@ -103,12 +103,12 @@ Tulis `supabase/migrations/20260917220000_p2_401_media_schema_consent_storage.sq
    - Register bucket `'media'` di `storage.buckets`.
    - Storage policies untuk SELECT (anon publik jika aset approved & published & not hidden, atau staff), INSERT/UPDATE (editor/admin), DELETE (admin).
 
-- [ ] **Step 2: Run schema contract test to confirm it passes**
+- [x] **Step 2: Run schema contract test to confirm it passes**
 
 Jalankan: `node --test frontend/tests/p2-401-media-schema.test.mjs`
 Expected: PASS untuk seluruh schema assertions.
 
-- [ ] **Step 3: Commit Task 2**
+- [x] **Step 3: Commit Task 2**
 
 ```bash
 git add supabase/migrations/20260917220000_p2_401_media_schema_consent_storage.sql
@@ -126,7 +126,7 @@ git commit -m "feat(database): add P2-401 media schema, consent rules, and stora
 - Consumes: `supabase/migrations/20260917220000_p2_401_media_schema_consent_storage.sql`
 - Produces: `supabase/tests/p2_401_media_schema.test.sql` test contract.
 
-- [ ] **Step 1: Write pgTAP test contract**
+- [x] **Step 1: Write pgTAP test contract**
 
 Tulis `supabase/tests/p2_401_media_schema.test.sql` yang menguji:
 1. Eksistensi tipe data: `media_category`, `media_processing_state`, `consent_status`, `subject_age_group`.
@@ -141,11 +141,11 @@ Tulis `supabase/tests/p2_401_media_schema.test.sql` yang menguji:
    - Role anonim tidak dapat membaca asset yang berstatus draft, revoked, atau hidden.
    - Role anonim dapat membaca asset yang published + approved + not hidden.
 
-- [ ] **Step 2: Verify test file syntax and structure**
+- [x] **Step 2: Verify test file syntax and structure**
 
 Pastikan test terdaftar dan valid di pgTAP test contract repository.
 
-- [ ] **Step 3: Commit Task 3**
+- [x] **Step 3: Commit Task 3**
 
 ```bash
 git add supabase/tests/p2_401_media_schema.test.sql
@@ -160,17 +160,17 @@ git commit -m "test(supabase): add pgTAP test contract for P2-401 media schema a
 - Modify: `docs/04-delivery/PHASE-2-ISSUE-BACKLOG.md`
 - Modify: `docs/superpowers/plans/2026-09-17-p2-401-media-schema-consent-storage.md`
 
-- [ ] **Step 1: Run comprehensive quality gate verification**
+- [x] **Step 1: Run comprehensive quality gate verification**
 
 1. `npm --prefix frontend run test:routes`
 2. `npm --prefix frontend run lint`
 3. `npm --prefix frontend run build`
 
-- [ ] **Step 2: Update documentation and backlog**
+- [x] **Step 2: Update documentation and backlog**
 
 - Tandai `P2-401` sebagai `selesai` pada `docs/04-delivery/PHASE-2-ISSUE-BACKLOG.md`.
 - Tandai `P2-402` sebagai `ready` pada `docs/04-delivery/PHASE-2-ISSUE-BACKLOG.md`.
 
-- [ ] **Step 3: Commit, push branch, and open PR**
+- [x] **Step 3: Commit, push branch, and open PR**
 
 Push branch `feature/p2-401-media-schema-consent-storage` ke origin dan buat Pull Request dengan deskripsi komprehensif.
