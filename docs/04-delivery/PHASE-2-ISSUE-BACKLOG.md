@@ -110,9 +110,17 @@
 
 - **Label:** feature, frontend, auth, priority:critical
 - **Sprint:** 3
-- **Status:** ready
+- **Status:** selesai
 - **Dependencies:** P2-203, P2-301
 - **Acceptance criteria:** Editor dapat draft/publish/archive; Admin dapat permanent delete sesuai prosedur; setiap mutation menghasilkan audit redacted.
+
+### P2-304 — Query publik, cache/revalidation, empty states, dan metadata
+
+- **Label:** feature, frontend, performance, priority:high
+- **Sprint:** 3
+- **Status:** ready
+- **Dependencies:** P2-301, P2-302, P2-303
+- **Acceptance criteria:** Query publik hanya membaca konten published; revalidasi cache bekerja saat konten dimutasi; empty states dan metadata SEO tersedia.
 
 ### P2-401 — Schema media, consent, dan Storage policy
 
