@@ -3,7 +3,7 @@ import { DepartmentsSection } from "@/components/sections/DepartmentsSection";
 import { DigitalMinistrySection } from "@/components/sections/DigitalMinistrySection";
 import { Reveal } from "@/components/motion/Reveal";
 
-export default function PelayananPage() {
+export default function PelayananPage({ initialDepartments = null }) {
     return (
         <>
             <section data-testid="pelayanan-intro" className="py-16 lg:py-24 lg:pb-8">
@@ -37,7 +37,7 @@ export default function PelayananPage() {
                     </Reveal>
                 </div>
             </section>
-            <DepartmentsSection />
+            <DepartmentsSection departments={initialDepartments} />
             <DigitalMinistrySection />
         </>
     );

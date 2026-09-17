@@ -1,8 +1,9 @@
 /* eslint-disable @next/next/no-img-element -- Phase 1 keeps external static fallback images. */
 import Link from "next/link";
-import { ArrowUpRight, CalendarDays, Clock, MapPin } from "lucide-react";
+import { ArrowUpRight, CalendarDays, CalendarX, Clock, MapPin } from "lucide-react";
 import { ChapterHeading } from "./ChapterHeading";
 import { Reveal } from "@/components/motion/Reveal";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { EVENTS } from "@/data/content";
 
 export const EventCard = ({ event, featured = false }) => (
@@ -12,7 +13,7 @@ export const EventCard = ({ event, featured = false }) => (
     >
         <div className="img-frame relative aspect-[16/9] rounded-b-none border-0">
             <img
-                src={event.image}
+                src={event.image_url || event.image || "https://images.unsplash.com/photo-1662151900393-97f6bc1567ef?crop=entropy&cs=srgb&fm=jpg&w=1200&q=80"}
                 alt={`Foto kegiatan: ${event.title}`}
                 loading="lazy"
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
@@ -24,7 +25,7 @@ export const EventCard = ({ event, featured = false }) => (
         <div className="flex flex-1 flex-col p-6">
             <p className="flex items-center gap-2 font-mono text-xs font-medium uppercase tracking-[0.14em] text-sabbath-700">
                 <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
-                {event.date}
+                {event.start_date || event.date}
             </p>
             <h3
                 className={`mt-3 font-semibold tracking-tight text-navy ${
@@ -33,13 +34,13 @@ export const EventCard = ({ event, featured = false }) => (
             >
                 {event.title}
             </h3>
-            <p className="mt-2.5 flex-1 text-sm leading-relaxed text-slate-600">
-                {event.description}
+            <p className="mt-2.5 flex-1 text-sm leading-relaxed text-slate-600 line-clamp-3">
+                {event.description || event.body}
             </p>
             <div className="mt-5 flex flex-wrap gap-x-5 gap-y-1.5 border-t border-navy/[0.07] pt-4 text-xs text-slate-500">
                 <span className="flex items-center gap-1.5">
                     <Clock className="h-3.5 w-3.5 text-sabbath-600" aria-hidden="true" />
-                    {event.time}
+                    {event.start_time || event.time || "WITA"}
                 </span>
                 <span className="flex items-center gap-1.5">
                     <MapPin className="h-3.5 w-3.5 text-sabbath-600" aria-hidden="true" />
@@ -50,41 +51,60 @@ export const EventCard = ({ event, featured = false }) => (
     </article>
 );
 
-export const EventsSection = () => (
-    <section
-        data-testid="events-section"
-        aria-labelledby="events-heading"
-        className="bg-navy-50/50 py-20 lg:py-28"
-    >
-        <div className="container-site">
-            <div className="flex flex-wrap items-end justify-between gap-6">
-                <ChapterHeading
-                    number="03"
-                    eyebrow="Kegiatan Jemaat"
-                    title={<span id="events-heading">Kegiatan yang akan datang</span>}
-                    description="Dari ibadah Sabat hingga bakti sosial desa — ada ruang untuk Anda ambil bagian."
-                />
-                <Reveal delay={0.1}>
-                    <Link
-                        href="/kegiatan"
-                        data-testid="events-view-all"
-                        className="btn-secondary group !px-6 !py-3 text-[0.8125rem]"
-                    >
-                        Semua Kegiatan
-                        <ArrowUpRight
-                            className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                            aria-hidden="true"
-                        />
-                    </Link>
-                </Reveal>
-            </div>
-            <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {EVENTS.slice(0, 3).map((event, i) => (
-                    <Reveal key={event.id} delay={0.1 * i}>
-                        <EventCard event={event} />
+export const EventsSection = ({ events = null }) => {
+    const displayEvents = events !== null ? events : EVENTS;
+
+    return (
+        <section
+            data-testid="events-section"
+            aria-labelledby="events-heading"
+            className="bg-navy-50/50 py-20 lg:py-28"
+        >
+            <div className="container-site">
+                <div className="flex flex-wrap items-end justify-between gap-6">
+                    <ChapterHeading
+                        number="03"
+                        eyebrow="Kegiatan Jemaat"
+                        title={<span id="events-heading">Kegiatan yang akan datang</span>}
+                        description="Dari ibadah Sabat hingga bakti sosial desa — ada ruang untuk Anda ambil bagian."
+                    />
+                    <Reveal delay={0.1}>
+                        <Link
+                            href="/kegiatan"
+                            data-testid="events-view-all"
+                            className="btn-secondary group !px-6 !py-3 text-[0.8125rem]"
+                        >
+                            Semua Kegiatan
+                            <ArrowUpRight
+                                className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                                aria-hidden="true"
+                            />
+                        </Link>
                     </Reveal>
-                ))}
+                </div>
+
+                {displayEvents.length > 0 ? (
+                    <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        {displayEvents.slice(0, 3).map((event, i) => (
+                            <Reveal key={event.id} delay={0.1 * i}>
+                                <EventCard event={event} />
+                            </Reveal>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="mt-12">
+                        <EmptyState
+                            icon={CalendarX}
+                            title="Belum Ada Kegiatan Mendatang"
+                            description="Saat ini belum ada agenda kegiatan baru yang dijadwalkan. Silakan kunjungi kembali nanti atau hadiri jadwal ibadah rutin."
+                            actionLabel="Lihat Jadwal Ibadah"
+                            actionHref="/sekolah-sabat"
+                            testId="events-empty-state"
+                        />
+                    </div>
+                )}
             </div>
-        </div>
-    </section>
-);
+        </section>
+    );
+};
+
