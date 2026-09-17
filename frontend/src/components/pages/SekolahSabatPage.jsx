@@ -3,9 +3,30 @@ import { BookOpen, Clock } from "lucide-react";
 import { ChapterHeading } from "@/components/sections/ChapterHeading";
 import { Reveal } from "@/components/motion/Reveal";
 import { CreationGrid, MainColumns, SabbathColumn } from "@/components/layout/CreationGrid";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { SABBATH, SABBATH_SCHOOL_CLASSES, IMAGES } from "@/data/content";
 
-export default function SekolahSabatPage() {
+const DAYS_ID = [
+    "Minggu",
+    "Senin",
+    "Selasa",
+    "Rabu",
+    "Kamis",
+    "Jumat",
+    "Sabat (Sabtu)",
+];
+
+/**
+ * @param {{ initialSchedules?: any[] | null }} props
+ */
+export default function SekolahSabatPage({ initialSchedules = null }) {
+    const weekly = initialSchedules !== null
+        ? initialSchedules.map((s) => ({
+            day: s.day || (s.day_of_week !== undefined ? DAYS_ID[s.day_of_week] : "Sabat (Sabtu)"),
+            name: s.name || s.title,
+            time: s.time || (s.start_time ? `${s.start_time.slice(0, 5)} WITA` : "08.45 WITA"),
+        }))
+        : SABBATH.weekly;
     return (
         <section data-testid="sekolah-sabat-page" className="py-16 lg:py-24">
             <div className="container-site">
@@ -57,28 +78,40 @@ export default function SekolahSabatPage() {
                                         Jadwal ibadah mingguan
                                     </h2>
                                 </div>
-                                <ul className="divide-y divide-navy/[0.06]">
-                                    {SABBATH.weekly.map((row, i) => (
-                                        <li
-                                            key={i}
-                                            className="flex flex-wrap items-baseline justify-between gap-2 px-6 py-4"
-                                        >
-                                            <span className="font-mono text-xs uppercase tracking-[0.14em] text-sabbath-700">
-                                                {row.day}
-                                            </span>
-                                            <span className="flex-1 px-3 text-sm font-medium text-navy">
-                                                {row.name}
-                                            </span>
-                                            <span className="flex items-center gap-1.5 text-sm text-slate-600">
-                                                <Clock
-                                                    className="h-3.5 w-3.5 text-sabbath-600"
-                                                    aria-hidden="true"
-                                                />
-                                                {row.time}
-                                            </span>
-                                        </li>
-                                    ))}
-                                </ul>
+                                {weekly.length > 0 ? (
+                                    <ul className="divide-y divide-navy/[0.06]">
+                                        {weekly.map((row, i) => (
+                                            <li
+                                                key={i}
+                                                className="flex flex-wrap items-baseline justify-between gap-2 px-6 py-4"
+                                            >
+                                                <span className="font-mono text-xs uppercase tracking-[0.14em] text-sabbath-700">
+                                                    {row.day}
+                                                </span>
+                                                <span className="flex-1 px-3 text-sm font-medium text-navy">
+                                                    {row.name}
+                                                </span>
+                                                <span className="flex items-center gap-1.5 text-sm text-slate-600">
+                                                    <Clock
+                                                        className="h-3.5 w-3.5 text-sabbath-600"
+                                                        aria-hidden="true"
+                                                    />
+                                                    {row.time}
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <div className="p-6">
+                                        <EmptyState
+                                            icon={Clock}
+                                            compact
+                                            title="Belum Ada Jadwal Khusus"
+                                            description="Jadwal ibadah mingguan sedang diperbarui. Ibadah Sabat rutin tetap berlangsung setiap Sabtu pukul 08.45 WITA."
+                                            testId="schedules-empty"
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </Reveal>
 

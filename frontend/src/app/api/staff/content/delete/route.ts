@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireActiveAdmin, StaffAccessError } from "@/lib/staff/server";
 import { executePermanentDelete } from "@/lib/staff/content-mutations";
+import { triggerPublicRevalidation } from "@/lib/public/queries";
 
 export async function POST(request: Request) {
   try {
@@ -21,6 +22,8 @@ export async function POST(request: Request) {
       id,
       reason,
     });
+
+    triggerPublicRevalidation(entityType);
 
     return Response.json({ success: true, data: result }, { status: 200 });
   } catch (error) {
