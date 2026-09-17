@@ -149,8 +149,8 @@ export async function POST(request: Request) {
         processing_state: "ready",
         consent_status: "pending",
         status: "draft",
-        created_by: staff.profile.id,
-        updated_by: staff.profile.id,
+        created_by: staff.user.id,
+        updated_by: staff.user.id,
       })
       .select()
       .single();
@@ -177,7 +177,7 @@ export async function POST(request: Request) {
 
     // 9. Catat audit log mutasi
     await client.from("audit_logs").insert({
-      actor_id: staff.profile.id,
+      actor_id: staff.user.id,
       action: "media.upload",
       entity_type: "media_assets",
       entity_id: assetData.id,

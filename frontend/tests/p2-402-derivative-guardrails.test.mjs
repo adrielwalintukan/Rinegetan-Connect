@@ -2,9 +2,6 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import sharp from "sharp";
 import {
-  ALLOWED_MIME_TYPES,
-  MAX_PIXEL_DIMENSION,
-  MAX_TOTAL_PIXELS,
   MAX_UPLOAD_BYTES,
   STORAGE_CAPACITY_BYTES,
   getStorageQuotaMetrics,

@@ -31,7 +31,7 @@
 - Consumes: Konstanta spesifikasi desain P2-402.
 - Produces: `getStorageQuotaMetrics(usedBytes)`, `validateUploadGuardrails(buffer, mimeType, byteLength)`.
 
-- [ ] **Step 1: Write failing guardrails and quota tests**
+- [x] **Step 1: Write failing guardrails and quota tests**
 
 Buat file `frontend/tests/p2-402-derivative-guardrails.test.mjs` yang memverifikasi:
 1. `getStorageQuotaMetrics` menghitung persentase kuota dengan benar untuk status Safe (<70%), Warning (>=70%), Frozen (>=85%), dan Exceeded (>=100%).
@@ -39,21 +39,21 @@ Buat file `frontend/tests/p2-402-derivative-guardrails.test.mjs` yang memverifik
 3. `validateUploadGuardrails` menolak ukuran buffer melebihi 15 MB.
 4. `validateUploadGuardrails` menolak gambar dengan dimensi piksel melebihi 6000px atau > 25 MP.
 
-- [ ] **Step 2: Run test suite to verify failure**
+- [x] **Step 2: Run test suite to verify failure**
 
 Jalankan: `node --test frontend/tests/p2-402-derivative-guardrails.test.mjs`
 Expected: FAIL karena modul guardrails belum dibuat.
 
-- [ ] **Step 3: Implement guardrails and quota service**
+- [x] **Step 3: Implement guardrails and quota service**
 
 Buat `frontend/src/lib/media/guardrails.mjs` dan `guardrails.ts` dengan logika validasi lengkap berbasis `sharp`.
 
-- [ ] **Step 4: Run test suite to verify passes**
+- [x] **Step 4: Run test suite to verify passes**
 
 Jalankan: `node --test frontend/tests/p2-402-derivative-guardrails.test.mjs`
 Expected: PASS untuk seluruh pengujian guardrails dan kuota.
 
-- [ ] **Step 5: Commit Task 1**
+- [x] **Step 5: Commit Task 1**
 
 ```bash
 git add frontend/src/lib/media/guardrails.mjs frontend/src/lib/media/guardrails.ts frontend/tests/p2-402-derivative-guardrails.test.mjs
@@ -73,28 +73,28 @@ git commit -m "feat(media): implement upload guardrails and storage quota monito
 - Consumes: `sharp` image engine.
 - Produces: `createJpegDerivative(inputBuffer)` -> `{ buffer, width, height, bytes, mimeType: 'image/jpeg' }`.
 
-- [ ] **Step 1: Write failing derivative pipeline test**
+- [x] **Step 1: Write failing derivative pipeline test**
 
 Tambahkan uji pada `frontend/tests/p2-402-derivative-guardrails.test.mjs`:
 1. Mengubah gambar uji (misal PNG 2400x1200) menjadi JPEG derivatif dengan bounding box maks 1920x1920.
 2. Memverifikasi metadata keluaran tidak mengandung tag EXIF/GPS.
 3. Memverifikasi format keluaran selalu `jpeg`.
 
-- [ ] **Step 2: Run test suite to verify failure**
+- [x] **Step 2: Run test suite to verify failure**
 
 Jalankan: `node --test frontend/tests/p2-402-derivative-guardrails.test.mjs`
 Expected: FAIL karena modul derivative belum dibuat.
 
-- [ ] **Step 3: Implement JPEG derivative pipeline**
+- [x] **Step 3: Implement JPEG derivative pipeline**
 
 Buat `frontend/src/lib/media/derivative.mjs` dan `derivative.ts` yang menjalankan transformasi `sharp` (auto-orient, resize fit inside max 1920, encode jpeg quality 82, strip metadata).
 
-- [ ] **Step 4: Run test suite to verify passes**
+- [x] **Step 4: Run test suite to verify passes**
 
 Jalankan: `node --test frontend/tests/p2-402-derivative-guardrails.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit Task 2**
+- [x] **Step 5: Commit Task 2**
 
 ```bash
 git add frontend/src/lib/media/derivative.mjs frontend/src/lib/media/derivative.ts frontend/tests/p2-402-derivative-guardrails.test.mjs
@@ -113,18 +113,18 @@ git commit -m "feat(media): implement EXIF-stripping JPEG derivative pipeline"
 - Consumes: `requireStaffAuth`, `validateUploadGuardrails`, `getStorageQuotaMetrics`, `createJpegDerivative`, Supabase Storage client.
 - Produces: Endpoint `POST /api/staff/media/upload`.
 
-- [ ] **Step 1: Write failing upload API route contract test**
+- [x] **Step 1: Write failing upload API route contract test**
 
 Tambahkan uji pada `frontend/tests/p2-402-derivative-guardrails.test.mjs`:
 1. Memverifikasi file `frontend/src/app/api/staff/media/upload/route.ts` ada dan mengekspor method `POST`.
 2. Memverifikasi penanganan form-data: validasi `alt_text` wajib ada, validasi file, dan pengecekan kuota.
 
-- [ ] **Step 2: Run test suite to verify failure**
+- [x] **Step 2: Run test suite to verify failure**
 
 Jalankan: `node --test frontend/tests/p2-402-derivative-guardrails.test.mjs`
 Expected: FAIL karena route handler belum dibuat.
 
-- [ ] **Step 3: Implement upload route handler**
+- [x] **Step 3: Implement upload route handler**
 
 Buat `frontend/src/app/api/staff/media/upload/route.ts`:
 1. Memverifikasi sesi staf (`editor` atau `admin`).
@@ -136,12 +136,12 @@ Buat `frontend/src/app/api/staff/media/upload/route.ts`:
 7. Mencatat record ke `public.media_assets` dan `public.album_assets` (jika `album_id` ada).
 8. Mencatat audit log mutasi staf.
 
-- [ ] **Step 4: Run test suite to verify passes**
+- [x] **Step 4: Run test suite to verify passes**
 
 Jalankan: `node --test frontend/tests/p2-402-derivative-guardrails.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit Task 3**
+- [x] **Step 5: Commit Task 3**
 
 ```bash
 git add frontend/src/app/api/staff/media/upload/route.ts frontend/tests/p2-402-derivative-guardrails.test.mjs
@@ -156,17 +156,18 @@ git commit -m "feat(api): create staff media upload route with quota checks and 
 - Modify: `docs/04-delivery/PHASE-2-ISSUE-BACKLOG.md`
 - Modify: `docs/superpowers/plans/2026-09-17-p2-402-jpeg-derivative-upload-guardrails.md`
 
-- [ ] **Step 1: Run comprehensive quality gate verification**
+- [x] **Step 1: Run comprehensive quality gate verification**
 
 1. `npm --prefix frontend run test:routes`
 2. `npm --prefix frontend run lint`
 3. `npm --prefix frontend run build`
 
-- [ ] **Step 2: Update documentation and backlog**
+- [x] **Step 2: Update documentation and backlog**
 
 - Tandai `P2-402` sebagai `selesai` pada `docs/04-delivery/PHASE-2-ISSUE-BACKLOG.md`.
 - Tandai `P2-403` sebagai `ready` pada `docs/04-delivery/PHASE-2-ISSUE-BACKLOG.md`.
 
-- [ ] **Step 3: Commit, push branch, and open PR**
+- [x] **Step 3: Commit, push branch, and open PR**
 
 Push branch `feature/p2-402-jpeg-derivative-upload-guardrails` ke origin dan buat Pull Request dengan deskripsi komprehensif.
+

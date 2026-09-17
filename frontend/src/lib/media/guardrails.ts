@@ -1,4 +1,4 @@
-import sharp from "sharp";
+import sharp, { type Metadata } from "sharp";
 
 export const ALLOWED_MIME_TYPES: readonly string[] = [
   "image/jpeg",
@@ -92,7 +92,7 @@ export async function validateUploadGuardrails(
     };
   }
 
-  let metadata: sharp.Metadata;
+  let metadata: Metadata;
   try {
     metadata = await sharp(buffer).metadata();
   } catch {
