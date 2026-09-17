@@ -33,31 +33,31 @@
   - `getPublicMediaAssets(options?: { category?: string; albumId?: string }): Promise<PublicMediaAsset[]>`
   - Updated `triggerPublicRevalidation(entity, path)` handling `'media-albums'` and `'media-assets'`.
 
-- [ ] **Step 1: Write failing public queries & revalidation contract test**
+- [x] **Step 1: Write failing public queries & revalidation contract test**
 
 Buat file `frontend/tests/p2-403-public-gallery-cms.test.mjs` yang menguji:
 1. `getPublicMediaAlbums` dan `getPublicMediaAssets` diekspor dari modul query publik.
 2. Query SQL yang dihasilkan strictly memfilter `status = 'published'`, `consent_status = 'approved'`, dan `hidden_at IS NULL`.
 3. `triggerPublicRevalidation` menyertakan cache tags `media-albums`, `media-assets`, dan rute `/media`.
 
-- [ ] **Step 2: Run test suite to verify failure**
+- [x] **Step 2: Run test suite to verify failure**
 
 Jalankan: `node --test frontend/tests/p2-403-public-gallery-cms.test.mjs`
 Expected: FAIL karena modul belum mengekspor fungsi-fungsi query media.
 
-- [ ] **Step 3: Implement public media queries and cache revalidation tags**
+- [x] **Step 3: Implement public media queries and cache revalidation tags**
 
 Perbarui `frontend/src/lib/supabase/public-queries.mjs` dan `frontend/src/lib/supabase/public-queries.ts`:
 1. Tambahkan `getPublicMediaAlbums`: select album terbitan diurutkan berdasarkan `occurred_on` descending.
 2. Tambahkan `getPublicMediaAssets`: select aset terbitan, approved consent, hidden_at null, dengan filter kategori / album opsional.
 3. Daftarkan tag `media-albums` dan `media-assets` pada pemetaan revalidasi.
 
-- [ ] **Step 4: Run test suite to verify passes**
+- [x] **Step 4: Run test suite to verify passes**
 
 Jalankan: `node --test frontend/tests/p2-403-public-gallery-cms.test.mjs`
 Expected: PASS untuk seluruh pengujian Task 1.
 
-- [ ] **Step 5: Commit Task 1**
+- [x] **Step 5: Commit Task 1**
 
 ```bash
 git add frontend/src/lib/supabase/public-queries.mjs frontend/src/lib/supabase/public-queries.ts frontend/tests/p2-403-public-gallery-cms.test.mjs
@@ -79,19 +79,19 @@ git commit -m "feat(media): implement public media queries and cache revalidatio
 - Consumes: `getPublicMediaAlbums`, `getPublicMediaAssets`, `PublicMediaAlbum`, `PublicMediaAsset`, `EmptyState`.
 - Produces: Komponen `MediaLightbox` dan `MediaPage` yang fully-typed dan keyboard-accessible.
 
-- [ ] **Step 1: Write failing Lightbox accessibility & gallery component tests**
+- [x] **Step 1: Write failing Lightbox accessibility & gallery component tests**
 
 Tambahkan uji pada `frontend/tests/p2-403-public-gallery-cms.test.mjs`:
 1. Memverifikasi struktur file `MediaLightbox.tsx` dan `MediaPage.tsx`.
 2. Memverifikasi kontrak aksesibilitas Lightbox: atribut `role="dialog"`, `aria-modal="true"`, tombol tutup, dan event handler keyboard (`Escape`, `ArrowLeft`, `ArrowRight`).
 3. Memverifikasi penanganan `EmptyState` pada galeri publik saat data kosong.
 
-- [ ] **Step 2: Run test suite to verify failure**
+- [x] **Step 2: Run test suite to verify failure**
 
 Jalankan: `node --test frontend/tests/p2-403-public-gallery-cms.test.mjs`
 Expected: FAIL karena file komponen belum dibuat.
 
-- [ ] **Step 3: Implement MediaLightbox and two-tier MediaPage**
+- [x] **Step 3: Implement MediaLightbox and two-tier MediaPage**
 
 1. Bangun `frontend/src/components/media/MediaLightbox.tsx`:
    - Modal overlay dengan backdrop blur.
@@ -104,12 +104,12 @@ Expected: FAIL karena file komponen belum dibuat.
    - Menggunakan `EmptyState` jika daftar foto kosong.
 3. Hubungkan ke `frontend/src/app/(public)/media/page.tsx` yang mengambil data server-side via `getPublicMediaAlbums()` dan `getPublicMediaAssets()`.
 
-- [ ] **Step 4: Run test suite to verify passes**
+- [x] **Step 4: Run test suite to verify passes**
 
 Jalankan: `node --test frontend/tests/p2-403-public-gallery-cms.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit Task 2**
+- [x] **Step 5: Commit Task 2**
 
 ```bash
 git add frontend/src/components/media/MediaLightbox.tsx frontend/src/components/pages/MediaPage.tsx frontend/src/app/(public)/media/page.tsx frontend/tests/p2-403-public-gallery-cms.test.mjs
@@ -131,7 +131,7 @@ git commit -m "feat(gallery): implement accessible lightbox and two-tier public 
 - Consumes: `/api/staff/media/upload` (P2-402), `MediaAsset`, `MediaAlbum`, `StaffRole`, Child Consent Invariant.
 - Produces: Tab `Media & Galeri` pada `StaffDashboard` dengan konsol kurasi lengkap dan modal upload.
 
-- [ ] **Step 1: Write failing staff media CMS contract tests**
+- [x] **Step 1: Write failing staff media CMS contract tests**
 
 Tambahkan uji pada `frontend/tests/p2-403-public-gallery-cms.test.mjs`:
 1. Memverifikasi keberadaan `MediaUploadDialog.tsx` dan `MediaManager.tsx`.
@@ -139,12 +139,12 @@ Tambahkan uji pada `frontend/tests/p2-403-public-gallery-cms.test.mjs`:
 3. Memverifikasi form upload memvalidasi `alt_text` wajib ada minimal 3 karakter.
 4. Memverifikasi dialog instant takedown mewajibkan `hidden_reason` minimal 3 karakter.
 
-- [ ] **Step 2: Run test suite to verify failure**
+- [x] **Step 2: Run test suite to verify failure**
 
 Jalankan: `node --test frontend/tests/p2-403-public-gallery-cms.test.mjs`
 Expected: FAIL karena komponen CMS media belum dibuat.
 
-- [ ] **Step 3: Implement MediaUploadDialog and MediaManager**
+- [x] **Step 3: Implement MediaUploadDialog and MediaManager**
 
 1. Bangun `frontend/src/components/staff/MediaUploadDialog.tsx`:
    - Dialog modal unggah file gambar (JPEG/PNG/WebP maks 15MB) dengan preview lokal.
@@ -159,12 +159,12 @@ Expected: FAIL karena komponen CMS media belum dibuat.
    - Aksi hapus permanen khusus peran admin.
 3. Integrasikan tab `"media"` ke `StaffDashboard.tsx` dan perbarui query awal di `frontend/src/app/staff/(protected)/page.tsx`.
 
-- [ ] **Step 4: Run test suite to verify passes**
+- [x] **Step 4: Run test suite to verify passes**
 
 Jalankan: `node --test frontend/tests/p2-403-public-gallery-cms.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit Task 3**
+- [x] **Step 5: Commit Task 3**
 
 ```bash
 git add frontend/src/components/staff/MediaUploadDialog.tsx frontend/src/components/staff/MediaManager.tsx frontend/src/components/staff/StaffDashboard.tsx frontend/src/app/staff/(protected)/page.tsx frontend/tests/p2-403-public-gallery-cms.test.mjs
@@ -180,13 +180,13 @@ git commit -m "feat(staff): integrate media management tab and upload dialog in 
 - Modify: `docs/superpowers/plans/2026-09-17-p2-403-public-gallery-cms.md`
 - Create: `docs/04-delivery/pr-body-p2-403.md`
 
-- [ ] **Step 1: Run comprehensive quality gate verification**
+- [x] **Step 1: Run comprehensive quality gate verification**
 
 1. `npm --prefix frontend run test:routes` -> Semua tes rute dan kontrak lulus (minimal 75+ tests).
 2. `npm --prefix frontend run lint` -> 0 errors, 0 warnings.
 3. `npm --prefix frontend run build` -> Next.js App Router build berhasil tanpa type error.
 
-- [ ] **Step 2: Browser visual verification with screenshots**
+- [x] **Step 2: Browser visual verification with screenshots**
 
 Jalankan browser subagent:
 1. Buka `http://localhost:3000/media`:
@@ -199,12 +199,12 @@ Jalankan browser subagent:
    - Ambil tangkapan layar antarmuka CMS media.
 3. Simpan dan tautkan tangkapan layar ke `docs/04-delivery/pr-body-p2-403.md`.
 
-- [ ] **Step 3: Update documentation and backlog**
+- [x] **Step 3: Update documentation and backlog**
 
 - Tandai `P2-403` sebagai `selesai` pada `docs/04-delivery/PHASE-2-ISSUE-BACKLOG.md`.
 - Tandai `P2-404` sebagai `ready` pada `docs/04-delivery/PHASE-2-ISSUE-BACKLOG.md`.
 
-- [ ] **Step 4: Commit, push branch, and open PR**
+- [x] **Step 4: Commit, push branch, and open PR**
 
 ```bash
 git add docs/04-delivery/PHASE-2-ISSUE-BACKLOG.md docs/superpowers/plans/2026-09-17-p2-403-public-gallery-cms.md docs/04-delivery/pr-body-p2-403.md
