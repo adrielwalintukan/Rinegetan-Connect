@@ -153,3 +153,30 @@ test("createJpegDerivative preserves smaller dimensions without enlargement", as
   assert.equal(derivative.mimeType, "image/jpeg");
 });
 
+test("Staff media upload API route exists and declares POST handler", async () => {
+  const { existsSync, readFileSync } = await import("node:fs");
+  const { resolve } = await import("node:path");
+  const { fileURLToPath } = await import("node:url");
+
+  const frontendRoot = fileURLToPath(new URL("..", import.meta.url));
+  const routePath = resolve(
+    frontendRoot,
+    "src",
+    "app",
+    "api",
+    "staff",
+    "media",
+    "upload",
+    "route.ts"
+  );
+
+  assert.ok(existsSync(routePath), "Upload route file must exist");
+  const routeContent = readFileSync(routePath, "utf8");
+  assert.match(routeContent, /export async function POST/);
+  assert.match(routeContent, /requireActiveStaff/);
+  assert.match(routeContent, /createJpegDerivative/);
+  assert.match(routeContent, /validateUploadGuardrails/);
+  assert.match(routeContent, /getStorageQuotaMetrics/);
+});
+
+
