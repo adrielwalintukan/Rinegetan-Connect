@@ -83,6 +83,7 @@ test("P2-302 TypeScript types file exists and exports schedule interfaces", () =
 
 test("WITA formatting helpers format time, date, and ranges correctly in Asia/Makassar context", () => {
   assert.equal(WITA_TIMEZONE, "Asia/Makassar");
+  assert.equal(DAY_NAMES_ID[6], "Sabat (Sabtu)");
   assert.equal(getDayNameId(0), "Minggu");
   assert.equal(getDayNameId(3), "Rabu");
   assert.equal(getDayNameId(5), "Jumat");

@@ -102,7 +102,7 @@
 
 - **Label:** feature, database, frontend, priority:high
 - **Sprint:** 3
-- **Status:** ready
+- **Status:** selesai
 - **Dependencies:** P2-301
 - **Acceptance criteria:** recurrence mingguan, add/override/cancel per tanggal, dan tampilan Asia/Makassar diuji.
 
@@ -110,6 +110,7 @@
 
 - **Label:** feature, frontend, auth, priority:critical
 - **Sprint:** 3
+- **Status:** ready
 - **Dependencies:** P2-203, P2-301
 - **Acceptance criteria:** Editor dapat draft/publish/archive; Admin dapat permanent delete sesuai prosedur; setiap mutation menghasilkan audit redacted.
 

@@ -32,7 +32,7 @@
 - Consumes: `public.content_status`, `public.departments`, `public.is_editor_or_admin()`, `public.is_admin()`, `public.audit_mutation_trigger()`
 - Produces: `public.schedules`, `public.schedule_exceptions`, RLS policies, audit triggers, foreign keys, and validation constraints.
 
-- [ ] **Step 1: Write the failing pgTAP test contract**
+- [x] **Step 1: Write the failing pgTAP test contract**
 
 Buat file test contract `supabase/tests/p2_302_schedules_schema.test.sql` yang memverifikasi:
 1. Keberadaan tabel `public.schedules` dan `public.schedule_exceptions`.
@@ -51,11 +51,11 @@ Buat file test contract `supabase/tests/p2_302_schedules_schema.test.sql` yang m
    - Admin dapat DELETE permanen.
 5. Audit log terisi saat terjadi INSERT/UPDATE/DELETE.
 
-- [ ] **Step 2: Run test contract and observe it fail**
+- [x] **Step 2: Run test contract and observe it fail**
 
 Verifikasi bahwa test contract mendeteksi ketiadaan tabel `public.schedules` dan `public.schedule_exceptions`.
 
-- [ ] **Step 3: Implement database migration**
+- [x] **Step 3: Implement database migration**
 
 Buat migration `supabase/migrations/20260917183000_p2_302_wita_schedules_and_exceptions.sql` berisi:
 1. `CREATE TABLE public.schedules (...)` beserta check constraints dan indexes.
@@ -77,11 +77,11 @@ Buat migration `supabase/migrations/20260917183000_p2_302_wita_schedules_and_exc
    - Trigger `set_updated_at` pada kedua tabel.
    - Trigger audit log `audit_mutation_trigger()` pada kedua tabel.
 
-- [ ] **Step 4: Verify migration syntax and SQL structure**
+- [x] **Step 4: Verify migration syntax and SQL structure**
 
 Review migration SQL syntax secara cermat, pastikan tidak ada sintaks PostgreSQL yang cacat atau konflik penamaan policy.
 
-- [ ] **Step 5: Commit Task 1**
+- [x] **Step 5: Commit Task 1**
 
 ```bash
 git add supabase/tests/p2_302_schedules_schema.test.sql supabase/migrations/20260917183000_p2_302_wita_schedules_and_exceptions.sql
@@ -103,7 +103,7 @@ git commit -m "feat(db): implement P2-302 schedules and exceptions schema with R
   - Types: `DayOfWeek`, `Schedule`, `ScheduleException`, `ResolvedOccurrence`
   - Functions: `resolveWeeklyOccurrences(schedules, exceptions, startDate, endDate)`, `formatWitaTime(timeStr)`, `formatWitaDate(dateStr)`, `formatWitaRange(start, end)`, `getDayNameId(dayOfWeek)`
 
-- [ ] **Step 1: Write the failing frontend contract and unit test suite**
+- [x] **Step 1: Write the failing frontend contract and unit test suite**
 
 Buat `frontend/tests/p2-302-schedule-wita.test.mjs` yang memverifikasi:
 1. Formatter WITA:
@@ -122,11 +122,11 @@ Buat `frontend/tests/p2-302-schedule-wita.test.mjs` yang memverifikasi:
 6. Pengurutan kejadian:
    - Hasil akhir terurut rapi secara kronologis berdasarkan `date` dan `startTime`.
 
-- [ ] **Step 2: Run test suite and observe it fail**
+- [x] **Step 2: Run test suite and observe it fail**
 
 Jalankan `node frontend/tests/p2-302-schedule-wita.test.mjs` dan pastikan gagal karena modul belum dibuat.
 
-- [ ] **Step 3: Implement TypeScript types and WITA resolution engine**
+- [x] **Step 3: Implement TypeScript types and WITA resolution engine**
 
 1. Buat `frontend/src/types/schedule.ts` yang mendefinisikan interface lengkap `Schedule`, `ScheduleException`, `ResolvedOccurrence`, dan tipe `DayOfWeek`.
 2. Buat `frontend/src/lib/schedule-wita.ts` yang mengimplementasikan:
@@ -137,11 +137,11 @@ Jalankan `node frontend/tests/p2-302-schedule-wita.test.mjs` dan pastikan gagal 
    - `formatWitaRange`
    - `resolveWeeklyOccurrences` yang melakukan ekspansi hari, pemfilteran jadwal aktif, resolusi exception (cancelled, override, added), dan pengurutan kronologis.
 
-- [ ] **Step 4: Run test suite and confirm it passes**
+- [x] **Step 4: Run test suite and confirm it passes**
 
 Jalankan `node frontend/tests/p2-302-schedule-wita.test.mjs` dan pastikan seluruh test assertions lulus 100%.
 
-- [ ] **Step 5: Commit Task 2**
+- [x] **Step 5: Commit Task 2**
 
 ```bash
 git add frontend/src/types/schedule.ts frontend/src/lib/schedule-wita.ts frontend/tests/p2-302-schedule-wita.test.mjs
@@ -156,20 +156,20 @@ git commit -m "feat(frontend): implement P2-302 WITA schedule resolution engine 
 - Modify: `docs/04-delivery/PHASE-2-ISSUE-BACKLOG.md` (P2-302 -> selesai, P2-303 -> ready)
 - Modify: `docs/04-delivery/SPRINT-PLAN.md` (P2-302 status)
 
-- [ ] **Step 1: Run comprehensive quality gate verification**
+- [x] **Step 1: Run comprehensive quality gate verification**
 
 Jalankan seluruh suite verifikasi frontend:
 1. `npm --prefix frontend run test:routes`
 2. `npm --prefix frontend run lint`
 3. `npm --prefix frontend run build`
 
-- [ ] **Step 2: Update documentation status**
+- [x] **Step 2: Update documentation status**
 
 Perbarui status issue:
 - `P2-302`: ubah status menjadi `selesai`.
 - `P2-303`: ubah status menjadi `ready`.
 
-- [ ] **Step 3: Commit documentation updates**
+- [x] **Step 3: Commit documentation updates**
 
 ```bash
 git add docs/04-delivery/PHASE-2-ISSUE-BACKLOG.md docs/04-delivery/SPRINT-PLAN.md docs/superpowers/plans/2026-09-17-p2-302-wita-schedules-exceptions.md
