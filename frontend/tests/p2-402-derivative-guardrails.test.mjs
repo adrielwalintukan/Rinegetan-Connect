@@ -10,6 +10,7 @@ import {
   getStorageQuotaMetrics,
   validateUploadGuardrails,
 } from "../src/lib/media/guardrails.mjs";
+import { createJpegDerivative } from "../src/lib/media/derivative.mjs";
 
 test("getStorageQuotaMetrics computes quota thresholds accurately", () => {
   // Safe (< 70%)
@@ -101,3 +102,54 @@ test("validateUploadGuardrails accepts valid images within limits", async () => 
   assert.equal(result.width, 1200);
   assert.equal(result.height, 800);
 });
+
+test("createJpegDerivative downsizes large images and strips EXIF metadata", async () => {
+  // Input: 2400 x 1200 PNG
+  const rawBuffer = await sharp({
+    create: {
+      width: 2400,
+      height: 1200,
+      channels: 3,
+      background: { r: 100, g: 150, b: 200 },
+    },
+  })
+    .png()
+    .toBuffer();
+
+  const derivative = await createJpegDerivative(rawBuffer);
+
+  assert.equal(derivative.mimeType, "image/jpeg");
+  assert.ok(derivative.bytes > 0);
+  assert.ok(derivative.bytes === derivative.buffer.length);
+  // Bounding box max 1920: 2400x1200 should scale to 1920x960
+  assert.equal(derivative.width, 1920);
+  assert.equal(derivative.height, 960);
+
+  // Inspect output metadata to verify EXIF/GPS absence
+  const outMeta = await sharp(derivative.buffer).metadata();
+  assert.equal(outMeta.format, "jpeg");
+  assert.equal(outMeta.exif, undefined);
+  assert.equal(outMeta.iptc, undefined);
+  assert.equal(outMeta.xmp, undefined);
+});
+
+test("createJpegDerivative preserves smaller dimensions without enlargement", async () => {
+  // Input: 800 x 600
+  const smallBuffer = await sharp({
+    create: {
+      width: 800,
+      height: 600,
+      channels: 3,
+      background: { r: 30, g: 60, b: 90 },
+    },
+  })
+    .jpeg()
+    .toBuffer();
+
+  const derivative = await createJpegDerivative(smallBuffer);
+
+  assert.equal(derivative.width, 800);
+  assert.equal(derivative.height, 600);
+  assert.equal(derivative.mimeType, "image/jpeg");
+});
+
