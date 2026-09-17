@@ -3,6 +3,7 @@ import { requireActiveStaff } from "@/lib/staff/server";
 import { StaffDashboard } from "@/components/staff/StaffDashboard";
 import type { ContentItem } from "@/components/staff/ContentTable";
 import type { AuditEntry } from "@/components/staff/AuditLogViewer";
+import type { MediaAsset, MediaAlbum } from "@/types/media";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,8 @@ export default async function StaffHomePage() {
     schedulesRes,
     departmentsRes,
     auditLogsRes,
+    mediaAssetsRes,
+    mediaAlbumsRes,
   ] = await Promise.all([
     client
       .from("announcements")
@@ -39,6 +42,14 @@ export default async function StaffHomePage() {
       .select("*")
       .order("created_at", { ascending: false })
       .limit(50),
+    client
+      .from("media_assets")
+      .select("*")
+      .order("created_at", { ascending: false }),
+    client
+      .from("media_albums")
+      .select("*")
+      .order("occurred_on", { ascending: false }),
   ]);
 
   return (
@@ -50,6 +61,8 @@ export default async function StaffHomePage() {
       initialSchedules={(schedulesRes.data as ContentItem[]) || []}
       initialDepartments={(departmentsRes.data as ContentItem[]) || []}
       initialAuditLogs={(auditLogsRes.data as AuditEntry[]) || []}
+      initialMediaAssets={(mediaAssetsRes.data as MediaAsset[]) || []}
+      initialMediaAlbums={(mediaAlbumsRes.data as MediaAlbum[]) || []}
     />
   );
 }

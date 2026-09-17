@@ -163,3 +163,83 @@ test("P2-403 public media route page fetches public albums and assets server-sid
     "Media route must call getPublicMediaAssets"
   );
 });
+
+test("P2-403 MediaUploadDialog component exists and targets staff upload API", () => {
+  const uploadDialogPath = resolve(
+    projectRoot,
+    "src/components/staff/MediaUploadDialog.tsx"
+  );
+  assert.ok(existsSync(uploadDialogPath), "MediaUploadDialog.tsx should exist");
+
+  const source = readFileSync(uploadDialogPath, "utf8");
+  assert.ok(
+    source.includes("/api/staff/media/upload"),
+    "MediaUploadDialog must call /api/staff/media/upload endpoint"
+  );
+  assert.ok(
+    source.includes("alt_text") || source.includes("altText"),
+    "MediaUploadDialog must handle alt_text field"
+  );
+  assert.ok(
+    source.includes("subject_age_group") || source.includes("subjectAgeGroup"),
+    "MediaUploadDialog must include child/general subject age group selector"
+  );
+  assert.ok(
+    source.includes("consent_status") || source.includes("consentStatus"),
+    "MediaUploadDialog must include consent status selector"
+  );
+});
+
+test("P2-403 MediaManager component exists and enforces child protection consent invariants", () => {
+  const mediaManagerPath = resolve(
+    projectRoot,
+    "src/components/staff/MediaManager.tsx"
+  );
+  assert.ok(existsSync(mediaManagerPath), "MediaManager.tsx should exist");
+
+  const source = readFileSync(mediaManagerPath, "utf8");
+  assert.ok(
+    source.includes("child") && source.includes("approved"),
+    "MediaManager must enforce approved consent before publishing child photos"
+  );
+  assert.ok(
+    source.includes("hidden_reason") || source.includes("hiddenReason"),
+    "MediaManager takedown flow must require hidden_reason"
+  );
+  assert.ok(
+    source.includes("quota") || source.includes("STORAGE_CAPACITY_BYTES") || source.includes("1073741824"),
+    "MediaManager must display storage quota metrics"
+  );
+});
+
+test("P2-403 StaffDashboard and protected page integrate media management tab", () => {
+  const dashboardPath = resolve(
+    projectRoot,
+    "src/components/staff/StaffDashboard.tsx"
+  );
+  assert.ok(existsSync(dashboardPath), "StaffDashboard.tsx should exist");
+  const dashboardSource = readFileSync(dashboardPath, "utf8");
+  assert.ok(
+    dashboardSource.includes('"media"') || dashboardSource.includes("'media'"),
+    "StaffDashboard must declare 'media' in TabType"
+  );
+  assert.ok(
+    dashboardSource.includes("MediaManager"),
+    "StaffDashboard must import and render MediaManager"
+  );
+
+  const pagePath = resolve(
+    projectRoot,
+    "src/app/staff/(protected)/page.tsx"
+  );
+  assert.ok(existsSync(pagePath), "staff/(protected)/page.tsx should exist");
+  const pageSource = readFileSync(pagePath, "utf8");
+  assert.ok(
+    pageSource.includes('"media_assets"') || pageSource.includes("'media_assets'"),
+    "Staff protected page must fetch media_assets"
+  );
+  assert.ok(
+    pageSource.includes('"media_albums"') || pageSource.includes("'media_albums'"),
+    "Staff protected page must fetch media_albums"
+  );
+});

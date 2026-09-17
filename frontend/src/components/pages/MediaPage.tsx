@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -105,7 +106,7 @@ export default function MediaPage({
                 const isSelected = selectedAlbumId === album.id;
 
                 return (
-                  <Reveal key={album.id} delay={0.05 * idx}>
+                  <Reveal key={album.id} delay={0.05 * idx} className="">
                     <button
                       type="button"
                       onClick={() => {
@@ -238,7 +239,7 @@ export default function MediaPage({
                 const albumName = asset.album_assets?.[0]?.album?.title;
 
                 return (
-                  <Reveal key={asset.id} delay={0.03 * (index % 12)}>
+                  <Reveal key={asset.id} delay={0.03 * (index % 12)} className="">
                     <article
                       data-testid={`media-item-${asset.id}`}
                       className="group relative cursor-pointer overflow-hidden rounded-2xl border border-navy/10 bg-slate-900 aspect-[4/3] shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
