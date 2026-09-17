@@ -1,26 +1,55 @@
-export default function StaffHomePage() {
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { requireActiveStaff } from "@/lib/staff/server";
+import { StaffDashboard } from "@/components/staff/StaffDashboard";
+import type { ContentItem } from "@/components/staff/ContentTable";
+import type { AuditEntry } from "@/components/staff/AuditLogViewer";
+
+export const dynamic = "force-dynamic";
+
+export default async function StaffHomePage() {
+  const client = await createServerSupabaseClient();
+  const staff = await requireActiveStaff(client);
+
+  // Fetch initial content securely server-side
+  const [
+    announcementsRes,
+    eventsRes,
+    schedulesRes,
+    departmentsRes,
+    auditLogsRes,
+  ] = await Promise.all([
+    client
+      .from("announcements")
+      .select("*")
+      .order("created_at", { ascending: false }),
+    client
+      .from("events")
+      .select("*")
+      .order("created_at", { ascending: false }),
+    client
+      .from("schedules")
+      .select("*")
+      .order("position", { ascending: true }),
+    client
+      .from("departments")
+      .select("*")
+      .order("name", { ascending: true }),
+    client
+      .from("audit_logs")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50),
+  ]);
+
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-6 py-16">
-      <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">
-          Rinegetan Connect
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
-          Portal staf
-        </h1>
-        <p className="mt-3 max-w-xl text-slate-600">
-          Anda telah masuk ke area staf. Fitur pengelolaan konten akan tersedia
-          pada sprint CMS berikutnya.
-        </p>
-      </div>
-      <form action="/auth/signout" method="post">
-        <button
-          className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
-          type="submit"
-        >
-          Keluar
-        </button>
-      </form>
-    </main>
+    <StaffDashboard
+      userEmail={staff.user.email || "staff@gmahkrinegetan.org"}
+      role={staff.role}
+      initialAnnouncements={(announcementsRes.data as ContentItem[]) || []}
+      initialEvents={(eventsRes.data as ContentItem[]) || []}
+      initialSchedules={(schedulesRes.data as ContentItem[]) || []}
+      initialDepartments={(departmentsRes.data as ContentItem[]) || []}
+      initialAuditLogs={(auditLogsRes.data as AuditEntry[]) || []}
+    />
   );
 }
