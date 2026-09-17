@@ -18,7 +18,7 @@ Cadence usulan adalah satu minggu fokus per sprint. Bila ada blocker konten, izi
 | S2.0 | Kontrak refactor: inventaris Phase 1, struktur repository, standar cabang/PR, dan CI awal. | Selesai |
 | S2.1 | Promosikan aplikasi Next.js + TypeScript, pertahankan URL/desain Phase 1, dan buat regression contract test. | Selesai |
 | S2.2 | Buat migration Supabase, bootstrap Admin, Auth Admin/Editor, RLS, dan audit dasar. | Selesai |
-| S2.3 | Sediakan CMS pengumuman, acara, departemen, jadwal beserta pengecualian, serta status Draft/Published/Archived. | Siap dikerjakan |
+| S2.3 | Sediakan CMS pengumuman, acara, departemen, jadwal beserta pengecualian, serta status Draft/Published/Archived. | Berjalan |
 | S2.4 | Sediakan Media Library dan galeri album: consent, derivative JPEG, visibility, dan unduhan aman. | Backlog |
 | S2.5 | Tambahkan quality gate, backup/restore drill, hardening deployment Vercel, dan pilot tertutup. | Backlog |
 
