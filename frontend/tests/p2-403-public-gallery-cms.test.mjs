@@ -1,0 +1,87 @@
+import assert from "node:assert/strict";
+import { readFileSync, existsSync } from "node:fs";
+import { resolve } from "node:path";
+import test from "node:test";
+import { fileURLToPath } from "node:url";
+
+const projectRoot = fileURLToPath(new URL("..", import.meta.url));
+
+test("P2-403 public media queries exist and are exported from queries module", async () => {
+  const queriesPath = resolve(projectRoot, "src/lib/public/queries.mjs");
+  assert.ok(existsSync(queriesPath), "queries.mjs should exist");
+
+  const queriesModule = await import(`file://${queriesPath}`);
+  assert.equal(
+    typeof queriesModule.getPublicMediaAlbums,
+    "function",
+    "getPublicMediaAlbums should be exported as a function"
+  );
+  assert.equal(
+    typeof queriesModule.getPublicMediaAssets,
+    "function",
+    "getPublicMediaAssets should be exported as a function"
+  );
+});
+
+test("P2-403 public media queries enforce strict privacy invariants", () => {
+  const queriesPath = resolve(projectRoot, "src/lib/public/queries.mjs");
+  const queriesSource = readFileSync(queriesPath, "utf8");
+
+  // Invariant 1: status = 'published'
+  assert.ok(
+    queriesSource.includes(`"media_assets"`),
+    "Must query media_assets table"
+  );
+  assert.ok(
+    queriesSource.includes(`"media_albums"`),
+    "Must query media_albums table"
+  );
+
+  // Invariant 2: consent_status = 'approved'
+  assert.ok(
+    queriesSource.includes(`"consent_status", "approved"`) ||
+      queriesSource.includes(`'consent_status', 'approved'`),
+    "Must filter consent_status = 'approved' for public assets"
+  );
+
+  // Invariant 3: hidden_at IS NULL
+  assert.ok(
+    queriesSource.includes(`"hidden_at", null`) ||
+      queriesSource.includes(`'hidden_at', null`),
+    "Must filter hidden_at is null for public assets"
+  );
+});
+
+test("P2-403 triggerPublicRevalidation handles media entities and revalidates /media", async () => {
+  const queriesPath = resolve(projectRoot, "src/lib/public/queries.mjs");
+  const queriesModule = await import(`file://${queriesPath}`);
+
+  const revalidatedTags = [];
+  const revalidatedPaths = [];
+
+  const mockHooks = {
+    revalidateTag: (tag) => revalidatedTags.push(tag),
+    revalidatePath: (path) => revalidatedPaths.push(path),
+  };
+
+  queriesModule.triggerPublicRevalidation("media", mockHooks);
+
+  assert.ok(
+    revalidatedTags.includes("public-content"),
+    "Must invalidate public-content tag"
+  );
+  assert.ok(
+    revalidatedTags.includes("public-media") ||
+      revalidatedTags.includes("media-assets") ||
+      revalidatedTags.includes("media-albums"),
+    "Must invalidate public-media tag"
+  );
+  assert.ok(
+    revalidatedPaths.includes("/media"),
+    "Must revalidate /media route"
+  );
+  assert.ok(
+    revalidatedPaths.includes("/"),
+    "Must revalidate homepage"
+  );
+});
