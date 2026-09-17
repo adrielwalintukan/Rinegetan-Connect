@@ -15,7 +15,7 @@
 
 - **Label:** chore, ci, docs, priority:high
 - **Sprint:** 0
-- **Status:** selesai pada branch bootstrap; menunggu integrasi Phase 2
+- **Status:** selesai
 - **Acceptance criteria:** remote milik organisasi; development tersedia; workflow CI mengecek build frontend dan syntax backend; dokumentasi berada di repository.
 
 ### P2-101 — Inventaris kontrak Phase 1
@@ -30,6 +30,7 @@
 
 - **Label:** docs, priority:high
 - **Sprint:** 0
+- **Status:** selesai
 - **Dependencies:** P2-001, P2-002
 - **Acceptance criteria:** PR `docs/phase-2-foundation` menuju `development` memuat dokumen produk, desain, arsitektur, keamanan, sprint, backlog, dan spesifikasi cutover; scope PR tidak mencakup kode aplikasi atau CI.
 
@@ -37,6 +38,7 @@
 
 - **Label:** feature, frontend, priority:critical
 - **Sprint:** 1
+- **Status:** selesai
 - **Dependencies:** P2-101
 - **Acceptance criteria:** aplikasi Next.js dapat build/typecheck/lint; struktur public/staff route tersedia; environment tidak memuat secret di client.
 
@@ -44,6 +46,7 @@
 
 - **Label:** feature, frontend, accessibility, priority:critical
 - **Sprint:** 1
+- **Status:** selesai
 - **Dependencies:** P2-102
 - **Acceptance criteria:** tujuh URL publik dan Creation Grid dipertahankan; symbol resmi tidak berubah; keyboard, focus, mobile layout, reduced-motion tervalidasi.
 
@@ -51,6 +54,7 @@
 
 - **Label:** chore, frontend, accessibility, priority:high
 - **Sprint:** 1
+- **Status:** selesai
 - **Dependencies:** P2-103
 - **Acceptance criteria:** screenshot/reference viewport 320, 375, 768, 1024, 1440 tersedia; test mendeteksi overflow, heading/focus, dan regresi rute utama.
 
@@ -58,6 +62,7 @@
 
 - **Label:** feature, database, security, priority:critical
 - **Sprint:** 2
+- **Status:** selesai
 - **Dependencies:** P2-102
 - **Acceptance criteria:** CLI command ditemukan dari help; config/migration source-controlled; client browser/server terpisah; .env.example hanya memuat nama variabel.
 
@@ -65,6 +70,7 @@
 
 - **Label:** feature, database, auth, security, priority:critical
 - **Sprint:** 2
+- **Status:** selesai
 - **Dependencies:** P2-201
 - **Acceptance criteria:** hanya Admin/Editor; role bukan user metadata; policy/grant explicit; audit redacted; RLS tests membuktikan allow dan deny.
 
@@ -72,6 +78,7 @@
 
 - **Label:** feature, auth, security, priority:critical
 - **Sprint:** 2
+- **Status:** selesai
 - **Dependencies:** P2-202
 - **Acceptance criteria:** prosedur Admin pertama aman; Admin dapat invite/provision dan deactivate Editor; lifecycle mutation diaudit; tidak ada public signup.
 
@@ -79,7 +86,7 @@
 
 - **Label:** feature, frontend, auth, security, priority:critical
 - **Sprint:** 2
-- **Status:** ready
+- **Status:** selesai
 - **Dependencies:** P2-203
 - **Acceptance criteria:** Admin/Editor dapat sign-in; link invitation acceptance dan reset password dapat diselesaikan; session cookie direfresh; `/staff/*` terlindungi server-side; tidak ada public signup atau open redirect.
 
@@ -87,6 +94,7 @@
 
 - **Label:** feature, database, frontend, priority:critical
 - **Sprint:** 3
+- **Status:** ready
 - **Dependencies:** P2-202
 - **Acceptance criteria:** announcements, events, departments memakai Draft/Published/Archived; slug unik dan validasi ketat; public query hanya Published.
 
