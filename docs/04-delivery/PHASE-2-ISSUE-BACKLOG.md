@@ -94,7 +94,7 @@
 
 - **Label:** feature, database, frontend, priority:critical
 - **Sprint:** 3
-- **Status:** ready
+- **Status:** selesai
 - **Dependencies:** P2-202
 - **Acceptance criteria:** announcements, events, departments memakai Draft/Published/Archived; slug unik dan validasi ketat; public query hanya Published.
 
@@ -102,6 +102,7 @@
 
 - **Label:** feature, database, frontend, priority:high
 - **Sprint:** 3
+- **Status:** ready
 - **Dependencies:** P2-301
 - **Acceptance criteria:** recurrence mingguan, add/override/cancel per tanggal, dan tampilan Asia/Makassar diuji.
 

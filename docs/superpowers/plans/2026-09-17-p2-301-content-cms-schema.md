@@ -104,7 +104,7 @@ public.events(
 - Consumes: Helper otorisasi privat P2-202 (`private.is_admin()`, `private.is_editor_or_admin()`) dan role database `admin`/`editor`.
 - Produces: Test suite lengkap yang memvalidasi keberadaan enum, tabel, kolom, constraint, indeks, serta pembuktian RLS allow/deny.
 
-- [ ] **Step 1: Write pgTAP tests for schema, types, columns, and constraints**
+- [x] **Step 1: Write pgTAP tests for schema, types, columns, and constraints**
 
 Tulis test file `supabase/tests/p2_301_content_schema.test.sql` yang memeriksa:
 1. Enum `public.content_status` memiliki nilai `draft`, `published`, `archived`.
@@ -125,7 +125,7 @@ Tulis test file `supabase/tests/p2_301_content_schema.test.sql` yang memeriksa:
 9. Uji audit trail:
    - Mutasi konten memicu pencatatan ke `public.audit_logs`.
 
-- [ ] **Step 2: Commit the test contract**
+- [x] **Step 2: Commit the test contract**
 
 ```bash
 git add supabase/tests/p2_301_content_schema.test.sql
@@ -143,7 +143,7 @@ git commit -m "test(db): add red pgTAP contract for P2-301 content CMS schema"
 - Consumes: `public.audit_logs`, `private.is_admin()`, `private.is_editor_or_admin()`.
 - Produces: Enum `content_status`, tabel `departments`, `announcements`, `events`, explicit grants, trigger audit, dan RLS policies.
 
-- [ ] **Step 1: Write the migration DDL**
+- [x] **Step 1: Write the migration DDL**
 
 Isi file migration dengan DDL lengkap:
 1. `CREATE TYPE public.content_status AS ENUM ('draft', 'published', 'archived');`
@@ -160,7 +160,7 @@ Isi file migration dengan DDL lengkap:
 12. `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;` untuk ketiga tabel.
 13. RLS policies untuk SELECT, INSERT, UPDATE, DELETE sesuai matriks otorisasi.
 
-- [ ] **Step 2: Commit the migration**
+- [x] **Step 2: Commit the migration**
 
 ```bash
 git add supabase/migrations/20260917165000_p2_301_content_cms_schema.sql
@@ -179,7 +179,7 @@ git commit -m "feat(db): implement P2-301 content CMS schema, RLS, and audit tri
 - Consumes: Interface database P2-301.
 - Produces: TypeScript types untuk frontend/backend Next.js dan unit contract tests.
 
-- [ ] **Step 1: Define TypeScript types**
+- [x] **Step 1: Define TypeScript types**
 
 Buat file `frontend/src/types/content.ts`:
 ```typescript
@@ -234,19 +234,19 @@ export interface EventItem {
 }
 ```
 
-- [ ] **Step 2: Write contract test**
+- [x] **Step 2: Write contract test**
 
 Buat file `frontend/tests/p2-301-content-contract.test.mjs` untuk menguji:
 1. Migration file P2-301 ada dan berisi deklarasi tabel, enum, grant, serta RLS yang tepat.
 2. Tidak ada kebocoran rahasia atau bypass policy pada skema konten.
 3. Tipe data TypeScript `content.ts` dapat diimpor tanpa kesalahan.
 
-- [ ] **Step 3: Run route & contract tests**
+- [x] **Step 3: Run route & contract tests**
 
 Run: `npm run test:routes`
 Expected: Seluruh test (termasuk test baru) lulus (PASS).
 
-- [ ] **Step 4: Commit frontend types & tests**
+- [x] **Step 4: Commit frontend types & tests**
 
 ```bash
 git add frontend/src/types/content.ts frontend/tests/p2-301-content-contract.test.mjs
@@ -261,7 +261,7 @@ git commit -m "feat(frontend): add TypeScript content models and contract verifi
 - Modify: `docs/04-delivery/PHASE-2-ISSUE-BACKLOG.md`
 - Modify: `docs/04-delivery/SPRINT-PLAN.md`
 
-- [ ] **Step 1: Run comprehensive local verification**
+- [x] **Step 1: Run comprehensive local verification**
 
 Jalankan serangkaian quality gate:
 ```powershell
@@ -271,11 +271,11 @@ npm run build
 ```
 Pastikan seluruh 17 rute App Router ter-generate bersih dan 0 lint error.
 
-- [ ] **Step 2: Update documentation status**
+- [x] **Step 2: Update documentation status**
 
 Tandai `P2-301` sebagai `selesai` pada `PHASE-2-ISSUE-BACKLOG.md` dan siapkan `P2-302` sebagai `ready`.
 
-- [ ] **Step 3: Commit documentation update**
+- [x] **Step 3: Commit documentation update**
 
 ```bash
 git add docs/04-delivery/PHASE-2-ISSUE-BACKLOG.md docs/04-delivery/SPRINT-PLAN.md
