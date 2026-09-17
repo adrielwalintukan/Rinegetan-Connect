@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireActiveStaff, StaffAccessError } from "@/lib/staff/server";
 import { executeSaveContent } from "@/lib/staff/content-mutations";
+import { triggerPublicRevalidation } from "@/lib/public/queries";
 
 export async function POST(request: Request) {
   try {
@@ -20,6 +21,8 @@ export async function POST(request: Request) {
       id: id || null,
       data,
     });
+
+    triggerPublicRevalidation(entityType);
 
     return Response.json({ success: true, data: saved }, { status: 200 });
   } catch (error) {
