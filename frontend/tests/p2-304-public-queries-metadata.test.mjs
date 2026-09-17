@@ -82,3 +82,48 @@ test("P2-304 staff content mutation API routes invoke public revalidation", () =
     "delete route must trigger public revalidation"
   );
 });
+
+test("P2-304 EmptyState component exists and declares visual properties", () => {
+  const emptyStatePath = resolve(projectRoot, "src/components/ui/EmptyState.tsx");
+  assert.ok(existsSync(emptyStatePath), "EmptyState.tsx should exist");
+
+  const emptyStateSource = readFileSync(emptyStatePath, "utf8");
+  assert.ok(emptyStateSource.includes("card-surface"), "Must use Design System card-surface");
+  assert.ok(emptyStateSource.includes("actionHref"), "Must support actionHref button");
+  assert.ok(emptyStateSource.includes("testId"), "Must support testId");
+});
+
+test("P2-304 all 7 public routes declare SEO metadata", () => {
+  const publicRoutes = [
+    "src/app/(public)/page.tsx",
+    "src/app/(public)/tentang-kami/page.tsx",
+    "src/app/(public)/kegiatan/page.tsx",
+    "src/app/(public)/media/page.tsx",
+    "src/app/(public)/pelayanan/page.tsx",
+    "src/app/(public)/sekolah-sabat/page.tsx",
+    "src/app/(public)/kontak/page.tsx",
+  ];
+
+  for (const relPath of publicRoutes) {
+    const fullPath = resolve(projectRoot, relPath);
+    assert.ok(existsSync(fullPath), `${relPath} should exist`);
+    const source = readFileSync(fullPath, "utf8");
+
+    assert.ok(
+      source.includes("export const metadata: Metadata =") || source.includes("export const metadata ="),
+      `${relPath} must export metadata`
+    );
+    assert.ok(source.includes("title:"), `${relPath} must define title in metadata`);
+    assert.ok(source.includes("description:"), `${relPath} must define description in metadata`);
+  }
+});
+
+test("P2-304 root layout declares metadataBase, title template, and OpenGraph", () => {
+  const rootLayoutPath = resolve(projectRoot, "src/app/layout.tsx");
+  const rootLayoutSource = readFileSync(rootLayoutPath, "utf8");
+
+  assert.ok(rootLayoutSource.includes("metadataBase:"), "Root layout must declare metadataBase");
+  assert.ok(rootLayoutSource.includes("template:"), "Root layout must declare title template");
+  assert.ok(rootLayoutSource.includes("openGraph:"), "Root layout must declare openGraph");
+  assert.ok(rootLayoutSource.includes("id_ID"), "Root layout openGraph must specify id_ID locale");
+});
