@@ -118,7 +118,7 @@
 
 - **Label:** feature, frontend, performance, priority:high
 - **Sprint:** 3
-- **Status:** ready
+- **Status:** selesai
 - **Dependencies:** P2-301, P2-302, P2-303
 - **Acceptance criteria:** Query publik hanya membaca konten published; revalidasi cache bekerja saat konten dimutasi; empty states dan metadata SEO tersedia.
 
@@ -126,6 +126,7 @@
 
 - **Label:** feature, database, media, security, priority:critical
 - **Sprint:** 4
+- **Status:** ready
 - **Dependencies:** P2-202
 - **Acceptance criteria:** album/aset/consent model ada; policy storage dan query menolak pending/revoked/hidden; asset child tanpa izin tidak dapat terbit.
 

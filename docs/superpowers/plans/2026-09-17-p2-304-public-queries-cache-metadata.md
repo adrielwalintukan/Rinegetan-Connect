@@ -40,18 +40,18 @@
   - `getPublishedDepartments()`
   - `triggerPublicRevalidation(entityType)`
 
-- [ ] **Step 1: Write the failing public queries and revalidation contract test suite**
+- [x] **Step 1: Write the failing public queries and revalidation contract test suite**
 
 Buat file `frontend/tests/p2-304-public-queries-metadata.test.mjs` yang memvalidasi:
 1. `queries.mjs` mengekspor fungsi-fungsi: `getPublishedAnnouncements`, `getPublishedEvents`, `getPublishedSchedules`, `getPublishedDepartments`, `triggerPublicRevalidation`.
 2. Query builder contract: fungsi query selalu memanggil `.eq("status", "published")`.
 3. `triggerPublicRevalidation`: memanggil tag `public-content` dan `public-{entityType}`, serta rute-rute terkait.
 
-- [ ] **Step 2: Run test suite and observe it fail**
+- [x] **Step 2: Run test suite and observe it fail**
 
 Jalankan `node --test frontend/tests/p2-304-public-queries-metadata.test.mjs` dan pastikan gagal karena file `queries.mjs` belum ada.
 
-- [ ] **Step 3: Implement public queries service and revalidation hooks**
+- [x] **Step 3: Implement public queries service and revalidation hooks**
 
 1. Buat `frontend/src/lib/public/queries.mjs` dan `queries.ts` yang mengimplementasikan query Supabase anonim berstatus `published` dengan `unstable_cache` serta fungsi `triggerPublicRevalidation`.
 2. Hubungkan `triggerPublicRevalidation` ke handler API:
@@ -59,11 +59,11 @@ Jalankan `node --test frontend/tests/p2-304-public-queries-metadata.test.mjs` da
    - `frontend/src/app/api/staff/content/save/route.ts`
    - `frontend/src/app/api/staff/content/delete/route.ts`
 
-- [ ] **Step 4: Run test suite and confirm it passes**
+- [x] **Step 4: Run test suite and confirm it passes**
 
 Jalankan `node --test frontend/tests/p2-304-public-queries-metadata.test.mjs` dan pastikan seluruh assertions lulus.
 
-- [ ] **Step 5: Commit Task 1**
+- [x] **Step 5: Commit Task 1**
 
 ```bash
 git add frontend/src/lib/public/ frontend/src/app/api/staff/content/ frontend/tests/p2-304-public-queries-metadata.test.mjs
@@ -88,27 +88,27 @@ git commit -m "feat(public): implement published queries module, cache tags, and
 - Consumes: `getPublishedAnnouncements`, `getPublishedEvents`, `getPublishedSchedules`, `getPublishedDepartments`, `EmptyState`
 - Produces: Tampilan halaman publik dinamis berbasis data live Supabase dengan fallback `EmptyState`.
 
-- [ ] **Step 1: Create reusable EmptyState component**
+- [x] **Step 1: Create reusable EmptyState component**
 
 Buat `frontend/src/components/ui/EmptyState.tsx` dengan props `icon`, `title`, `description`, `actionLabel`, `actionHref`, `testId` yang mengaplikasikan Design System gereja.
 
-- [ ] **Step 2: Update KegiatanPage and EventsSection to support live published events and EmptyState**
+- [x] **Step 2: Update KegiatanPage and EventsSection to support live published events and EmptyState**
 
 1. Perbarui `frontend/src/components/sections/EventsSection.jsx` agar menerima prop `events` dan menampilkan `EmptyState` jika array kosong.
 2. Perbarui `frontend/src/components/pages/KegiatanPage.jsx` agar menerima `initialEvents` dari server loader dan merender `EmptyState` jika kosong.
 3. Sambungkan `frontend/src/app/(public)/kegiatan/page.tsx` sebagai Server Component yang memanggil `getPublishedEvents()`.
 
-- [ ] **Step 3: Update Beranda (HomePage), Sekolah Sabat, and Pelayanan pages**
+- [x] **Step 3: Update Beranda (HomePage), Sekolah Sabat, and Pelayanan pages**
 
 1. `frontend/src/app/(public)/page.tsx`: Muat pengumuman aktif, kegiatan mendatang terdekat, dan jadwal Sabat.
 2. `frontend/src/app/(public)/sekolah-sabat/page.tsx`: Muat jadwal mingguan riil dari `getPublishedSchedules()`, atau `EmptyState` jika kosong.
 3. `frontend/src/app/(public)/pelayanan/page.tsx`: Muat departemen aktif dari `getPublishedDepartments()`, atau `EmptyState` jika kosong.
 
-- [ ] **Step 4: Verify route tests and interactive rendering**
+- [x] **Step 4: Verify route tests and interactive rendering**
 
 Jalankan `npm --prefix frontend run test:routes` dan verifikasi seluruh rute tetap memenuhi kontrak.
 
-- [ ] **Step 5: Commit Task 2**
+- [x] **Step 5: Commit Task 2**
 
 ```bash
 git add frontend/src/components/ui/EmptyState.tsx frontend/src/app/\(public\)/ frontend/src/components/
@@ -133,11 +133,11 @@ git commit -m "feat(public): create reusable EmptyState component and integrate 
 - Consumes: `Metadata` dari `next`
 - Produces: SEO Title, Description, OpenGraph, Canonical URL pada seluruh 7 rute publik.
 
-- [ ] **Step 1: Enhance Root Layout metadata**
+- [x] **Step 1: Enhance Root Layout metadata**
 
 Perbarui `frontend/src/app/layout.tsx` dengan `metadataBase`, siteName, openGraph default `id_ID`, dan robots configuration.
 
-- [ ] **Step 2: Add page-specific metadata to all 7 public routes**
+- [x] **Step 2: Add page-specific metadata to all 7 public routes**
 
 Tambahkan ekspor `export const metadata: Metadata` pada:
 1. `(public)/page.tsx` (Beranda)
@@ -148,11 +148,11 @@ Tambahkan ekspor `export const metadata: Metadata` pada:
 6. `(public)/sekolah-sabat/page.tsx` (Sekolah Sabat)
 7. `(public)/kontak/page.tsx` (Kontak)
 
-- [ ] **Step 3: Expand test contract to verify metadata across all 7 routes**
+- [x] **Step 3: Expand test contract to verify metadata across all 7 routes**
 
 Tambahkan uji pada `frontend/tests/p2-304-public-queries-metadata.test.mjs` untuk memeriksa eksistensi ekspor `metadata` dengan `title` dan `description` valid pada ketujuh rute. Jalankan test untuk memastikan lulus.
 
-- [ ] **Step 4: Commit Task 3**
+- [x] **Step 4: Commit Task 3**
 
 ```bash
 git add frontend/src/app/layout.tsx frontend/src/app/\(public\)/ frontend/tests/p2-304-public-queries-metadata.test.mjs
@@ -167,22 +167,22 @@ git commit -m "feat(seo): configure structured SEO metadata, OpenGraph, and titl
 - Modify: `docs/04-delivery/PHASE-2-ISSUE-BACKLOG.md` (P2-304 -> selesai, P2-401 -> ready)
 - Modify: `docs/superpowers/plans/2026-09-17-p2-304-public-queries-cache-metadata.md` (check off steps)
 
-- [ ] **Step 1: Run comprehensive quality gate verification**
+- [x] **Step 1: Run comprehensive quality gate verification**
 
 1. `npm --prefix frontend run test:routes`
 2. `npm --prefix frontend run lint`
 3. `npm --prefix frontend run build`
 
-- [ ] **Step 2: Capture visual preview for PR description**
+- [x] **Step 2: Capture visual preview for PR description**
 
 Ambil tangkapan layar (screenshot) tampilan halaman publik dan empty state untuk disertakan pada deskripsi PR dan walkthrough.
 
-- [ ] **Step 3: Update documentation and backlog**
+- [x] **Step 3: Update documentation and backlog**
 
 Perbarui `docs/04-delivery/PHASE-2-ISSUE-BACKLOG.md`:
 - Tandai `P2-304` sebagai `selesai`.
 - Tandai `P2-401` sebagai `ready`.
 
-- [ ] **Step 4: Commit documentation, push branch, and open PR**
+- [x] **Step 4: Commit documentation, push branch, and open PR**
 
 Push branch `feature/p2-304-public-queries-cache-metadata` ke origin dan buat PR via GitHub CLI dengan deskripsi lengkap dan dokumentasi visual.
