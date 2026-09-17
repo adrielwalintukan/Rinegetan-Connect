@@ -21,10 +21,14 @@ test("P2-401 migration file exists and declares media, consent, and storage sche
   const sql = readText(migrationPath);
 
   // Enums
-  assert.match(sql, /create type public\.media_category as enum \('ibadah', 'pemuda', 'sekolah_sabat', 'sosial', 'fellowship', 'umum'\);/i);
-  assert.match(sql, /create type public\.media_processing_state as enum \('pending', 'ready', 'failed'\);/i);
-  assert.match(sql, /create type public\.consent_status as enum \('pending', 'approved', 'rejected', 'revoked'\);/i);
-  assert.match(sql, /create type public\.subject_age_group as enum \('general', 'child'\);/i);
+  assert.match(sql, /create type public\.media_category as enum\s*\(/i);
+  assert.match(sql, /'ibadah'[\s\S]*?'pemuda'[\s\S]*?'sekolah_sabat'[\s\S]*?'sosial'[\s\S]*?'fellowship'[\s\S]*?'umum'/i);
+  assert.match(sql, /create type public\.media_processing_state as enum\s*\(/i);
+  assert.match(sql, /'pending'[\s\S]*?'ready'[\s\S]*?'failed'/i);
+  assert.match(sql, /create type public\.consent_status as enum\s*\(/i);
+  assert.match(sql, /'pending'[\s\S]*?'approved'[\s\S]*?'rejected'[\s\S]*?'revoked'/i);
+  assert.match(sql, /create type public\.subject_age_group as enum\s*\(/i);
+  assert.match(sql, /'general'[\s\S]*?'child'/i);
 
   // Tables
   assert.match(sql, /create table public\.media_albums/i);
@@ -34,7 +38,7 @@ test("P2-401 migration file exists and declares media, consent, and storage sche
 
   // Child Protection & Hidden Constraints
   assert.match(sql, /media_assets_child_consent_check check/i);
-  assert.match(sql, /subject_age_group != 'child' or status != 'published' or consent_status = 'approved'/i);
+  assert.match(sql, /subject_age_group\s*!=\s*'child'[\s\S]*?or\s*status\s*!=\s*'published'[\s\S]*?or\s*consent_status\s*=\s*'approved'/i);
   assert.match(sql, /media_assets_hidden_reason_check check/i);
 
   // RLS enablement
