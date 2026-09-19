@@ -158,7 +158,7 @@
 
 - **Label:** feature, cms, media, priority:high
 - **Sprint:** 4
-- **Status:** ready
+- **Status:** selesai
 - **Dependencies:** P2-403
 - **Acceptance criteria:** admin dan editor dapat memilih/mengubah gambar seksi halaman publik (Hero beranda, Selamat Datang, Sekolah Sabat, Tentang Kami) melalui portal staf `/staff`; gambar tersimpan di Supabase Storage/media_assets; perubahan langsung ter-revalidasi ke halaman publik dengan fallback statis jika belum dikonfigurasi; audit log mutasi tercatat.
 
