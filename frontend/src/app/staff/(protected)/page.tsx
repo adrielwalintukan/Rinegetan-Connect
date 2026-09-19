@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireActiveStaff } from "@/lib/staff/server";
 import { StaffDashboard } from "@/components/staff/StaffDashboard";
+import { getSiteSectionMedia } from "@/lib/public/queries";
 import type { ContentItem } from "@/components/staff/ContentTable";
 import type { AuditEntry } from "@/components/staff/AuditLogViewer";
 import type { MediaAsset, MediaAlbum } from "@/types/media";
@@ -20,6 +21,7 @@ export default async function StaffHomePage() {
     auditLogsRes,
     mediaAssetsRes,
     mediaAlbumsRes,
+    sectionMedia,
   ] = await Promise.all([
     client
       .from("announcements")
@@ -50,6 +52,7 @@ export default async function StaffHomePage() {
       .from("media_albums")
       .select("*")
       .order("occurred_on", { ascending: false }),
+    getSiteSectionMedia(),
   ]);
 
   return (
@@ -63,6 +66,8 @@ export default async function StaffHomePage() {
       initialAuditLogs={(auditLogsRes.data as AuditEntry[]) || []}
       initialMediaAssets={(mediaAssetsRes.data as MediaAsset[]) || []}
       initialMediaAlbums={(mediaAlbumsRes.data as MediaAlbum[]) || []}
+      initialSectionMedia={sectionMedia}
     />
   );
 }
+
