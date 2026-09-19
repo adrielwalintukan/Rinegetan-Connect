@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import TentangKamiPage from "@/components/pages/TentangKamiPage";
+import { getSiteSectionMedia } from "@/lib/public/queries";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Tentang Kami — Sejarah & Visi Jemaat",
@@ -11,6 +14,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Page() {
-  return <TentangKamiPage />;
+export default async function Page() {
+  const sectionMedia = await getSiteSectionMedia();
+  return <TentangKamiPage sectionMedia={sectionMedia} />;
 }
+

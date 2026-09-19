@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import SekolahSabatPage from "@/components/pages/SekolahSabatPage";
-import { getPublishedSchedules } from "@/lib/public/queries";
+import { getPublishedSchedules, getSiteSectionMedia } from "@/lib/public/queries";
 
 export const revalidate = 60;
 
@@ -15,6 +15,10 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const schedules = await getPublishedSchedules();
-  return <SekolahSabatPage initialSchedules={schedules} />;
+  const [schedules, sectionMedia] = await Promise.all([
+    getPublishedSchedules(),
+    getSiteSectionMedia(),
+  ]);
+  return <SekolahSabatPage initialSchedules={schedules} sectionMedia={sectionMedia} />;
 }
+
