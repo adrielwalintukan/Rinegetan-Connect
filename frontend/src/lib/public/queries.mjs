@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { resolveWeeklyOccurrences } from "../schedule-wita.mjs";
+import { getMediaPublicUrl } from "../media/url.mjs";
 
 function getPublicClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -189,6 +190,55 @@ export async function getPublicMediaAssets(options = {}) {
   }
 }
 
+export async function getSiteSectionMedia() {
+  const client = getPublicClient();
+  if (!client) return {};
+
+  try {
+    const { data, error } = await client
+      .from("site_section_media")
+      .select(`
+        section_key,
+        asset_id,
+        custom_alt_text,
+        custom_caption,
+        asset:asset_id (
+          id,
+          storage_path,
+          mime_type,
+          alt_text,
+          caption,
+          status,
+          consent_status,
+          hidden_at
+        )
+      `);
+
+    if (error) {
+      console.error("Error fetching site section media:", error);
+      return {};
+    }
+
+    const map = {};
+    for (const item of data || []) {
+      if (!item.asset || item.asset.status !== "published" || item.asset.hidden_at) {
+        continue;
+      }
+      map[item.section_key] = {
+        section_key: item.section_key,
+        asset_id: item.asset_id,
+        image_url: getMediaPublicUrl(item.asset.storage_path),
+        alt_text: item.custom_alt_text || item.asset.alt_text,
+        caption: item.custom_caption || item.asset.caption,
+      };
+    }
+    return map;
+  } catch (err) {
+    console.error("Failed to query site section media:", err);
+    return {};
+  }
+}
+
 export function triggerPublicRevalidation(entityType, hooks = null) {
   try {
     if (hooks?.revalidateTag && hooks?.revalidatePath) {
@@ -207,6 +257,12 @@ export function triggerPublicRevalidation(entityType, hooks = null) {
         hooks.revalidateTag("public-media");
         hooks.revalidateTag("media-assets");
         hooks.revalidateTag("media-albums");
+      }
+      if (entityType === "site_section_media") {
+        hooks.revalidateTag("site-section-media");
+        hooks.revalidatePath("/");
+        hooks.revalidatePath("/sekolah-sabat");
+        hooks.revalidatePath("/tentang-kami");
       }
       return;
     }
@@ -229,6 +285,12 @@ export function triggerPublicRevalidation(entityType, hooks = null) {
           revalidateTag("public-media");
           revalidateTag("media-assets");
           revalidateTag("media-albums");
+        }
+        if (entityType === "site_section_media") {
+          revalidateTag("site-section-media");
+          revalidatePath("/");
+          revalidatePath("/sekolah-sabat");
+          revalidatePath("/tentang-kami");
         }
       } catch (innerErr) {
         console.warn("Revalidation warning:", innerErr);
