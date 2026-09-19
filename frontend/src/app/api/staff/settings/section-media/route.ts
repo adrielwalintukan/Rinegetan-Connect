@@ -98,7 +98,7 @@ export async function POST(request: Request) {
         custom_alt_text: custom_alt_text?.trim() || null,
         custom_caption: custom_caption?.trim() || null,
         updated_at: new Date().toISOString(),
-        updated_by: staff.authUserId,
+        updated_by: staff.user.id,
       })
       .select()
       .single();
@@ -122,12 +122,14 @@ export async function POST(request: Request) {
     });
   } catch (err: unknown) {
     if (err instanceof StaffAccessError) {
+      const status = err.code === "not_authenticated" ? 401 : 403;
       return Response.json(
         { error: err.code, message: err.message },
-        { status: err.status }
+        { status }
       );
     }
     const message = err instanceof Error ? err.message : "Terjadi kesalahan server.";
     return Response.json({ error: "server_error", message }, { status: 500 });
   }
 }
+

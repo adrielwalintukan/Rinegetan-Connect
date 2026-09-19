@@ -28,6 +28,9 @@ const VALUES = [
     },
 ];
 
+/**
+ * @param {{ sectionMedia?: any }} props
+ */
 export default function TentangKamiPage({ sectionMedia = null }) {
     return (
         <>
