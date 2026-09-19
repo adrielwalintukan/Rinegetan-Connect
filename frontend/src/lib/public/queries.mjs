@@ -40,7 +40,7 @@ export async function getPublishedEvents() {
       .from("events")
       .select("*")
       .eq("status", "published")
-      .order("start_date", { ascending: true });
+      .order("starts_at", { ascending: true });
     if (error) {
       console.error("Error fetching published events:", error);
       return [];
@@ -86,7 +86,7 @@ export async function getPublishedDepartments() {
       .from("departments")
       .select("*")
       .eq("status", "published")
-      .order("display_order", { ascending: true });
+      .order("name", { ascending: true });
     if (error) {
       console.error("Error fetching published departments:", error);
       return [];

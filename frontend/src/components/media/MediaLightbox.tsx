@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useCallback, useRef } from "react";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { getMediaPublicUrl } from "@/lib/media/url";
 import type { PublicMediaAssetItem } from "@/lib/public/queries";
 
@@ -95,14 +95,39 @@ export const MediaLightbox: React.FC<MediaLightboxProps> = ({
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Tutup penampil foto"
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-sabbath-400"
-        >
-          <X className="h-5 w-5" />
-        </button>
+        <div className="flex items-center gap-2">
+          {currentItem.public_download_enabled ? (
+            <a
+              href={`/api/media/download/${currentItem.id}`}
+              download
+              aria-label="Unduh foto ini"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-sabbath-400 backdrop-blur-sm"
+            >
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline">Unduh Foto</span>
+            </a>
+          ) : (
+            <button
+              type="button"
+              disabled
+              aria-label="Unduhan tidak diaktifkan untuk foto ini"
+              title="Unduhan tidak diaktifkan untuk foto ini"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 text-slate-400 text-xs sm:text-sm font-medium cursor-not-allowed opacity-60 backdrop-blur-sm"
+            >
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline">Unduhan Dibatasi</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Tutup penampil foto"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-sabbath-400"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
       {/* Navigation Buttons */}

@@ -150,7 +150,7 @@
 
 - **Label:** feature, media, security, priority:high
 - **Sprint:** 4
-- **Status:** ready
+- **Status:** selesai
 - **Dependencies:** P2-403
 - **Acceptance criteria:** single/album/category download hanya memasukkan aset eligible; URL/result berumur pendek; file/byte/rate limit dan audit diuji.
 

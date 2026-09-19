@@ -2,7 +2,17 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Folder, Image as ImageIcon, Calendar, Layers, X, Sparkles } from "lucide-react";
+import {
+  Folder,
+  Image as ImageIcon,
+  Calendar,
+  Layers,
+  X,
+  Sparkles,
+  Download,
+  Loader2,
+} from "lucide-react";
+import { toast } from "sonner";
 import { ChapterHeading } from "@/components/sections/ChapterHeading";
 import { Reveal } from "@/components/motion/Reveal";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -34,6 +44,41 @@ export default function MediaPage({
   const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState<boolean>(false);
   const [lightboxIndex, setLightboxIndex] = useState<number>(0);
+  const [downloadingAlbumId, setDownloadingAlbumId] = useState<string | null>(null);
+
+  const handleDownloadAlbum = async (
+    e: React.MouseEvent,
+    albumId: string,
+    albumTitle: string
+  ) => {
+    e.stopPropagation();
+    if (downloadingAlbumId) return;
+
+    try {
+      setDownloadingAlbumId(albumId);
+      toast.info(`Menyiapkan arsip ZIP untuk album "${albumTitle}"...`);
+      const res = await fetch(`/api/media/download/album/${albumId}`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Gagal mengunduh album.");
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `rinegetan-album-${albumTitle.toLowerCase().replace(/[^a-z0-9]/g, "-")}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success(`Album "${albumTitle}" berhasil diunduh.`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Terjadi kesalahan saat mengunduh album.";
+      toast.error(msg);
+    } finally {
+      setDownloadingAlbumId(null);
+    }
+  };
 
   const selectedAlbum = useMemo(
     () => initialAlbums.find((a) => a.id === selectedAlbumId) || null,
@@ -194,18 +239,43 @@ export default function MediaPage({
             </div>
 
             {selectedAlbum && (
-              <div className="flex items-center gap-2 bg-sabbath-50 border border-sabbath-200 text-sabbath-800 text-xs px-3.5 py-1.5 rounded-full self-start">
-                <span>
-                  Album: <strong>{selectedAlbum.title}</strong>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setSelectedAlbumId(null)}
-                  aria-label="Hapus filter album"
-                  className="p-0.5 hover:bg-sabbath-200/60 rounded-full transition-colors"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
+              <div className="flex flex-wrap items-center gap-2.5 self-start">
+                <div className="flex items-center gap-2 bg-sabbath-50 border border-sabbath-200 text-sabbath-800 text-xs px-3.5 py-1.5 rounded-full">
+                  <span>
+                    Album: <strong>{selectedAlbum.title}</strong>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAlbumId(null)}
+                    aria-label="Hapus filter album"
+                    className="p-0.5 hover:bg-sabbath-200/60 rounded-full transition-colors"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                {selectedAlbum.public_download_enabled && (
+                  <button
+                    type="button"
+                    onClick={(e) =>
+                      handleDownloadAlbum(e, selectedAlbum.id, selectedAlbum.title)
+                    }
+                    disabled={downloadingAlbumId === selectedAlbum.id}
+                    className="flex items-center gap-1.5 bg-navy text-white text-xs font-medium px-3.5 py-1.5 rounded-full hover:bg-navy-800 transition-colors disabled:opacity-60 shadow-sm"
+                  >
+                    {downloadingAlbumId === selectedAlbum.id ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        <span>Menyiapkan ZIP...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-3.5 w-3.5" />
+                        <span>Unduh Album (.zip)</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             )}
           </div>
