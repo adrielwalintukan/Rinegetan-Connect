@@ -10,18 +10,18 @@ import { DigitalMinistrySection } from "@/components/sections/DigitalMinistrySec
 import { VisitCTA } from "@/components/sections/VisitCTA";
 
 /**
- * @param {{ announcements?: any[], events?: any[] | null }} props
+ * @param {{ announcements?: any[], events?: any[] | null, sectionMedia?: any }} props
  */
-export default function HomePage({ announcements = [], events = null }) {
+export default function HomePage({ announcements = [], events = null, sectionMedia = null }) {
     return (
         <>
-            <Hero />
+            <Hero sectionMedia={sectionMedia} />
             {announcements && announcements.length > 0 && (
                 <AnnouncementBanner announcements={announcements} />
             )}
             <SabbathMarquee />
             <SabbathSection />
-            <WelcomeSection />
+            <WelcomeSection sectionMedia={sectionMedia} />
             <EventsSection events={events} />
             <DepartmentsSection />
             <MediaSection />

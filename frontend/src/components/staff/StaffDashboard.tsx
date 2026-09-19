@@ -12,6 +12,7 @@ import {
   Shield,
   UserCheck,
   Image as ImageIcon,
+  LayoutTemplate,
 } from "lucide-react";
 import { ContentFilterBar } from "./ContentFilterBar";
 import { ContentTable, type ContentItem } from "./ContentTable";
@@ -19,8 +20,10 @@ import { ContentMutationDialog } from "./ContentMutationDialog";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 import { AuditLogViewer, type AuditEntry } from "./AuditLogViewer";
 import { MediaManager } from "./MediaManager";
+import { SectionMediaManager } from "./SectionMediaManager";
 import type { ContentStatus } from "@/types/content";
 import type { MediaAsset, MediaAlbum } from "@/types/media";
+import type { SiteSectionMediaMap } from "@/lib/public/queries";
 
 interface StaffDashboardProps {
   userEmail: string;
@@ -32,6 +35,7 @@ interface StaffDashboardProps {
   initialAuditLogs: AuditEntry[];
   initialMediaAssets?: MediaAsset[];
   initialMediaAlbums?: MediaAlbum[];
+  initialSectionMedia?: SiteSectionMediaMap;
 }
 
 type TabType =
@@ -40,6 +44,7 @@ type TabType =
   | "schedules"
   | "departments"
   | "media"
+  | "banners"
   | "audit";
 
 export const StaffDashboard: React.FC<StaffDashboardProps> = ({
@@ -52,6 +57,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   initialAuditLogs,
   initialMediaAssets = [],
   initialMediaAlbums = [],
+  initialSectionMedia = {},
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>("announcements");
   const [currentFilter, setCurrentFilter] = useState("all");
@@ -275,6 +281,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
     { id: "schedules" as TabType, label: "Jadwal Rutin", icon: Clock },
     { id: "departments" as TabType, label: "Departemen", icon: Building },
     { id: "media" as TabType, label: "Media & Galeri", icon: ImageIcon },
+    { id: "banners" as TabType, label: "Banner Halaman", icon: LayoutTemplate },
     { id: "audit" as TabType, label: "Log Audit", icon: History },
   ];
 
@@ -374,7 +381,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
           </nav>
 
           {/* Create Button (only for content tabs) */}
-          {activeTab !== "audit" && activeTab !== "media" && (
+          {activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && (
             <button
               type="button"
               onClick={() => {
@@ -400,6 +407,12 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
               role={role}
               userEmail={userEmail}
               onNotification={showNotification}
+            />
+          ) : activeTab === "banners" ? (
+            <SectionMediaManager
+              initialSectionMedia={initialSectionMedia}
+              mediaAssets={initialMediaAssets}
+              mediaAlbums={initialMediaAlbums}
             />
           ) : (
             <div className="space-y-4">
@@ -432,7 +445,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
       </main>
 
       {/* Dialogs */}
-      {activeTab !== "audit" && activeTab !== "media" && (
+      {activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && (
         <ContentMutationDialog
           key={`${activeTab}_${editingItem?.id || "new"}`}
           isOpen={isMutationOpen}
@@ -447,7 +460,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
         />
       )}
 
-      {activeTab !== "audit" && activeTab !== "media" && (
+      {activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && (
         <DeleteConfirmationDialog
           isOpen={isDeleteOpen}
           onClose={() => {

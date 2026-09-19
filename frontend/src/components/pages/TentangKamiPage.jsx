@@ -28,7 +28,10 @@ const VALUES = [
     },
 ];
 
-export default function TentangKamiPage() {
+/**
+ * @param {{ sectionMedia?: any }} props
+ */
+export default function TentangKamiPage({ sectionMedia = null }) {
     return (
         <>
             <section data-testid="about-hero" className="relative overflow-hidden py-16 lg:py-24">
@@ -132,8 +135,8 @@ export default function TentangKamiPage() {
                     <Reveal delay={0.15}>
                         <figure className="img-frame mt-10 aspect-[21/9]">
                             <img
-                                src={IMAGES.community.src}
-                                alt={IMAGES.community.alt}
+                                src={sectionMedia?.tentang_kami?.url || IMAGES.community.src}
+                                alt={sectionMedia?.tentang_kami?.alt_text || IMAGES.community.alt}
                                 loading="lazy"
                                 className="h-full w-full object-cover"
                             />

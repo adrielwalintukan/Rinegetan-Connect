@@ -8,13 +8,17 @@ import { GridGuides } from "@/components/layout/CreationGrid";
 import { AdventistSymbol } from "@/components/identity/AdventistSymbol";
 import { CHURCH, IMAGES, SABBATH } from "@/data/content";
 
-export const Hero = () => {
+export const Hero = ({ sectionMedia = null }) => {
     const frameRef = useRef(null);
     const { scrollYProgress } = useScroll({
         target: frameRef,
         offset: ["start end", "end start"],
     });
     const imgY = useTransform(scrollYProgress, [0, 1], ["-10%", "10%"]);
+
+    const heroSrc = sectionMedia?.home_hero?.url || IMAGES.hero.src;
+    const heroAlt = sectionMedia?.home_hero?.alt_text || IMAGES.hero.alt;
+    const heroCaption = sectionMedia?.home_hero?.caption || IMAGES.hero.caption;
 
     return (
         <section data-testid="hero" className="relative overflow-hidden">
@@ -59,7 +63,7 @@ export const Hero = () => {
                                         />
                                     </span>
                                     .
-                                </>,
+                                </>
                             ]}
                         />
                     </h1>
@@ -108,15 +112,15 @@ export const Hero = () => {
                         data-testid="hero-image-frame"
                     >
                         <motion.img
-                            src={IMAGES.hero.src}
-                            alt={IMAGES.hero.alt}
+                            src={heroSrc}
+                            alt={heroAlt}
                             style={{ y: imgY }}
                             className="h-[122%] w-full -translate-y-[8%] object-cover will-change-transform"
                             fetchPriority="high"
                         />
                         <figcaption className="absolute bottom-4 left-4 flex items-center gap-2 rounded-full bg-navy/80 px-4 py-2 text-xs font-medium text-white backdrop-blur-md">
                             <span className="h-1.5 w-1.5 rounded-full bg-sabbath-400" aria-hidden="true" />
-                            {IMAGES.hero.caption}
+                            {heroCaption}
                         </figcaption>
                     </motion.div>
                 </div>

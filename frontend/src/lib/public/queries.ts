@@ -9,8 +9,21 @@ export {
   getPublishedDepartments,
   getPublicMediaAlbums,
   getPublicMediaAssets,
+  getSiteSectionMedia,
   triggerPublicRevalidation,
 } from "./queries.mjs";
+
+export type SectionMediaKey = "home_hero" | "home_welcome" | "sekolah_sabat" | "tentang_kami";
+
+export interface SectionMediaItem {
+  section_key: SectionMediaKey;
+  asset_id: string;
+  image_url: string;
+  alt_text: string;
+  caption?: string | null;
+}
+
+export type SiteSectionMediaMap = Record<string, SectionMediaItem>;
 
 export type PublicAnnouncementsResult = Announcement[];
 export type PublicEventsResult = EventItem[];

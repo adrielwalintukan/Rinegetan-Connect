@@ -17,9 +17,9 @@ const DAYS_ID = [
 ];
 
 /**
- * @param {{ initialSchedules?: any[] | null }} props
+ * @param {{ initialSchedules?: any[] | null, sectionMedia?: any }} props
  */
-export default function SekolahSabatPage({ initialSchedules = null }) {
+export default function SekolahSabatPage({ initialSchedules = null, sectionMedia = null }) {
     const weekly = initialSchedules !== null
         ? initialSchedules.map((s) => ({
             day: s.day || (s.day_of_week !== undefined ? DAYS_ID[s.day_of_week] : "Sabat (Sabtu)"),
@@ -118,8 +118,8 @@ export default function SekolahSabatPage({ initialSchedules = null }) {
                         <Reveal delay={0.2}>
                             <figure className="img-frame mt-6 aspect-[21/9]">
                                 <img
-                                    src={IMAGES.bibleStudy.src}
-                                    alt={IMAGES.bibleStudy.alt}
+                                    src={sectionMedia?.sekolah_sabat?.url || IMAGES.bibleStudy.src}
+                                    alt={sectionMedia?.sekolah_sabat?.alt_text || IMAGES.bibleStudy.alt}
                                     loading="lazy"
                                     className="h-full w-full object-cover"
                                 />
