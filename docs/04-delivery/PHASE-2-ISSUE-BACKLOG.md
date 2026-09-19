@@ -154,6 +154,14 @@
 - **Dependencies:** P2-403
 - **Acceptance criteria:** single/album/category download hanya memasukkan aset eligible; URL/result berumur pendek; file/byte/rate limit dan audit diuji.
 
+### P2-405 — Pengelolaan media dan banner seksi halaman publik
+
+- **Label:** feature, cms, media, priority:high
+- **Sprint:** 4
+- **Status:** ready
+- **Dependencies:** P2-403
+- **Acceptance criteria:** admin dan editor dapat memilih/mengubah gambar seksi halaman publik (Hero beranda, Selamat Datang, Sekolah Sabat, Tentang Kami) melalui portal staf `/staff`; gambar tersimpan di Supabase Storage/media_assets; perubahan langsung ter-revalidasi ke halaman publik dengan fallback statis jika belum dikonfigurasi; audit log mutasi tercatat.
+
 ### P2-501 — Quality gate dan CI Phase 2
 
 - **Label:** chore, ci, database, accessibility, priority:critical
