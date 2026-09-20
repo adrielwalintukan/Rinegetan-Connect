@@ -14,8 +14,8 @@ permissions:
   contents: read
 
 jobs:
-  frontend-build:
-    name: Next.js production build
+  frontend-quality-gate:
+    name: Frontend Quality Gate & Build
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -31,8 +31,32 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Install dependencies
         run: npm ci
+      - name: TypeScript typecheck
+        run: npm run typecheck
+      - name: ESLint check
+        run: npm run lint
+      - name: Unit, contract & security tests
+        run: npm run test:routes
       - name: Build production bundle
         run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key-for-build
+
+  database-quality-gate:
+    name: Database pgTAP & RLS Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.117.0
+      - name: Start Supabase local containers
+        run: supabase start
+      - name: Run pgTAP test suites
+        run: supabase test db
 
   backend-syntax:
     name: Backend syntax
