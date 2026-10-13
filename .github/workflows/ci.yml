@@ -35,13 +35,14 @@ jobs:
         run: npm run typecheck
       - name: ESLint check
         run: npm run lint
-      - name: Unit, contract & security tests
-        run: npm run test:routes
       - name: Build production bundle
         run: npm run build
         env:
           NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
           NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key-for-build
+      # Route contract test reads .next/server/app-paths-manifest.json, so it must run after the build.
+      - name: Unit, contract & security tests
+        run: npm run test:routes
 
   database-quality-gate:
     name: Database pgTAP & RLS Tests
