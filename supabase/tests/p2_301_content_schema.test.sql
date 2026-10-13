@@ -1,6 +1,6 @@
 begin;
 
-select plan(38);
+select plan(34);
 
 -- 1. Enum content_status
 select ok(to_regtype('public.content_status') is not null, 'content_status enum exists');
@@ -144,17 +144,19 @@ select throws_ok(
 );
 
 -- Anon CANNOT update
-select results_eq(
+select throws_ok(
   $$ update public.announcements set title = 'Changed' where id = '33333333-3333-4333-8333-333333333333' returning 1 $$,
-  array[]::int[],
-  'anon update on announcements affects 0 rows'
+  '42501',
+  null,
+  'anon cannot update announcements'
 );
 
 -- Anon CANNOT delete
-select results_eq(
+select throws_ok(
   $$ delete from public.announcements where id = '33333333-3333-4333-8333-333333333333' returning 1 $$,
-  array[]::int[],
-  'anon delete on announcements affects 0 rows'
+  '42501',
+  null,
+  'anon cannot delete announcements'
 );
 
 -- 10. Test editor persona

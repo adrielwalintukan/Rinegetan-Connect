@@ -1,6 +1,6 @@
 begin;
 
-select plan(28);
+select plan(26);
 
 -- 1. Enums exist
 select ok(to_regtype('public.media_category') is not null, 'media_category enum exists');

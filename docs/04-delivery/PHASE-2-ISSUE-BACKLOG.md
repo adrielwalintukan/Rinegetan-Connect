@@ -166,6 +166,7 @@
 
 - **Label:** chore, ci, database, accessibility, priority:critical
 - **Sprint:** 5
+- **Status:** selesai
 - **Dependencies:** seluruh issue sebelumnya
 - **Acceptance criteria:** CI menjalankan build/typecheck/lint/unit/E2E/RLS test yang relevan; lint/format aman; security regression memiliki test.
 

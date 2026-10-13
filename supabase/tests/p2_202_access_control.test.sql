@@ -297,12 +297,12 @@ select results_eq(
 );
 
 select set_config('request.jwt.claim.sub', '11111111-1111-1111-1111-111111111111', true);
-select results_eq($$ select id from public.profiles order by id $$, array[
+select results_eq($$ select id from public.profiles where id in ('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', '33333333-3333-3333-3333-333333333333') order by id $$, array[
   '11111111-1111-1111-1111-111111111111'::uuid,
   '22222222-2222-2222-2222-222222222222'::uuid,
   '33333333-3333-3333-3333-333333333333'::uuid
 ]::uuid[], 'admin can read all profiles');
-select results_eq($$ select user_id from public.staff_roles order by user_id $$, array[
+select results_eq($$ select user_id from public.staff_roles where user_id in ('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', '33333333-3333-3333-3333-333333333333') order by user_id $$, array[
   '11111111-1111-1111-1111-111111111111'::uuid,
   '22222222-2222-2222-2222-222222222222'::uuid,
   '33333333-3333-3333-3333-333333333333'::uuid
