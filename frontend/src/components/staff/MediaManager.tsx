@@ -20,6 +20,8 @@ import {
 } from "@/lib/media/constants";
 import type { MediaAlbum, MediaAsset } from "@/types/media";
 import type { ContentStatus } from "@/types/content";
+import { clientErrorMessage } from "@/lib/api/errors";
+import { MODAL_BACKDROP } from "@/components/ui/modal";
 
 export interface MediaManagerProps {
   initialAssets: MediaAsset[];
@@ -108,7 +110,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
         }),
       });
 
-      const json = await res.json();
+      const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(json.error || "Gagal memperbarui status media");
       }
@@ -118,7 +120,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
       );
       onNotification("success", `Status media diubah menjadi ${newStatus}`);
     } catch (err) {
-      onNotification("error", err instanceof Error ? err.message : "Terjadi kesalahan");
+      onNotification("error", clientErrorMessage(err, "Terjadi kesalahan"));
     } finally {
       setIsSubmitting(false);
     }
@@ -150,7 +152,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
         }),
       });
 
-      const json = await res.json();
+      const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(json.error || "Gagal menyembunyikan media");
       }
@@ -172,7 +174,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
       setTakedownAsset(null);
       setHiddenReason("");
     } catch (err) {
-      onNotification("error", err instanceof Error ? err.message : "Gagal memproses penarikan");
+      onNotification("error", clientErrorMessage(err, "Gagal memproses penarikan"));
     } finally {
       setIsSubmitting(false);
     }
@@ -202,7 +204,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
         }),
       });
 
-      const json = await res.json();
+      const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(json.error || "Gagal menghapus aset media");
       }
@@ -210,7 +212,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
       setAssets((prev) => prev.filter((item) => item.id !== asset.id));
       onNotification("success", "Aset media berhasil dihapus permanen.");
     } catch (err) {
-      onNotification("error", err instanceof Error ? err.message : "Gagal menghapus aset");
+      onNotification("error", clientErrorMessage(err, "Gagal menghapus aset"));
     } finally {
       setIsSubmitting(false);
     }
@@ -491,9 +493,12 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
       <MediaUploadDialog
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
-        onSuccess={(newAsset) => {
+        onSuccess={(newAsset, warning) => {
           setAssets((prev) => [newAsset, ...prev]);
-          onNotification("success", "Foto berhasil diunggah dan diproses ke format web teroptimasi.");
+          onNotification(
+            warning ? "error" : "success",
+            warning || "Foto berhasil diunggah dan diproses ke format web teroptimasi."
+          );
         }}
         albums={albums}
       />
@@ -503,7 +508,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/70 backdrop-blur-sm p-4"
+          className={MODAL_BACKDROP}
         >
           <div className="w-full max-w-md card-surface rounded-2xl bg-white p-6 shadow-xl border border-slate-200">
             <h3 className="text-base font-bold text-navy flex items-center gap-2">

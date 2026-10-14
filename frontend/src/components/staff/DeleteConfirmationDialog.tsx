@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import { AlertTriangle, X } from "lucide-react";
+import { clientErrorMessage } from "@/lib/api/errors";
+import { MODAL_BACKDROP } from "@/components/ui/modal";
 
 interface DeleteConfirmationDialogProps {
   isOpen: boolean;
@@ -39,12 +41,12 @@ export const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> =
       setReason("");
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal menghapus konten");
+      setError(clientErrorMessage(err, "Gagal menghapus konten"));
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/60 p-4 backdrop-blur-sm">
+    <div className={MODAL_BACKDROP}>
       <div className="relative w-full max-w-md rounded-2xl border border-red-100 bg-white p-6 shadow-2xl">
         <button
           type="button"

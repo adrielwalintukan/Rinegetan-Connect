@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireActiveStaff, StaffAccessError } from "@/lib/staff/server";
 import { executeSaveContent } from "@/lib/staff/content-mutations";
 import { triggerPublicRevalidation } from "@/lib/public/queries";
+import { publicErrorMessage } from "@/lib/api/errors";
 
 export async function POST(request: Request) {
   try {
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
         { status: error.code === "not_authenticated" ? 401 : 403 }
       );
     }
-    const message = error instanceof Error ? error.message : "Gagal menyimpan konten";
-    return Response.json({ error: message }, { status: 400 });
+    console.error("content/save failed:", error);
+    return Response.json({ error: publicErrorMessage(error) }, { status: 400 });
   }
 }

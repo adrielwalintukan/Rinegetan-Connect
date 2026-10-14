@@ -13,6 +13,7 @@ import {
   UserCheck,
   Image as ImageIcon,
   LayoutTemplate,
+  Users,
 } from "lucide-react";
 import { ContentFilterBar } from "./ContentFilterBar";
 import { ContentTable, type ContentItem } from "./ContentTable";
@@ -21,9 +22,11 @@ import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 import { AuditLogViewer, type AuditEntry } from "./AuditLogViewer";
 import { MediaManager } from "./MediaManager";
 import { SectionMediaManager } from "./SectionMediaManager";
+import { StaffManager, type StaffMember } from "./StaffManager";
 import type { ContentStatus } from "@/types/content";
 import type { MediaAsset, MediaAlbum } from "@/types/media";
 import type { SiteSectionMediaMap } from "@/lib/public/queries";
+import { clientErrorMessage } from "@/lib/api/errors";
 
 interface StaffDashboardProps {
   userEmail: string;
@@ -36,6 +39,8 @@ interface StaffDashboardProps {
   initialMediaAssets?: MediaAsset[];
   initialMediaAlbums?: MediaAlbum[];
   initialSectionMedia?: SiteSectionMediaMap;
+  currentUserId: string;
+  initialStaff?: StaffMember[];
 }
 
 type TabType =
@@ -45,7 +50,8 @@ type TabType =
   | "departments"
   | "media"
   | "banners"
-  | "audit";
+  | "audit"
+  | "staff";
 
 export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   userEmail,
@@ -58,6 +64,8 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   initialMediaAssets = [],
   initialMediaAlbums = [],
   initialSectionMedia = {},
+  currentUserId,
+  initialStaff = [],
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>("announcements");
   const [currentFilter, setCurrentFilter] = useState("all");
@@ -159,7 +167,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
         }),
       });
 
-      const json = await res.json();
+      const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(json.error || "Gagal memperbarui status");
       }
@@ -184,7 +192,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
 
       showNotification("success", `Status berhasil diubah menjadi ${newStatus}`);
     } catch (err) {
-      showNotification("error", err instanceof Error ? err.message : "Terjadi kesalahan");
+      showNotification("error", clientErrorMessage(err, "Terjadi kesalahan"));
     } finally {
       setIsLoading(false);
     }
@@ -204,7 +212,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
         }),
       });
 
-      const json = await res.json();
+      const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(json.error || "Gagal menyimpan konten");
       }
@@ -223,7 +231,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
 
       setEditingItem(null);
     } catch (err) {
-      showNotification("error", err instanceof Error ? err.message : "Gagal menyimpan");
+      showNotification("error", clientErrorMessage(err, "Gagal menyimpan"));
       throw err;
     } finally {
       setIsLoading(false);
@@ -245,7 +253,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
         }),
       });
 
-      const json = await res.json();
+      const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(json.error || "Gagal menghapus konten");
       }
@@ -268,7 +276,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
       showNotification("success", "Konten berhasil dihapus permanen");
       setDeletingItem(null);
     } catch (err) {
-      showNotification("error", err instanceof Error ? err.message : "Gagal menghapus");
+      showNotification("error", clientErrorMessage(err, "Gagal menghapus"));
       throw err;
     } finally {
       setIsLoading(false);
@@ -283,6 +291,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
     { id: "media" as TabType, label: "Media & Galeri", icon: ImageIcon },
     { id: "banners" as TabType, label: "Banner Halaman", icon: LayoutTemplate },
     { id: "audit" as TabType, label: "Log Audit", icon: History },
+    ...(role === "admin" ? [{ id: "staff" as TabType, label: "Kelola Staf", icon: Users }] : []),
   ];
 
   return (
@@ -381,7 +390,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
           </nav>
 
           {/* Create Button (only for content tabs) */}
-          {activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && (
+          {activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && (
             <button
               type="button"
               onClick={() => {
@@ -400,6 +409,12 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
         <div className="mt-6">
           {activeTab === "audit" ? (
             <AuditLogViewer logs={auditLogs} />
+          ) : activeTab === "staff" ? (
+            <StaffManager
+              initialStaff={initialStaff}
+              currentUserId={currentUserId}
+              onNotification={showNotification}
+            />
           ) : activeTab === "media" ? (
             <MediaManager
               initialAssets={initialMediaAssets}
@@ -445,7 +460,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
       </main>
 
       {/* Dialogs */}
-      {activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && (
+      {activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && (
         <ContentMutationDialog
           key={`${activeTab}_${editingItem?.id || "new"}`}
           isOpen={isMutationOpen}
@@ -460,7 +475,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
         />
       )}
 
-      {activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && (
+      {activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && (
         <DeleteConfirmationDialog
           isOpen={isDeleteOpen}
           onClose={() => {

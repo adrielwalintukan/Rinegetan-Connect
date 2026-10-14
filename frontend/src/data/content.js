@@ -4,11 +4,13 @@ export const CHURCH = {
     entity: "Jemaat Rinegetan",
     region: "Minahasa · Sulawesi Utara",
     tagline: "Tempat Bertumbuh dalam Iman, Melayani, dan Bersama",
-    address: "Jl. Rinegetan No. 7, Tondano, Kabupaten Minahasa, Sulawesi Utara 95611",
+    // Street number and postal code are not verified yet; only the area of the Maps pin is shown.
+    address: "Rinegetan, Tondano, Kabupaten Minahasa, Sulawesi Utara",
     phone: "+62 812-3456-7890",
     whatsapp: "https://wa.me/6281234567890",
     email: "halo@gmahkrinegetan.org",
-    mapsQuery: "Rinegetan, Tondano, Minahasa, Sulawesi Utara",
+    // Exact pin of "GMAHK Jemaat Rinegetan" (https://maps.app.goo.gl/dUfu9roHcnH5pfdn8); a name search lands on the kelurahan boundary.
+    mapsQuery: "1.2980427,124.9081001",
     socials: [
         { label: "Facebook", href: "https://facebook.com/gmahkrinegetan", icon: "facebook" },
         { label: "Instagram", href: "https://instagram.com/gmahkrinegetan", icon: "instagram" },

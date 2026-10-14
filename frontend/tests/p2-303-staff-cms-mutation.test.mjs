@@ -22,6 +22,7 @@ test("Supported entities and valid statuses constants are defined correctly", ()
     "events",
     "departments",
     "schedules",
+    "media_assets",
   ]);
   assert.deepEqual(VALID_STATUSES, ["draft", "published", "archived"]);
 });

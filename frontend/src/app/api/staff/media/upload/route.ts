@@ -6,6 +6,9 @@ import {
   STORAGE_CAPACITY_BYTES,
 } from "@/lib/media/guardrails";
 import { createJpegDerivative } from "@/lib/media/derivative";
+import { publicErrorMessage } from "@/lib/api/errors";
+
+const CONSENT_STATUSES = ["pending", "approved", "rejected", "revoked"];
 
 export async function POST(request: Request) {
   try {
@@ -18,8 +21,9 @@ export async function POST(request: Request) {
       .select("bytes");
 
     if (usageError) {
+      console.error("media upload quota query failed:", usageError);
       return Response.json(
-        { error: "database_error", message: usageError.message },
+        { error: "database_error", message: publicErrorMessage(usageError) },
         { status: 500 }
       );
     }
@@ -51,6 +55,11 @@ export async function POST(request: Request) {
     const caption = formData.get("caption");
     const subjectAgeGroup = formData.get("subject_age_group");
     const albumId = formData.get("album_id");
+    const consentInput = formData.get("consent_status");
+    const consentStatus =
+      typeof consentInput === "string" && CONSENT_STATUSES.includes(consentInput)
+        ? consentInput
+        : "pending";
 
     if (!file || !(file instanceof Blob)) {
       return Response.json(
@@ -121,10 +130,11 @@ export async function POST(request: Request) {
       });
 
     if (uploadError) {
+      console.error("media storage upload failed:", uploadError);
       return Response.json(
         {
           error: "storage_upload_failed",
-          message: "Gagal mengunggah gambar ke penyimpanan: " + uploadError.message,
+          message: "Gagal mengunggah gambar ke penyimpanan. Silakan coba lagi.",
         },
         { status: 500 }
       );
@@ -157,14 +167,47 @@ export async function POST(request: Request) {
 
     if (assetError) {
       // Rollback file jika insert database gagal
+      console.error("media_assets insert failed:", assetError);
       await client.storage.from("media").remove([storagePath]);
       return Response.json(
         {
           error: "database_insert_failed",
-          message: "Gagal menyimpan metadata media: " + assetError.message,
+          message: `Gagal menyimpan data foto. ${publicErrorMessage(assetError)}`,
         },
         { status: 500 }
       );
+    }
+
+    // Consent selain pending baru diterapkan setelah buktinya tercatat; bila gagal, foto tetap pending (aman, tidak tampil publik).
+    let savedAsset = assetData;
+    let consentWarning: string | null = null;
+    if (consentStatus !== "pending") {
+      const { error: consentError } = await client.from("consent_records").insert({
+        asset_id: assetData.id,
+        consent_status: consentStatus,
+        subject_age_group: assetData.subject_age_group,
+        recorded_by: staff.user.id,
+      });
+
+      const { data: consentAsset, error: updateError } = consentError
+        ? { data: null, error: consentError }
+        : await client
+            .from("media_assets")
+            .update({
+              consent_status: consentStatus,
+              consent_recorded_at: new Date().toISOString(),
+              consent_recorded_by: staff.user.id,
+            })
+            .eq("id", assetData.id)
+            .select()
+            .single();
+
+      if (updateError || !consentAsset) {
+        console.error("consent recording failed:", updateError);
+        consentWarning = "Foto tersimpan, tetapi izin (consent) belum tercatat sehingga statusnya masih Pending.";
+      } else {
+        savedAsset = consentAsset;
+      }
     }
 
     // 8. Relasikan dengan album jika album_id disertakan
@@ -175,29 +218,15 @@ export async function POST(request: Request) {
       });
     }
 
-    // 9. Catat audit log mutasi
-    await client.from("audit_logs").insert({
-      actor_id: staff.user.id,
-      action: "media.upload",
-      entity_type: "media_assets",
-      entity_id: assetData.id,
-      changes: {
-        storage_path: storagePath,
-        bytes: derivative.bytes,
-        width: derivative.width,
-        height: derivative.height,
-        alt_text: altText.trim(),
-        subject_age_group: assetData.subject_age_group,
-        album_id: albumId || null,
-      },
-    });
+    // Audit "media" dicatat oleh trigger database media_assets_audit_mutation.
 
     const updatedQuota = getStorageQuotaMetrics(totalUsedBytes + derivative.bytes);
 
     return Response.json(
       {
         success: true,
-        data: assetData,
+        data: savedAsset,
+        warning: consentWarning,
         quota: updatedQuota,
       },
       { status: 201 }
@@ -210,8 +239,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const message =
-      error instanceof Error ? error.message : "Terjadi kesalahan server";
-    return Response.json({ error: message }, { status: 500 });
+    console.error("media upload failed:", error);
+    return Response.json({ error: "server_error", message: publicErrorMessage(error) }, { status: 500 });
   }
 }

@@ -5,6 +5,7 @@ import { getSiteSectionMedia } from "@/lib/public/queries";
 import type { ContentItem } from "@/components/staff/ContentTable";
 import type { AuditEntry } from "@/components/staff/AuditLogViewer";
 import type { MediaAsset, MediaAlbum } from "@/types/media";
+import type { StaffMember } from "@/components/staff/StaffManager";
 
 export const dynamic = "force-dynamic";
 
@@ -55,6 +56,24 @@ export default async function StaffHomePage() {
     getSiteSectionMedia(),
   ]);
 
+  const staffRes =
+    staff.role === "admin"
+      ? await client
+          .from("profiles")
+          .select("id, display_name, is_active, created_at, staff_roles(role)")
+          .order("created_at", { ascending: true })
+      : { data: [] };
+  const initialStaff: StaffMember[] = (staffRes.data || []).map((row) => {
+    const roles = row.staff_roles as { role: StaffMember["role"] } | { role: StaffMember["role"] }[] | null;
+    return {
+      id: row.id,
+      display_name: row.display_name,
+      is_active: row.is_active,
+      created_at: row.created_at,
+      role: (Array.isArray(roles) ? roles[0]?.role : roles?.role) ?? null,
+    };
+  });
+
   return (
     <StaffDashboard
       userEmail={staff.user.email || "staff@gmahkrinegetan.org"}
@@ -67,6 +86,8 @@ export default async function StaffHomePage() {
       initialMediaAssets={(mediaAssetsRes.data as MediaAsset[]) || []}
       initialMediaAlbums={(mediaAlbumsRes.data as MediaAlbum[]) || []}
       initialSectionMedia={sectionMedia}
+      currentUserId={staff.user.id}
+      initialStaff={initialStaff}
     />
   );
 }

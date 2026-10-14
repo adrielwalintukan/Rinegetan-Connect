@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireActiveAdmin, StaffAccessError } from "@/lib/staff/server";
 import { executePermanentDelete } from "@/lib/staff/content-mutations";
 import { triggerPublicRevalidation } from "@/lib/public/queries";
+import { publicErrorMessage } from "@/lib/api/errors";
 
 export async function POST(request: Request) {
   try {
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
         { status: error.code === "not_authenticated" ? 401 : 403 }
       );
     }
-    const message = error instanceof Error ? error.message : "Gagal menghapus konten";
-    return Response.json({ error: message }, { status: 400 });
+    console.error("content/delete failed:", error);
+    return Response.json({ error: publicErrorMessage(error) }, { status: 400 });
   }
 }

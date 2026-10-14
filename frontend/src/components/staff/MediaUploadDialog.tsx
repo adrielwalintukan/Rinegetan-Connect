@@ -4,12 +4,33 @@
 import React, { useState, useRef } from "react";
 import { X, UploadCloud, AlertTriangle, ShieldCheck, CheckCircle2 } from "lucide-react";
 import type { MediaAlbum, MediaAsset, MediaCategory, SubjectAgeGroup, ConsentStatus } from "@/types/media";
+import { clientErrorMessage } from "@/lib/api/errors";
+import { MODAL_BACKDROP } from "@/components/ui/modal";
 
 export interface MediaUploadDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (newAsset: MediaAsset) => void;
+  onSuccess: (newAsset: MediaAsset, warning?: string | null) => void;
   albums?: MediaAlbum[];
+}
+
+// Vercel functions reject request bodies above ~4.5 MB, so large phone photos are shrunk in the browser first.
+const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+
+async function shrinkForUpload(file: File): Promise<Blob> {
+  if (file.size <= MAX_UPLOAD_BYTES) return file;
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, 2560 / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  for (const quality of [0.88, 0.75, 0.6]) {
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
+    if (blob && blob.size <= MAX_UPLOAD_BYTES) return blob;
+  }
+  throw new Error("Foto terlalu besar untuk diunggah. Coba foto dengan resolusi lebih kecil.");
 }
 
 export const MediaUploadDialog: React.FC<MediaUploadDialogProps> = ({
@@ -70,7 +91,7 @@ export const MediaUploadDialog: React.FC<MediaUploadDialogProps> = ({
 
     try {
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", await shrinkForUpload(file), file.name);
       formData.append("alt_text", altText.trim());
       if (caption.trim()) formData.append("caption", caption.trim());
       formData.append("category", category);
@@ -83,9 +104,9 @@ export const MediaUploadDialog: React.FC<MediaUploadDialogProps> = ({
         body: formData,
       });
 
-      const json = await res.json();
-      if (!res.ok) {
-        throw new Error(json.message || json.error || "Gagal mengunggah foto.");
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.data) {
+        throw new Error(json?.message || "Gagal mengunggah foto. Periksa koneksi lalu coba lagi.");
       }
 
       // Reset form
@@ -98,10 +119,10 @@ export const MediaUploadDialog: React.FC<MediaUploadDialogProps> = ({
       setConsentStatus("pending");
       setAlbumId("");
 
-      onSuccess(json.asset);
+      onSuccess(json.data, json.warning);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Terjadi kesalahan saat mengunggah.");
+      setError(clientErrorMessage(err, "Terjadi kesalahan saat mengunggah."));
     } finally {
       setIsLoading(false);
     }
@@ -112,7 +133,7 @@ export const MediaUploadDialog: React.FC<MediaUploadDialogProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="upload-dialog-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/70 backdrop-blur-sm p-4 overflow-y-auto"
+      className={`${MODAL_BACKDROP} overflow-y-auto`}
     >
       <div className="card-surface relative w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden rounded-2xl bg-white shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
@@ -176,7 +197,7 @@ export const MediaUploadDialog: React.FC<MediaUploadDialogProps> = ({
                     setFile(null);
                     setPreviewUrl(null);
                   }}
-                  className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-navy-950/70 text-white hover:bg-navy-950 transition-colors"
+                  className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-navy-900/70 text-white hover:bg-navy-900 transition-colors"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>

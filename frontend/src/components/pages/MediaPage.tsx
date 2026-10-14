@@ -20,6 +20,7 @@ import { MediaLightbox } from "@/components/media/MediaLightbox";
 import { getMediaPublicUrl } from "@/lib/media/url";
 import { cn } from "@/lib/utils";
 import type { PublicMediaAlbumItem, PublicMediaAssetItem } from "@/lib/public/queries";
+import { clientErrorMessage } from "@/lib/api/errors";
 
 export interface MediaPageProps {
   initialAlbums?: PublicMediaAlbumItem[];
@@ -73,7 +74,7 @@ export default function MediaPage({
       window.URL.revokeObjectURL(url);
       toast.success(`Album "${albumTitle}" berhasil diunduh.`);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Terjadi kesalahan saat mengunduh album.";
+      const msg = clientErrorMessage(err, "Terjadi kesalahan saat mengunduh album.");
       toast.error(msg);
     } finally {
       setDownloadingAlbumId(null);
@@ -174,7 +175,7 @@ export default function MediaPage({
                         <span className="chip absolute left-3 top-3 !bg-white/90 shadow-sm capitalize">
                           {album.category.replace(/_/g, " ")}
                         </span>
-                        <div className="absolute right-3 bottom-3 flex items-center gap-1.5 bg-navy-950/75 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
+                        <div className="absolute right-3 bottom-3 flex items-center gap-1.5 bg-navy-900/75 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
                           <Layers className="h-3.5 w-3.5" />
                           <span>{album.photo_count} Foto</span>
                         </div>
@@ -323,7 +324,7 @@ export default function MediaPage({
                       />
 
                       {/* Gradient overlay for text contrast */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-navy-950/85 via-navy-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 text-white">
+                      <div className="absolute inset-0 bg-gradient-to-t from-navy-900/85 via-navy-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 text-white">
                         <p className="text-xs sm:text-sm font-medium line-clamp-2 text-white">
                           {asset.caption || asset.alt_text}
                         </p>
@@ -336,7 +337,7 @@ export default function MediaPage({
 
                       {/* Top badges */}
                       <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-navy-950/60 backdrop-blur-sm text-white">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-navy-900/60 backdrop-blur-sm text-white">
                           <Sparkles className="h-4 w-4" />
                         </span>
                       </div>

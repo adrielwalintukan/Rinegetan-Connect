@@ -8,12 +8,14 @@ import {
   assertCanMutateStatus,
   assertCanDeletePermanently,
 } from "./content-mutations.mjs";
+import { UserFacingError } from "@/lib/api/errors";
 
 export type ContentEntityType =
   | "announcements"
   | "events"
   | "departments"
-  | "schedules";
+  | "schedules"
+  | "media_assets";
 
 export interface StatusMutationParams {
   role: string;
@@ -43,11 +45,11 @@ export async function executeStatusChange(
   assertCanMutateStatus(params.role);
 
   if (!SUPPORTED_ENTITIES.includes(params.entityType)) {
-    throw new Error(`Entitas tidak valid: ${params.entityType}`);
+    throw new UserFacingError(`Entitas tidak valid: ${params.entityType}`);
   }
 
   if (!validateStatusTransition(null, params.newStatus)) {
-    throw new Error(`Status tidak valid: ${params.newStatus}`);
+    throw new UserFacingError(`Status tidak valid: ${params.newStatus}`);
   }
 
   const { data, error } = await client
@@ -58,7 +60,7 @@ export async function executeStatusChange(
     .single();
 
   if (error) {
-    throw new Error(error.message);
+    throw error;
   }
 
   return data;
@@ -71,12 +73,12 @@ export async function executePermanentDelete(
   assertCanDeletePermanently(params.role);
 
   if (!SUPPORTED_ENTITIES.includes(params.entityType)) {
-    throw new Error(`Entitas tidak valid: ${params.entityType}`);
+    throw new UserFacingError(`Entitas tidak valid: ${params.entityType}`);
   }
 
   const validation = validateDeletePayload(params.reason);
   if (!validation.valid) {
-    throw new Error(validation.message || "Alasan penghapusan tidak valid");
+    throw new UserFacingError(validation.message || "Alasan penghapusan tidak valid");
   }
 
   const { error } = await client
@@ -85,7 +87,7 @@ export async function executePermanentDelete(
     .eq("id", params.id);
 
   if (error) {
-    throw new Error(error.message);
+    throw error;
   }
 
   return { success: true, deletedId: params.id };
@@ -98,7 +100,7 @@ export async function executeSaveContent(
   assertCanMutateStatus(params.role);
 
   if (!SUPPORTED_ENTITIES.includes(params.entityType)) {
-    throw new Error(`Entitas tidak valid: ${params.entityType}`);
+    throw new UserFacingError(`Entitas tidak valid: ${params.entityType}`);
   }
 
   if (params.id) {
@@ -110,7 +112,7 @@ export async function executeSaveContent(
       .single();
 
     if (error) {
-      throw new Error(error.message);
+      throw error;
     }
     return data;
   } else {
@@ -121,7 +123,7 @@ export async function executeSaveContent(
       .single();
 
     if (error) {
-      throw new Error(error.message);
+      throw error;
     }
     return data;
   }
