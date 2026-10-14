@@ -17,6 +17,8 @@ import { MediaUploadDialog } from "./MediaUploadDialog";
 import { getMediaPublicUrl } from "@/lib/media/url";
 import type { MediaAsset, MediaAlbum } from "@/types/media";
 import type { SiteSectionMediaMap, SectionMediaKey } from "@/lib/public/queries";
+import { clientErrorMessage } from "@/lib/api/errors";
+import { MODAL_BACKDROP } from "@/components/ui/modal";
 
 interface SectionConfig {
   key: SectionMediaKey;
@@ -105,7 +107,7 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(data.message || "Gagal memperbarui gambar seksi.");
       }
@@ -123,7 +125,7 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
 
       toast.success(`Gambar untuk seksi berhasil diperbarui.`);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Terjadi kesalahan.";
+      const msg = clientErrorMessage(err, "Terjadi kesalahan.");
       toast.error(msg);
     } finally {
       setSavingKey(null);
@@ -142,7 +144,7 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(data.message || "Gagal mereset gambar seksi.");
       }
@@ -155,7 +157,7 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
 
       toast.success(`Seksi dikembalikan ke gambar bawaan.`);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Terjadi kesalahan.";
+      const msg = clientErrorMessage(err, "Terjadi kesalahan.");
       toast.error(msg);
     } finally {
       setSavingKey(null);
@@ -209,7 +211,7 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
                         Kustom Aktif
                       </span>
                     ) : (
-                      <span className="chip bg-navy-950/70 text-slate-200 backdrop-blur-sm text-xs">
+                      <span className="chip bg-navy-900/70 text-slate-200 backdrop-blur-sm text-xs">
                         Gambar Bawaan (Default)
                       </span>
                     )}
@@ -287,7 +289,7 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
           role="dialog"
           aria-modal="true"
           aria-label="Pilih foto dari galeri media"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/80 backdrop-blur-sm p-4"
+          className={MODAL_BACKDROP}
         >
           <div className="card-surface rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-navy/20 overflow-hidden">
             <div className="p-5 border-b border-navy/10 flex items-center justify-between">
@@ -330,7 +332,7 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
                           alt={asset.alt_text}
                           className="w-full h-full object-cover transition-transform group-hover:scale-105"
                         />
-                        <div className="absolute inset-0 bg-navy-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                        <div className="absolute inset-0 bg-navy-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
                           <Check className="h-6 w-6" />
                         </div>
                       </button>

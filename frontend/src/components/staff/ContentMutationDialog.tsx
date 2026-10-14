@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import { X } from "lucide-react";
+import { clientErrorMessage } from "@/lib/api/errors";
+import { MODAL_BACKDROP } from "@/components/ui/modal";
 
 interface ContentMutationDialogProps {
   isOpen: boolean;
@@ -94,10 +96,14 @@ export const ContentMutationDialog: React.FC<ContentMutationDialogProps> = ({
     e.preventDefault();
     setError(null);
     try {
-      await onSave(formData);
+      // DB checks reject leading/trailing whitespace (btrim), so trim before saving.
+      const trimmed = Object.fromEntries(
+        Object.entries(formData).map(([key, value]) => [key, typeof value === "string" ? value.trim() : value])
+      );
+      await onSave(trimmed);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal menyimpan konten");
+      setError(clientErrorMessage(err, "Gagal menyimpan konten"));
     }
   };
 
@@ -111,7 +117,7 @@ export const ContentMutationDialog: React.FC<ContentMutationDialogProps> = ({
   const isEditing = Boolean(initialData?.id);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/60 p-4 backdrop-blur-sm">
+    <div className={MODAL_BACKDROP}>
       <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
         <button
           type="button"
@@ -245,6 +251,7 @@ export const ContentMutationDialog: React.FC<ContentMutationDialogProps> = ({
                   name="ends_at"
                   value={String(formData.ends_at || "")}
                   onChange={handleChange}
+                  required
                   className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs text-navy focus:border-navy focus:outline-none focus:ring-1 focus:ring-navy"
                 />
               </div>
@@ -260,6 +267,8 @@ export const ContentMutationDialog: React.FC<ContentMutationDialogProps> = ({
               name={entityType === "departments" ? "description" : "summary"}
               value={String(formData.description || formData.summary || "")}
               onChange={handleChange}
+              required={entityType === "announcements" || entityType === "events"}
+              maxLength={entityType === "departments" ? undefined : 500}
               rows={2}
               className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs text-navy focus:border-navy focus:outline-none focus:ring-1 focus:ring-navy"
             />
@@ -273,6 +282,7 @@ export const ContentMutationDialog: React.FC<ContentMutationDialogProps> = ({
                 name="body"
                 value={String(formData.body || "")}
                 onChange={handleChange}
+                required={entityType === "announcements"}
                 rows={4}
                 className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs text-navy focus:border-navy focus:outline-none focus:ring-1 focus:ring-navy"
               />

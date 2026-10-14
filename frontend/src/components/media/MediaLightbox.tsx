@@ -75,7 +75,7 @@ export const MediaLightbox: React.FC<MediaLightboxProps> = ({
       role="dialog"
       aria-modal="true"
       aria-label="Penampil Foto"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/90 backdrop-blur-md p-4 sm:p-6 select-none transition-opacity duration-300"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-navy-900/95 backdrop-blur-md p-4 sm:p-6 select-none transition-opacity duration-300"
       onClick={(e) => {
         if (e.target === dialogRef.current) {
           onClose();

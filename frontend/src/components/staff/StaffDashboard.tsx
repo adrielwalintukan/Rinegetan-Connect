@@ -24,6 +24,7 @@ import { SectionMediaManager } from "./SectionMediaManager";
 import type { ContentStatus } from "@/types/content";
 import type { MediaAsset, MediaAlbum } from "@/types/media";
 import type { SiteSectionMediaMap } from "@/lib/public/queries";
+import { clientErrorMessage } from "@/lib/api/errors";
 
 interface StaffDashboardProps {
   userEmail: string;
@@ -159,7 +160,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
         }),
       });
 
-      const json = await res.json();
+      const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(json.error || "Gagal memperbarui status");
       }
@@ -184,7 +185,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
 
       showNotification("success", `Status berhasil diubah menjadi ${newStatus}`);
     } catch (err) {
-      showNotification("error", err instanceof Error ? err.message : "Terjadi kesalahan");
+      showNotification("error", clientErrorMessage(err, "Terjadi kesalahan"));
     } finally {
       setIsLoading(false);
     }
@@ -204,7 +205,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
         }),
       });
 
-      const json = await res.json();
+      const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(json.error || "Gagal menyimpan konten");
       }
@@ -223,7 +224,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
 
       setEditingItem(null);
     } catch (err) {
-      showNotification("error", err instanceof Error ? err.message : "Gagal menyimpan");
+      showNotification("error", clientErrorMessage(err, "Gagal menyimpan"));
       throw err;
     } finally {
       setIsLoading(false);
@@ -245,7 +246,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
         }),
       });
 
-      const json = await res.json();
+      const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(json.error || "Gagal menghapus konten");
       }
@@ -268,7 +269,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
       showNotification("success", "Konten berhasil dihapus permanen");
       setDeletingItem(null);
     } catch (err) {
-      showNotification("error", err instanceof Error ? err.message : "Gagal menghapus");
+      showNotification("error", clientErrorMessage(err, "Gagal menghapus"));
       throw err;
     } finally {
       setIsLoading(false);

@@ -7,6 +7,7 @@ export const SUPPORTED_ENTITIES = [
   "events",
   "departments",
   "schedules",
+  "media_assets",
 ];
 
 export const VALID_STATUSES = ["draft", "published", "archived"];

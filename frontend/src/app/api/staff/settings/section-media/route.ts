@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireActiveStaff, StaffAccessError } from "@/lib/staff/server";
 import { triggerPublicRevalidation } from "@/lib/public/queries";
+import { publicErrorMessage } from "@/lib/api/errors";
 
 const VALID_SECTIONS = [
   "home_hero",
@@ -40,8 +41,9 @@ export async function POST(request: Request) {
         .eq("section_key", section_key);
 
       if (deleteErr) {
+        console.error("section-media reset failed:", deleteErr);
         return Response.json(
-          { error: "database_error", message: deleteErr.message },
+          { error: "database_error", message: publicErrorMessage(deleteErr) },
           { status: 500 }
         );
       }
@@ -104,10 +106,11 @@ export async function POST(request: Request) {
       .single();
 
     if (upsertErr) {
+      console.error("section-media upsert failed:", upsertErr);
       return Response.json(
         {
           error: "database_error",
-          message: "Gagal menyimpan konfigurasi seksi: " + upsertErr.message,
+          message: `Gagal menyimpan gambar seksi. ${publicErrorMessage(upsertErr)}`,
         },
         { status: 500 }
       );
@@ -124,12 +127,12 @@ export async function POST(request: Request) {
     if (err instanceof StaffAccessError) {
       const status = err.code === "not_authenticated" ? 401 : 403;
       return Response.json(
-        { error: err.code, message: err.message },
+        { error: err.code, message: "Sesi Anda berakhir atau akun tidak memiliki akses staf." },
         { status }
       );
     }
-    const message = err instanceof Error ? err.message : "Terjadi kesalahan server.";
-    return Response.json({ error: "server_error", message }, { status: 500 });
+    console.error("section-media failed:", err);
+    return Response.json({ error: "server_error", message: publicErrorMessage(err) }, { status: 500 });
   }
 }
 
