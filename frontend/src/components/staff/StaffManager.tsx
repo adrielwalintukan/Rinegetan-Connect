@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { MailPlus, UserMinus, UserRound, X } from "lucide-react";
+import { MailPlus, Trash2, UserCheck, UserMinus, UserRound, X } from "lucide-react";
 import { MODAL_BACKDROP } from "@/components/ui/modal";
 import { clientErrorMessage } from "@/lib/api/errors";
 
@@ -21,13 +21,19 @@ interface StaffManagerProps {
 
 // The staff API answers with codes (P2-203 contract); these are the staff-facing texts.
 const STAFF_ERRORS: Record<string, string> = {
-  validation_error: "Periksa kembali nama dan alamat email.",
+  validation_error: "Periksa kembali isian Anda. Alasan penghapusan minimal 5 karakter.",
   staff_conflict: "Email ini sudah terdaftar sebagai staf.",
-  invite_failed:
-    "Undangan belum terkirim. Pastikan email benar, lalu coba lagi beberapa saat lagi (pengiriman email dibatasi per jam).",
+  email_registered:
+    "Email ini sudah terdaftar. Jika akunnya nonaktif, aktifkan kembali dari daftar staf di bawah, atau hapus akunnya terlebih dahulu.",
+  rate_limited: "Batas pengiriman email tercapai. Silakan coba lagi sekitar satu jam lagi.",
+  invite_failed: "Undangan belum terkirim. Pastikan alamat email benar, lalu coba lagi.",
   provision_failed: "Akun dibuat tetapi peran Editor gagal diberikan. Silakan coba lagi.",
-  not_found: "Staf tidak ditemukan atau bukan Editor aktif.",
+  not_found: "Staf tidak ditemukan atau bukan Editor.",
+  not_inactive: "Editor ini sudah aktif.",
+  cannot_delete_self: "Anda tidak dapat menghapus akun Anda sendiri.",
   deactivation_failed: "Gagal menonaktifkan staf. Silakan coba lagi.",
+  reactivation_failed: "Gagal mengaktifkan kembali staf. Silakan coba lagi.",
+  deletion_failed: "Gagal menghapus staf. Silakan coba lagi.",
   unauthenticated: "Sesi Anda berakhir. Silakan masuk kembali.",
   forbidden: "Hanya Admin yang dapat mengelola staf.",
 };
@@ -35,14 +41,52 @@ const STAFF_ERRORS: Record<string, string> = {
 const staffError = (code: unknown, fallback: string) =>
   (typeof code === "string" && STAFF_ERRORS[code]) || fallback;
 
+type StaffAction = "deactivate" | "reactivate" | "delete";
+
+const ACTIONS: Record<
+  StaffAction,
+  { endpoint: string; title: string; impact: string; confirm: string; success: string; danger: boolean }
+> = {
+  deactivate: {
+    endpoint: "/api/staff/deactivate",
+    title: "Nonaktifkan",
+    impact: "Editor ini tidak dapat masuk sampai diaktifkan kembali. Konten yang sudah dibuat tetap tersimpan.",
+    confirm: "Nonaktifkan",
+    success: "dinonaktifkan dan tidak dapat masuk.",
+    danger: true,
+  },
+  reactivate: {
+    endpoint: "/api/staff/reactivate",
+    title: "Aktifkan kembali",
+    impact: "Editor ini dapat masuk lagi dengan email dan password sebelumnya.",
+    confirm: "Aktifkan",
+    success: "aktif kembali dan dapat masuk.",
+    danger: false,
+  },
+  delete: {
+    endpoint: "/api/staff/delete",
+    title: "Hapus permanen",
+    impact:
+      "Akun dan aksesnya dihapus permanen dan tidak dapat dikembalikan. Konten yang pernah dibuat tetap tersimpan. Email ini dapat diundang ulang setelahnya.",
+    confirm: "Hapus permanen",
+    success: "dihapus. Email ini sekarang dapat diundang ulang.",
+    danger: true,
+  },
+};
+
 export const StaffManager: React.FC<StaffManagerProps> = ({ initialStaff, currentUserId, onNotification }) => {
   const [staff, setStaff] = useState<StaffMember[]>(initialStaff);
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [isInviting, setIsInviting] = useState(false);
-  const [target, setTarget] = useState<StaffMember | null>(null);
+  const [pending, setPending] = useState<{ member: StaffMember; action: StaffAction } | null>(null);
   const [reason, setReason] = useState("");
-  const [isDeactivating, setIsDeactivating] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const openAction = (member: StaffMember, action: StaffAction) => {
+    setReason("");
+    setPending({ member, action });
+  };
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,30 +121,38 @@ export const StaffManager: React.FC<StaffManagerProps> = ({ initialStaff, curren
     }
   };
 
-  const handleDeactivate = async (e: React.FormEvent) => {
+  const handleAction = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!target) return;
-    setIsDeactivating(true);
+    if (!pending) return;
+    const { member, action } = pending;
+    const config = ACTIONS[action];
+    setIsSubmitting(true);
     try {
-      const res = await fetch("/api/staff/deactivate", {
+      const res = await fetch(config.endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: target.id, reason: reason.trim() }),
+        body: JSON.stringify({ userId: member.id, reason: reason.trim() }),
       });
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
-        throw new Error(staffError(json.error, "Gagal menonaktifkan staf."));
+        throw new Error(staffError(json.error, `Gagal: ${config.title.toLowerCase()}.`));
       }
-      setStaff((prev) => prev.map((s) => (s.id === target.id ? { ...s, is_active: false } : s)));
-      onNotification("success", `${target.display_name} dinonaktifkan dan tidak dapat masuk lagi.`);
-      setTarget(null);
-      setReason("");
+      setStaff((prev) =>
+        action === "delete"
+          ? prev.filter((s) => s.id !== member.id)
+          : prev.map((s) => (s.id === member.id ? { ...s, is_active: action === "reactivate" } : s))
+      );
+      onNotification("success", `${member.display_name} ${config.success}`);
+      setPending(null);
     } catch (err) {
-      onNotification("error", clientErrorMessage(err, "Gagal menonaktifkan staf."));
+      onNotification("error", clientErrorMessage(err, `Gagal: ${config.title.toLowerCase()}.`));
     } finally {
-      setIsDeactivating(false);
+      setIsSubmitting(false);
     }
   };
+
+  const iconButton = "flex min-h-11 min-w-11 items-center justify-center rounded-xl transition";
+  const config = pending ? ACTIONS[pending.action] : null;
 
   return (
     <div className="space-y-6">
@@ -151,7 +203,7 @@ export const StaffManager: React.FC<StaffManagerProps> = ({ initialStaff, curren
 
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {staff.map((member) => {
-          const canDeactivate = member.role === "editor" && member.is_active && member.id !== currentUserId;
+          const manageable = member.role === "editor" && member.id !== currentUserId;
           return (
             <li
               key={member.id}
@@ -178,48 +230,68 @@ export const StaffManager: React.FC<StaffManagerProps> = ({ initialStaff, curren
                   </span>
                 </p>
               </div>
-              {canDeactivate && (
-                <button
-                  type="button"
-                  onClick={() => setTarget(member)}
-                  aria-label={`Nonaktifkan ${member.display_name}`}
-                  className="flex min-h-11 min-w-11 items-center justify-center rounded-xl text-red-600 transition hover:bg-red-50"
-                >
-                  <UserMinus className="h-5 w-5" aria-hidden="true" />
-                </button>
+              {manageable && (
+                <div className="flex shrink-0 items-center">
+                  {member.is_active ? (
+                    <button
+                      type="button"
+                      onClick={() => openAction(member, "deactivate")}
+                      aria-label={`Nonaktifkan ${member.display_name}`}
+                      title="Nonaktifkan"
+                      className={`${iconButton} text-amber-700 hover:bg-amber-50`}
+                    >
+                      <UserMinus className="h-5 w-5" aria-hidden="true" />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => openAction(member, "reactivate")}
+                      aria-label={`Aktifkan kembali ${member.display_name}`}
+                      title="Aktifkan kembali"
+                      className={`${iconButton} text-emerald-700 hover:bg-emerald-50`}
+                    >
+                      <UserCheck className="h-5 w-5" aria-hidden="true" />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => openAction(member, "delete")}
+                    aria-label={`Hapus ${member.display_name}`}
+                    title="Hapus permanen"
+                    className={`${iconButton} text-red-600 hover:bg-red-50`}
+                  >
+                    <Trash2 className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                </div>
               )}
             </li>
           );
         })}
       </ul>
 
-      {target && (
-        <div className={MODAL_BACKDROP} role="dialog" aria-modal="true" aria-labelledby="deactivate-title">
-          <form
-            onSubmit={handleDeactivate}
-            className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
-          >
+      {pending && config && (
+        <div className={MODAL_BACKDROP} role="dialog" aria-modal="true" aria-labelledby="staff-action-title">
+          <form onSubmit={handleAction} className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
             <button
               type="button"
-              onClick={() => setTarget(null)}
-              disabled={isDeactivating}
+              onClick={() => setPending(null)}
+              disabled={isSubmitting}
               aria-label="Tutup"
               className="absolute right-3 top-3 flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-navy"
             >
               <X className="h-5 w-5" aria-hidden="true" />
             </button>
-            <h3 id="deactivate-title" className="pr-10 text-lg font-bold text-navy">
-              Nonaktifkan {target.display_name}?
+            <h3 id="staff-action-title" className="pr-10 text-lg font-bold text-navy">
+              {config.title} {pending.member.display_name}?
             </h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Editor ini tidak dapat masuk lagi. Konten yang sudah dibuat tetap tersimpan, dan tindakan ini tercatat di Log Audit.
-            </p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">{config.impact} Tindakan ini tercatat di Log Audit.</p>
             <label className="mt-4 block text-xs font-semibold text-slate-700">
               Alasan
               <textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 required
+                minLength={pending.action === "delete" ? 5 : 1}
                 maxLength={240}
                 rows={3}
                 className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm text-navy focus:border-navy focus:outline-none focus:ring-1 focus:ring-navy"
@@ -228,18 +300,20 @@ export const StaffManager: React.FC<StaffManagerProps> = ({ initialStaff, curren
             <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button
                 type="button"
-                onClick={() => setTarget(null)}
-                disabled={isDeactivating}
+                onClick={() => setPending(null)}
+                disabled={isSubmitting}
                 className="min-h-11 rounded-xl border border-slate-200 px-5 text-sm font-semibold text-slate-600 hover:bg-slate-50"
               >
                 Batal
               </button>
               <button
                 type="submit"
-                disabled={isDeactivating}
-                className="min-h-11 rounded-xl bg-red-600 px-5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
+                disabled={isSubmitting}
+                className={`min-h-11 rounded-xl px-5 text-sm font-semibold text-white transition disabled:opacity-60 ${
+                  config.danger ? "bg-red-600 hover:bg-red-700" : "bg-navy hover:bg-navy-700"
+                }`}
               >
-                {isDeactivating ? "Memproses…" : "Nonaktifkan"}
+                {isSubmitting ? "Memproses…" : config.confirm}
               </button>
             </div>
           </form>

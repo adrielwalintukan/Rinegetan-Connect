@@ -101,7 +101,7 @@ test("P2-204 invitation route supplies callback redirect without secret exposure
     resolve(frontendRoot, "src", "app", "api", "staff", "invite-editor", "route.ts"),
   );
   assert.match(source, /redirectTo/);
-  assert.match(source, /auth\.callback|auth\/callback/);
+  assert.match(source, /auth\.callback|auth\/callback|auth\/confirm/ /* P2-502: invites land on /auth/confirm (default template is locked without SMTP) */);
   assert.match(source, /update-password/);
   assert.doesNotMatch(source, /NEXT_PUBLIC_SUPABASE_SECRET_KEY/);
 });
