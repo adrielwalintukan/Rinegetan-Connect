@@ -130,3 +130,19 @@ test("map points at the real church pin, not the kelurahan boundary or a made-up
   assert.equal(CHURCH.mapsQuery, "1.2980427,124.9081001");
   assert.doesNotMatch(CHURCH.address, /Jl\. Rinegetan No\. 7|95611/);
 });
+
+test("invite links are verified with token_hash because admin invites carry no PKCE code", () => {
+  const callback = read("src/app/auth/callback/route.ts");
+  assert.match(callback, /verifyOtp\(\{ token_hash/);
+  assert.match(callback, /exchangeCodeForSession/, "password reset (PKCE) still works");
+
+  const template = read("../supabase/templates/invite.html");
+  assert.match(template, /\/auth\/callback\?token_hash=\{\{ \.TokenHash \}\}&type=invite/);
+  assert.match(read("../supabase/config.toml"), /^\[auth\.email\.template\.invite\]/m);
+});
+
+test("staff can allow public download per photo", () => {
+  const manager = read("src/components/staff/MediaManager.tsx");
+  assert.match(manager, /data: \{ public_download_enabled: enabled \}/);
+  assert.match(manager, /Izinkan unduhan publik/);
+});

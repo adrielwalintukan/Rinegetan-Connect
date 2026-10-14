@@ -126,6 +126,36 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
     }
   };
 
+  const handleDownloadToggle = async (asset: MediaAsset, enabled: boolean) => {
+    try {
+      setIsSubmitting(true);
+      const res = await fetch("/api/staff/content/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          entityType: "media_assets",
+          id: asset.id,
+          data: { public_download_enabled: enabled },
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(json.error || "Gagal mengubah izin unduhan");
+      }
+      setAssets((prev) =>
+        prev.map((item) => (item.id === asset.id ? { ...item, public_download_enabled: enabled } : item))
+      );
+      onNotification(
+        "success",
+        enabled ? "Foto ini sekarang dapat diunduh pengunjung." : "Unduhan publik untuk foto ini dimatikan."
+      );
+    } catch (err) {
+      onNotification("error", clientErrorMessage(err, "Gagal mengubah izin unduhan"));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   // Instant takedown (hide) flow
   const handleTakedownSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -426,6 +456,17 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
                       <span>Publikasi dikunci: foto anak wajib memiliki persetujuan consent.</span>
                     </div>
                   )}
+
+                  <label className="mt-3 flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 text-xs font-semibold text-slate-700">
+                    <span>Izinkan unduhan publik</span>
+                    <input
+                      type="checkbox"
+                      checked={asset.public_download_enabled}
+                      disabled={isSubmitting}
+                      onChange={(e) => handleDownloadToggle(asset, e.target.checked)}
+                      className="h-5 w-5 accent-navy"
+                    />
+                  </label>
 
                   {/* Action Buttons */}
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-1">
