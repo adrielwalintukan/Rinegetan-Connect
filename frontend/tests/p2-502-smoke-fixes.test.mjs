@@ -109,3 +109,24 @@ test("content dialog marks required fields before submitting", () => {
   const dialog = read("src/components/staff/ContentMutationDialog.tsx");
   assert.match(dialog, /required/);
 });
+
+test("admins can invite and deactivate editors from the portal", () => {
+  const manager = read("src/components/staff/StaffManager.tsx");
+  assert.match(manager, /fetch\("\/api\/staff\/invite-editor"/);
+  assert.match(manager, /fetch\("\/api\/staff\/deactivate"/);
+  assert.match(manager, /JSON\.stringify\(\{ email: email\.trim\(\), displayName: displayName\.trim\(\) \}\)/);
+  assert.match(manager, /JSON\.stringify\(\{ userId: target\.id, reason: reason\.trim\(\) \}\)/);
+  assert.match(manager, /member\.id !== currentUserId/, "admin cannot deactivate self from the UI");
+
+  const dashboard = read("src/components/staff/StaffDashboard.tsx");
+  assert.match(dashboard, /role === "admin" \? \[\{ id: "staff"/, "staff tab is admin-only");
+
+  const page = read("src/app/staff/(protected)/page.tsx");
+  assert.match(page, /staff\.role === "admin"/, "staff list is only queried for admins");
+});
+
+test("map points at the real church pin, not the kelurahan boundary or a made-up street", async () => {
+  const { CHURCH } = await import("../src/data/content.js");
+  assert.equal(CHURCH.mapsQuery, "1.2980427,124.9081001");
+  assert.doesNotMatch(CHURCH.address, /Jl\. Rinegetan No\. 7|95611/);
+});
