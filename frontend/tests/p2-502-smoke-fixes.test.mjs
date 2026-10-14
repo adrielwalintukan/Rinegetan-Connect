@@ -113,10 +113,10 @@ test("content dialog marks required fields before submitting", () => {
 test("admins can invite and deactivate editors from the portal", () => {
   const manager = read("src/components/staff/StaffManager.tsx");
   assert.match(manager, /fetch\("\/api\/staff\/invite-editor"/);
-  assert.match(manager, /fetch\("\/api\/staff\/deactivate"/);
+  assert.match(manager, /endpoint: "\/api\/staff\/deactivate"/);
   assert.match(manager, /JSON\.stringify\(\{ email: email\.trim\(\), displayName: displayName\.trim\(\) \}\)/);
-  assert.match(manager, /JSON\.stringify\(\{ userId: target\.id, reason: reason\.trim\(\) \}\)/);
-  assert.match(manager, /member\.id !== currentUserId/, "admin cannot deactivate self from the UI");
+  assert.match(manager, /JSON\.stringify\(\{ userId: member\.id, reason: reason\.trim\(\) \}\)/);
+  assert.match(manager, /member\.id !== currentUserId/, "admin cannot manage self from the UI");
 
   const dashboard = read("src/components/staff/StaffDashboard.tsx");
   assert.match(dashboard, /role === "admin" \? \[\{ id: "staff"/, "staff tab is admin-only");
@@ -129,4 +129,51 @@ test("map points at the real church pin, not the kelurahan boundary or a made-up
   const { CHURCH } = await import("../src/data/content.js");
   assert.equal(CHURCH.mapsQuery, "1.2980427,124.9081001");
   assert.doesNotMatch(CHURCH.address, /Jl\. Rinegetan No\. 7|95611/);
+});
+
+test("invite links are verified with token_hash because admin invites carry no PKCE code", () => {
+  const callback = read("src/app/auth/callback/route.ts");
+  assert.match(callback, /verifyOtp\(\{ token_hash/);
+  assert.match(callback, /exchangeCodeForSession/, "password reset (PKCE) still works");
+
+  const template = read("../supabase/templates/invite.html");
+  assert.match(template, /\/auth\/callback\?token_hash=\{\{ \.TokenHash \}\}&type=invite/);
+  assert.match(read("../supabase/config.toml"), /^\[auth\.email\.template\.invite\]/m);
+});
+
+test("staff can allow public download per photo", () => {
+  const manager = read("src/components/staff/MediaManager.tsx");
+  assert.match(manager, /data: \{ public_download_enabled: enabled \}/);
+  assert.match(manager, /Izinkan unduhan publik/);
+});
+
+test("admins can reactivate and delete editors through audited RPCs", () => {
+  const manager = read("src/components/staff/StaffManager.tsx");
+  assert.match(manager, /endpoint: "\/api\/staff\/reactivate"/);
+  assert.match(manager, /endpoint: "\/api\/staff\/delete"/);
+  assert.match(manager, /member\.role === "editor"/, "only editors are manageable");
+
+  assert.match(read("src/app/api/staff/reactivate/route.ts"), /runStaffLifecycleRpc\(request, "reactivate_staff"/);
+  assert.match(read("src/app/api/staff/delete/route.ts"), /runStaffLifecycleRpc\(request, "delete_staff"/);
+  assert.match(read("src/lib/staff/lifecycle-route.ts"), /requireActiveAdmin/);
+
+  const sql = read("../supabase/migrations/20261014150000_p2_502_staff_lifecycle.sql");
+  assert.match(sql, /create or replace function public\.reactivate_staff/);
+  assert.match(sql, /'staff\.deleted'[\s\S]*delete from auth\.users/, "audit is written in the same transaction before deleting");
+  assert.match(sql, /grant execute on function public\.delete_staff\(uuid, text\) to authenticated/);
+});
+
+test("re-inviting a registered email explains what to do instead of a generic failure", () => {
+  const route = read("src/app/api/staff/invite-editor/route.ts");
+  assert.match(route, /email_registered/);
+  assert.match(route, /rate_limited/);
+  assert.match(read("src/components/staff/StaffManager.tsx"), /email_registered:/);
+});
+
+test("default Supabase invite emails land on a page that reads the session fragment", () => {
+  assert.match(read("src/app/api/staff/invite-editor/route.ts"), /new URL\("\/auth\/confirm", request\.url\)/);
+  const page = read("src/app/auth/confirm/page.tsx");
+  assert.match(page, /"use client"/);
+  assert.match(page, /setSession\(\{ access_token: accessToken, refresh_token: refreshToken \}\)/);
+  assert.match(page, /history\.replaceState/, "tokens are removed from the address bar");
 });

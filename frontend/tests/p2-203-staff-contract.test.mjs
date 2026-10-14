@@ -169,7 +169,7 @@ test("staff invitation route owns the server-only invite and compensation flow",
   assert.match(source, /createSupabaseAdminClient/);
   assert.match(source, /auth\.admin\.inviteUserByEmail/);
   assert.match(source, /redirectTo/);
-  assert.match(source, /auth\.callback|auth\/callback/);
+  assert.match(source, /auth\.callback|auth\/callback|auth\/confirm/ /* P2-502: invites land on /auth/confirm (default template is locked without SMTP) */);
   assert.match(source, /update-password/);
   assert.match(source, /provision_invited_editor/);
   assert.match(source, /auth\.admin\.deleteUser/);

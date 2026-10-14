@@ -26,14 +26,22 @@ export async function POST(request: Request) {
     await requireActiveAdmin(client);
 
     const adminClient = createSupabaseAdminClient();
-    const callbackUrl = new URL("/auth/callback", request.url);
-    callbackUrl.searchParams.set("next", "/staff/update-password");
+    // Default (locked) invite template returns the session in the URL fragment; /auth/confirm reads it
+    // and sends the editor on to /staff/update-password to create a password.
+    const callbackUrl = new URL("/auth/confirm", request.url);
     const { data: inviteData, error: inviteError } =
       await adminClient.auth.admin.inviteUserByEmail(payload.email, {
         redirectTo: callbackUrl.toString(),
       });
 
+    if (inviteError?.code === "email_exists" || /already been registered/i.test(inviteError?.message ?? "")) {
+      return Response.json({ error: "email_registered" }, { status: 409 });
+    }
+    if (inviteError?.status === 429) {
+      return Response.json({ error: "rate_limited" }, { status: 429 });
+    }
     if (inviteError || !inviteData.user) {
+      console.error("invite-editor failed:", inviteError);
       return Response.json({ error: "invite_failed" }, { status: 502 });
     }
 
