@@ -31,6 +31,16 @@ Backup melindungi data gereja, bukan sekadar database. Pemilik backup ditunjuk A
 5. Uji sign-in staf dummy, konten Published, dan penolakan akses privat untuk non-Admin.
 6. Hapus lingkungan restore mengikuti kebijakan setelah verifikasi dan catat durasi, masalah, serta tindakan.
 
+## Catatan teknis restore (dari drill P2-502, 15 Okt 2026)
+
+- **Samakan versi platform dulu.** Supabase meng-upgrade Auth/Storage production otomatis. Cek versi production (`GET /auth/v1/health` dengan publishable key, `GET /storage/v1/version`), tulis ke `supabase/.temp/gotrue-version` dan `storage-version`, lalu `supabase stop --no-backup` dan `start`. Tunggu sampai jumlah `auth.schema_migrations` sama dengan production sebelum memuat data.
+- **Kolom yang belum ada di image lokal** boleh dibuang dari blok `COPY` hanya bila seluruh nilainya NULL/kosong; jika ada nilai, hentikan drill dan catat.
+- **Muat data sebagai `supabase_admin`** dalam satu transaksi (`psql --single-transaction -v ON_ERROR_STOP=1`) dan awali dengan `truncate storage.buckets cascade;` karena migration sudah membuat bucket.
+- **Media:** `supabase storage cp` per objek dengan path tujuan relatif (path Windows absolut ditolak). Unggah ke Storage lokal lalu cocokkan SHA-256 dengan manifest.
+- **Git Bash:** set `MSYS_NO_PATHCONV=1` saat memanggil `podman exec`/`podman cp` agar `/tmp/...` tidak diubah menjadi path Windows.
+- **Login email lokal mati** (`enable_signup = false` → provider email nonaktif di CLI). Uji RLS dengan JWT yang ditandatangani JWT secret lokal untuk akun uji.
+- Setelah verifikasi: `supabase stop --no-backup` dan hapus semua file hasil dekripsi.
+
 ## Pemulihan insiden nyata
 
 Restorasi production adalah keputusan Admin/pimpinan gereja. Tentukan:
