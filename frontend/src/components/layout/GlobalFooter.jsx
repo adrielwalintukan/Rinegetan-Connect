@@ -8,24 +8,6 @@ const SOCIAL_ICONS = { facebook: Facebook, instagram: Instagram, youtube: Youtub
 
 export const GlobalFooter = () => (
     <footer data-testid="global-footer" className="relative overflow-hidden bg-navy text-white">
-        <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 hidden lg:block"
-        >
-            <div className="mx-auto grid h-full max-w-7xl grid-cols-7 px-10">
-                {Array.from({ length: 7 }).map((_, i) => (
-                    <div
-                        key={i}
-                        className={
-                            i === 6
-                                ? "border-l border-r border-white/[0.05] bg-sabbath-400/[0.06]"
-                                : "border-l border-white/[0.05]"
-                        }
-                    />
-                ))}
-            </div>
-        </div>
-
         <div className="container-site relative grid grid-cols-1 gap-12 py-16 sm:grid-cols-2 lg:grid-cols-7 lg:gap-10 lg:py-20">
             <div className="lg:col-span-2">
                 <EntityLockup dark />
@@ -33,6 +15,7 @@ export const GlobalFooter = () => (
                     {CHURCH.entity} — bagian dari {CHURCH.fullName} sedunia.{" "}
                     {CHURCH.tagline}.
                 </p>
+                {CHURCH.socials.length > 0 && (
                 <div className="mt-6 flex gap-2">
                     {CHURCH.socials.map((s) => {
                         const Icon = SOCIAL_ICONS[s.icon];
@@ -51,6 +34,7 @@ export const GlobalFooter = () => (
                         );
                     })}
                 </div>
+                )}
             </div>
 
             <nav aria-label="Tautan cepat" className="lg:col-span-1">
@@ -77,18 +61,22 @@ export const GlobalFooter = () => (
                         <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-sabbath-400" aria-hidden="true" />
                         <span data-testid="footer-address">{CHURCH.address}</span>
                     </li>
+                    {CHURCH.phone && (
                     <li className="flex gap-3">
                         <Phone className="mt-0.5 h-4 w-4 shrink-0 text-sabbath-400" aria-hidden="true" />
                         <a href={`tel:${CHURCH.phone.replace(/[^+\d]/g, "")}`} data-testid="footer-phone" className="transition-colors hover:text-sabbath-400">
                             {CHURCH.phone}
                         </a>
                     </li>
+                    )}
+                    {CHURCH.email && (
                     <li className="flex gap-3">
                         <Mail className="mt-0.5 h-4 w-4 shrink-0 text-sabbath-400" aria-hidden="true" />
                         <a href={`mailto:${CHURCH.email}`} data-testid="footer-email" className="transition-colors hover:text-sabbath-400">
                             {CHURCH.email}
                         </a>
                     </li>
+                    )}
                     <li className="flex gap-3">
                         <Clock className="mt-0.5 h-4 w-4 shrink-0 text-sabbath-400" aria-hidden="true" />
                         <span>
@@ -120,9 +108,6 @@ export const GlobalFooter = () => (
                         <AdventistSymbol className="h-4 w-4" />
                     </span>
                     © 2026 {CHURCH.name} · {CHURCH.fullName}
-                </p>
-                <p className="font-mono text-[0.6875rem] uppercase tracking-[0.2em] text-white/40">
-                    Rinegetan Connect — Fase 1
                 </p>
             </div>
         </div>

@@ -4,7 +4,6 @@ import { ArrowUpRight, CalendarDays, CalendarX, Clock, MapPin } from "lucide-rea
 import { ChapterHeading } from "./ChapterHeading";
 import { Reveal } from "@/components/motion/Reveal";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { EVENTS } from "@/data/content";
 
 export const EventCard = ({ event, featured = false }) => (
     <article
@@ -52,7 +51,7 @@ export const EventCard = ({ event, featured = false }) => (
 );
 
 export const EventsSection = ({ events = null }) => {
-    const displayEvents = events !== null ? events : EVENTS;
+    const displayEvents = events ?? [];
 
     return (
         <section

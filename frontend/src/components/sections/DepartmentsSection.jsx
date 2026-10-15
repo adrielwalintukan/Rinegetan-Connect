@@ -12,7 +12,6 @@ import {
 import { ChapterHeading } from "./ChapterHeading";
 import { Reveal } from "@/components/motion/Reveal";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { DEPARTMENTS } from "@/data/content";
 
 export const DEPT_ICONS = {
     "book-open": BookOpen,
@@ -27,7 +26,7 @@ export const DEPT_ICONS = {
 };
 
 export const DepartmentsSection = ({ departments = null }) => {
-    const list = departments !== null ? departments : DEPARTMENTS;
+    const list = departments ?? [];
 
     return (
         <section
@@ -72,7 +71,7 @@ export const DepartmentsSection = ({ departments = null }) => {
                         <EmptyState
                             icon={HeartHandshake}
                             title="Belum Ada Departemen Ditampilkan"
-                            description="Informasi departemen dan bidang pelayanan jemaat sedang diperbarui. Hubungi kami untuk informasi pelayanan."
+                            description="Informasi departemen dan bidang pelayanan jemaat sedang diperbarui."
                             actionLabel="Hubungi Kami"
                             actionHref="/kontak"
                             testId="departments-empty"

@@ -35,7 +35,7 @@ export const SabbathColumn = ({ children, className, label = "Hari Ketujuh" }) =
         data-testid="sabbath-column"
         aria-label="Kolom Sabat"
         className={cn(
-            "relative flex flex-row items-center justify-between gap-4 overflow-hidden rounded-xl border border-sabbath-500/25 bg-sabbath-100/60 p-5 lg:col-span-1 lg:flex-col lg:items-start lg:justify-between lg:p-6",
+            "relative flex flex-row items-center justify-between gap-4 overflow-hidden rounded-xl border border-sabbath-500/25 bg-sabbath-100/60 p-5 lg:col-span-1 lg:flex-col lg:items-center lg:justify-between lg:p-6",
             className
         )}
     >
