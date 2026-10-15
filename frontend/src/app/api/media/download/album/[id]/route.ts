@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import {
   isMediaAssetDownloadEligible,
@@ -127,7 +127,9 @@ export async function GET(
   const { stream } = createArchiveStream(entries, readme);
 
   // 5. Audit Log
-  recordDownloadAudit({
+  // after() keeps the serverless function alive until the audit insert finishes.
+  after(() =>
+    recordDownloadAudit({
     action: "media.download_album",
     entityType: "media_album",
     entityId: album.id,
@@ -138,7 +140,8 @@ export async function GET(
       total_bytes: totalBytes,
       album_slug: album.slug,
     },
-  }).catch(() => {});
+  })
+  );
 
   const filename = `rinegetan-album-${album.slug || album.id.slice(0, 8)}.zip`;
 

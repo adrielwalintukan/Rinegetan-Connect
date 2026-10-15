@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { isMediaAssetDownloadEligible } from "@/lib/media/eligibility";
 import { checkDownloadRateLimit } from "@/lib/media/rate-limiter";
@@ -76,7 +76,9 @@ export async function GET(
   const buffer = Buffer.from(arrayBuffer);
 
   // 5. Asynchronously record audit log
-  recordDownloadAudit({
+  // after() keeps the serverless function alive until the audit insert finishes.
+  after(() =>
+    recordDownloadAudit({
     action: "media.download_asset",
     entityType: "media_asset",
     entityId: asset.id,
@@ -87,7 +89,8 @@ export async function GET(
       total_bytes: buffer.length,
       storage_path: asset.storage_path,
     },
-  }).catch(() => {});
+  })
+  );
 
   const cleanFilename = `rinegetan-${asset.id.slice(0, 8)}.jpg`;
 

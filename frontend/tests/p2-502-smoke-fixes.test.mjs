@@ -195,3 +195,18 @@ test("staff can record consent later, and only approved photos can be published"
   assert.match(manager, /const canPublish = asset\.consent_status === "approved";/);
   assert.match(manager, /fetch\("\/api\/staff\/media\/consent"/);
 });
+
+test("download audits survive the serverless response and never fail silently", () => {
+  for (const file of [
+    "src/app/api/media/download/[id]/route.ts",
+    "src/app/api/media/download/album/[id]/route.ts",
+    "src/app/api/media/download/category/[category]/route.ts",
+  ]) {
+    const source = read(file);
+    assert.match(source, /after\(\(\) =>\s+recordDownloadAudit\(/, file);
+    assert.doesNotMatch(source, /recordDownloadAudit\([\s\S]*?\}\)\.catch\(\(\) => \{\}\)/, file);
+  }
+  const helper = read("src/lib/media/download-audit.mjs");
+  assert.match(helper, /const \{ error \} = await client\.from\("audit_logs"\)\.insert/);
+  assert.match(helper, /Download audit skipped/);
+});
