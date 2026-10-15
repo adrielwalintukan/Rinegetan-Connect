@@ -25,7 +25,7 @@ export const DigitalMinistrySection = () => (
                         Pelayanan <span className="font-serif italic text-sabbath-600">Digital</span>
                     </span>
                 }
-                description="Rinegetan Connect sedang bertumbuh. Tiga pelayanan digital ini sedang kami siapkan untuk melayani Anda lebih dekat — pratinjau Fase 3."
+                description="Layanan berikut sedang disiapkan agar jemaat dan masyarakat dapat terhubung dengan pelayanan gereja dari mana saja."
             />
             <div className="mt-12 grid gap-5 md:grid-cols-3">
                 {MINISTRY_CARDS.map((card, i) => {
@@ -37,7 +37,7 @@ export const DigitalMinistrySection = () => (
                                 className="card-surface group relative flex h-full flex-col overflow-hidden p-7"
                             >
                                 <span className="absolute right-5 top-5 rounded-full bg-sabbath-100 px-3 py-1 font-mono text-[0.625rem] font-semibold uppercase tracking-[0.18em] text-sabbath-700">
-                                    Segera · {card.phase}
+                                    Segera hadir
                                 </span>
                                 <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-navy text-sabbath-400">
                                     <Icon className="h-5 w-5" aria-hidden="true" />
@@ -47,7 +47,7 @@ export const DigitalMinistrySection = () => (
                                     {card.description}
                                 </p>
                                 <span className="mt-6 inline-flex items-center gap-2 text-[0.8125rem] font-semibold text-navy-500">
-                                    Nantikan di Fase 3
+                                    Sedang disiapkan
                                     <ArrowRight
                                         className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
                                         aria-hidden="true"

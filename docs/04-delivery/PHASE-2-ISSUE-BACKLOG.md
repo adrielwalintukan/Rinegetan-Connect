@@ -177,6 +177,13 @@
 - **Dependencies:** P2-501
 - **Acceptance criteria:** migration deploy/rollback runbook dijalankan; backup terenkripsi dibuat; restore nonproduksi dicatat; smoke test pilot lulus.
 
+### P2-506 — Refactor UI publik dan portal staf mobile-first
+
+- **Label:** feature, ui, accessibility, priority:high
+- **Sprint:** 5
+- **Dependencies:** P2-502
+- **Acceptance criteria:** semua permukaan publik dan portal staf (Admin/Editor, seluruh fitur) nyaman di 320–1440px tanpa scroll horizontal; simbol Advent resmi dipakai di portal staf dan login; navbar portal satu baris dan konsisten antar tab; tabel menjadi kartu dan dialog menjadi bottom sheet di HP; tidak ada konten/fakta lokal karangan (kegiatan, khotbah, nama orang, kontak) — data lokal hanya dari CMS atau yang terverifikasi gereja; formulir yang belum tersimpan tidak boleh mengaku terkirim.
+
 ### P2-503 — Review dan PR kode Phase 2
 
 - **Label:** chore, docs, priority:high

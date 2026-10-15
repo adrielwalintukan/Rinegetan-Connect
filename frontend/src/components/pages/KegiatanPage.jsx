@@ -6,14 +6,14 @@ import { ChapterHeading } from "@/components/sections/ChapterHeading";
 import { EventCard } from "@/components/sections/EventsSection";
 import { Reveal } from "@/components/motion/Reveal";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { EVENTS, EVENT_CATEGORIES } from "@/data/content";
+import { EVENT_CATEGORIES } from "@/data/content";
 import { cn } from "@/lib/utils";
 
 /**
  * @param {{ initialEvents?: any[] | null }} props
  */
 export default function KegiatanPage({ initialEvents = null }) {
-    const allEvents = initialEvents !== null ? initialEvents : EVENTS;
+    const allEvents = initialEvents ?? [];
     const [filter, setFilter] = useState("Semua");
     const visible =
         filter === "Semua" ? allEvents : allEvents.filter((e) => e.category === filter);

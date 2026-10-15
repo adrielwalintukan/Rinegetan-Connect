@@ -42,7 +42,7 @@ export default function TentangKamiPage({ sectionMedia = null }) {
                             eyebrow="Tentang Kami"
                             title={
                                 <>
-                                    Satu jemaat kecil, satu{" "}
+                                    Bagian dari{" "}
                                     <span className="font-serif italic text-sabbath-600">
                                         keluarga besar
                                     </span>{" "}
@@ -55,23 +55,17 @@ export default function TentangKamiPage({ sectionMedia = null }) {
                                 <p>
                                     {CHURCH.name} adalah jemaat {CHURCH.fullName} di{" "}
                                     {CHURCH.region}. Singkatan GMAHK — Gereja Masehi Advent Hari
-                                    Ketujuh — adalah nama resmi gereja kami di Indonesia, dan
-                                    Rinegetan adalah rumah kami: sebuah desa di Tondano, di kaki
-                                    perbukitan Minahasa.
+                                    Ketujuh — adalah nama resmi gereja kami di Indonesia. Jemaat
+                                    kami berada di Rinegetan, Tondano, Kabupaten Minahasa.
                                 </p>
                                 <p>
                                     Sebagai bagian dari keluarga Advent sedunia, kami memelihara
                                     Sabat hari ketujuh, menaruh Alkitab sebagai dasar iman, dan
-                                    hidup dalam pengharapan akan kedatangan Kristus. Namun di atas
-                                    semua label itu, kami adalah tetangga Anda — keluarga, petani,
-                                    guru, mahasiswa, dan anak-anak yang belajar mengasihi seperti
-                                    Kristus mengasihi.
+                                    hidup dalam pengharapan akan kedatangan Kristus yang kedua kali.
                                 </p>
                                 <p>
-                                    Setiap Sabtu pagi pintu kami terbuka. Tidak ada syarat untuk
-                                    datang, tidak ada kursi khusus — hanya persekutuan yang hangat,
-                                    Firman yang hidup, dan meja yang selalu cukup untuk satu tamu
-                                    lagi.
+                                    Ibadah Sabat terbuka untuk umum. Siapa pun disambut untuk
+                                    beribadah, mempelajari Alkitab, dan bersekutu bersama kami.
                                 </p>
                             </div>
                         </Reveal>

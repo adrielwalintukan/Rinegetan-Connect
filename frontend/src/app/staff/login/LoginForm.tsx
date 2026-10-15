@@ -43,7 +43,7 @@ export default function LoginForm({ nextPath }: { nextPath: string }) {
         </label>
         <input
           autoComplete="email"
-          className="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-950 outline-none transition focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100"
+          className="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-950 outline-none transition focus:border-navy focus:ring-4 focus:ring-navy-100"
           id="staff-email"
           name="email"
           onChange={(event) => setEmail(event.target.value)}
@@ -58,7 +58,7 @@ export default function LoginForm({ nextPath }: { nextPath: string }) {
         </label>
         <input
           autoComplete="current-password"
-          className="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-950 outline-none transition focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100"
+          className="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-950 outline-none transition focus:border-navy focus:ring-4 focus:ring-navy-100"
           id="staff-password"
           name="password"
           onChange={(event) => setPassword(event.target.value)}

@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import HomePage from "@/components/pages/HomePage";
 import {
   getPublishedAnnouncements,
+  getPublishedDepartments,
   getPublishedEvents,
+  getPublicMediaAssets,
   getSiteSectionMedia,
 } from "@/lib/public/queries";
 
@@ -19,10 +21,12 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const [announcements, events, sectionMedia] = await Promise.all([
+  const [announcements, events, sectionMedia, photos, departments] = await Promise.all([
     getPublishedAnnouncements(),
     getPublishedEvents(),
     getSiteSectionMedia(),
+    getPublicMediaAssets(),
+    getPublishedDepartments(),
   ]);
 
   return (
@@ -30,6 +34,8 @@ export default async function Page() {
       announcements={announcements}
       events={events}
       sectionMedia={sectionMedia}
+      photos={photos}
+      departments={departments}
     />
   );
 }

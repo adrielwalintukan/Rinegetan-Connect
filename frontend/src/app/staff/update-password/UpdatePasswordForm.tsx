@@ -48,7 +48,7 @@ export default function UpdatePasswordForm() {
         </label>
         <input
           autoComplete="new-password"
-          className="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-950 outline-none transition focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100"
+          className="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-950 outline-none transition focus:border-navy focus:ring-4 focus:ring-navy-100"
           id="new-password"
           minLength={8}
           name="password"
@@ -64,7 +64,7 @@ export default function UpdatePasswordForm() {
         </label>
         <input
           autoComplete="new-password"
-          className="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-950 outline-none transition focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100"
+          className="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-950 outline-none transition focus:border-navy focus:ring-4 focus:ring-navy-100"
           id="confirm-password"
           minLength={8}
           name="confirmation"

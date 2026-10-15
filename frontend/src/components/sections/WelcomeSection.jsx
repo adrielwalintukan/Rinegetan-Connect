@@ -7,18 +7,18 @@ import { IMAGES } from "@/data/content";
 const EXPECTATIONS = [
     {
         icon: Sparkles,
-        title: "Ibadah yang hidup",
-        text: "Pujian, doa, dan khotbah Alkitabiah yang meneguhkan — tanpa formalitas yang kaku.",
-    },
-    {
-        icon: HeartHandshake,
-        title: "Komunitas yang peduli",
-        text: "Keluarga kedua yang saling menopang, dari anak-anak hingga oma-opa.",
+        title: "Ibadah Sabat",
+        text: "Pujian, doa, dan khotbah yang berpusat pada Alkitab.",
     },
     {
         icon: BookOpen,
-        title: "Firman yang menuntun",
-        text: "Alkitab sebagai pusat — dipelajari bersama, dihidupi bersama.",
+        title: "Sekolah Sabat",
+        text: "Pendalaman Alkitab dalam kelompok setiap Sabat pagi.",
+    },
+    {
+        icon: HeartHandshake,
+        title: "Pelayanan",
+        text: "Melayani sesama sebagai wujud kasih Kristus.",
     },
 ];
 
@@ -39,7 +39,7 @@ export const WelcomeSection = ({ sectionMedia = null }) => {
                                 <span className="font-serif italic text-navy-500">GMAHK Rinegetan</span>
                             </span>
                         }
-                        description="Kami adalah keluarga kecil di kaki perbukitan Minahasa yang percaya bahwa iman bertumbuh paling baik dalam kebersamaan. Datanglah sebagaimana Anda adanya — pulanglah dengan pengharapan."
+                        description="Jemaat Gereja Masehi Advent Hari Ketujuh di Rinegetan, Tondano. Kami beribadah setiap Sabat, mempelajari Alkitab bersama, dan melayani sesama. Anda diundang untuk bergabung."
                     />
                     <div className="mt-10 grid gap-4 sm:grid-cols-3">
                         {EXPECTATIONS.map((item, i) => (

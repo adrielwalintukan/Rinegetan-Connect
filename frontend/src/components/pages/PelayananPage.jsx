@@ -34,8 +34,8 @@ export default function PelayananPage({ initialDepartments = null }) {
                                 Ingin belajar Alkitab?
                             </span>{" "}
                             Kami menyediakan pelajaran Alkitab pribadi maupun kelompok kecil —
-                            gratis, tanpa tekanan, sesuai waktu Anda. Hubungi kami melalui
-                            halaman Kontak atau datang langsung pada Sabtu pagi.
+                            gratis, tanpa tekanan, sesuai waktu Anda. Sampaikan kepada pengurus
+                            jemaat ketika Anda hadir pada Sabtu pagi.
                         </p>
                     </Reveal>
                 </div>
