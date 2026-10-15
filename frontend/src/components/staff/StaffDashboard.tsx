@@ -9,7 +9,6 @@ import {
   History,
   Plus,
   LogOut,
-  Shield,
   UserCheck,
   Image as ImageIcon,
   LayoutTemplate,
@@ -23,6 +22,7 @@ import { AuditLogViewer, type AuditEntry } from "./AuditLogViewer";
 import { MediaManager } from "./MediaManager";
 import { SectionMediaManager } from "./SectionMediaManager";
 import { StaffManager, type StaffMember } from "./StaffManager";
+import { AdventistSymbol } from "@/components/identity/AdventistSymbol";
 import type { ContentStatus } from "@/types/content";
 import type { MediaAsset, MediaAlbum } from "@/types/media";
 import type { SiteSectionMediaMap } from "@/lib/public/queries";
@@ -298,22 +298,20 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
     <div className="min-h-screen bg-slate-50/50 pb-20">
       {/* Top Navigation Bar */}
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-md">
-        <div className="container-site flex items-center justify-between py-4">
-          <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-navy text-white">
-              <Shield className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <div>
-              <h1 className="text-sm font-bold text-navy">GMAHK Rinegetan</h1>
-              <p className="text-[0.6875rem] text-slate-500">Portal Manajemen Konten (CMS)</p>
+        <div className="container-site flex items-center justify-between gap-3 py-3 sm:py-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <AdventistSymbol className="h-10 w-10 shrink-0 text-navy" />
+            <div className="min-w-0">
+              <h1 className="truncate text-sm font-bold text-navy">GMAHK Rinegetan</h1>
+              <p className="truncate text-[0.6875rem] text-slate-500">Portal Staf</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             {/* Role indicator badge */}
             <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1">
               <UserCheck className="h-3.5 w-3.5 text-slate-500" aria-hidden="true" />
-              <span className="font-mono text-xs text-slate-600">{userEmail}</span>
+              <span className="hidden font-mono text-xs text-slate-600 md:inline">{userEmail}</span>
               <span
                 className={`rounded-full px-2 py-0.5 text-[0.6875rem] font-bold uppercase ${
                   role === "admin"
@@ -329,10 +327,11 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
             <form action="/auth/signout" method="post">
               <button
                 type="submit"
-                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-navy transition"
+                aria-label="Keluar"
+                className="flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-navy transition"
               >
-                <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>Keluar</span>
+                <LogOut className="h-4 w-4" aria-hidden="true" />
+                <span className="hidden sm:inline">Keluar</span>
               </button>
             </form>
           </div>
@@ -360,10 +359,12 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
           </div>
         )}
 
-        {/* Action Header & Tabs */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          {/* Tabs */}
-          <nav className="flex flex-wrap items-center gap-1 rounded-2xl bg-white p-1.5 shadow-sm border border-slate-200">
+        {/* Tabs: always one row (scrolls sideways on small screens) so the bar never jumps between tabs */}
+        <div className="flex flex-col gap-4">
+          <nav
+            aria-label="Menu portal staf"
+            className="-mx-1 flex flex-nowrap items-center gap-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm [scrollbar-width:none]"
+          >
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -376,7 +377,8 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
                     setCurrentFilter("all");
                     setSearchQuery("");
                   }}
-                  className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition ${
+                  aria-current={isActive ? "page" : undefined}
+                  className={`flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 text-xs font-bold transition ${
                     isActive
                       ? "bg-navy text-white shadow-sm"
                       : "text-slate-600 hover:bg-slate-100/70 hover:text-navy"
@@ -397,7 +399,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
                 setEditingItem(null);
                 setIsMutationOpen(true);
               }}
-              className="flex items-center justify-center gap-2 rounded-xl bg-navy px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-navy/90 transition"
+              className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-navy px-4 text-xs font-bold text-white shadow-sm transition hover:bg-navy/90 sm:self-end"
             >
               <Plus className="h-4 w-4" aria-hidden="true" />
               <span>Tambah {tabs.find((t) => t.id === activeTab)?.label}</span>
