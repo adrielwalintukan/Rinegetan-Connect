@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { isMediaAssetDownloadEligible } from "@/lib/media/eligibility";
 import { checkDownloadRateLimit } from "@/lib/media/rate-limiter";
@@ -133,7 +133,9 @@ export async function GET(
   const { stream } = createArchiveStream(entries, readme);
 
   // 5. Audit Log
-  recordDownloadAudit({
+  // after() keeps the serverless function alive until the audit insert finishes.
+  after(() =>
+    recordDownloadAudit({
     action: "media.download_category",
     entityType: "media_category",
     entityId: null,
@@ -144,7 +146,8 @@ export async function GET(
       total_bytes: totalBytes,
       category: normalizedCategory,
     },
-  }).catch(() => {});
+  })
+  );
 
   const filename = `rinegetan-kategori-${normalizedCategory}.zip`;
   const webStream = new ReadableStream({
