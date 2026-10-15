@@ -48,6 +48,7 @@ export interface MediaAsset {
   consent_recorded_at?: string | null;
   consent_recorded_by?: string | null;
   subject_age_group: SubjectAgeGroup;
+  category: MediaCategory;
   hidden_at?: string | null;
   hidden_reason?: string | null;
   status: ContentStatus;

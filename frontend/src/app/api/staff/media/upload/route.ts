@@ -7,8 +7,9 @@ import {
 } from "@/lib/media/guardrails";
 import { createJpegDerivative } from "@/lib/media/derivative";
 import { publicErrorMessage } from "@/lib/api/errors";
+import { isConsentStatus, recordConsent } from "@/lib/media/consent";
 
-const CONSENT_STATUSES = ["pending", "approved", "rejected", "revoked"];
+const MEDIA_CATEGORIES = ["ibadah", "pemuda", "sekolah_sabat", "sosial", "fellowship", "umum"];
 
 export async function POST(request: Request) {
   try {
@@ -56,10 +57,10 @@ export async function POST(request: Request) {
     const subjectAgeGroup = formData.get("subject_age_group");
     const albumId = formData.get("album_id");
     const consentInput = formData.get("consent_status");
-    const consentStatus =
-      typeof consentInput === "string" && CONSENT_STATUSES.includes(consentInput)
-        ? consentInput
-        : "pending";
+    const consentStatus = isConsentStatus(consentInput) ? consentInput : "pending";
+    const categoryInput = formData.get("category");
+    const category =
+      typeof categoryInput === "string" && MEDIA_CATEGORIES.includes(categoryInput) ? categoryInput : "umum";
 
     if (!file || !(file instanceof Blob)) {
       return Response.json(
@@ -158,6 +159,7 @@ export async function POST(request: Request) {
           subjectAgeGroup === "child" ? "child" : "general",
         processing_state: "ready",
         consent_status: "pending",
+        category,
         status: "draft",
         created_by: staff.user.id,
         updated_by: staff.user.id,
@@ -182,25 +184,12 @@ export async function POST(request: Request) {
     let savedAsset = assetData;
     let consentWarning: string | null = null;
     if (consentStatus !== "pending") {
-      const { error: consentError } = await client.from("consent_records").insert({
-        asset_id: assetData.id,
-        consent_status: consentStatus,
-        subject_age_group: assetData.subject_age_group,
-        recorded_by: staff.user.id,
-      });
-
-      const { data: consentAsset, error: updateError } = consentError
-        ? { data: null, error: consentError }
-        : await client
-            .from("media_assets")
-            .update({
-              consent_status: consentStatus,
-              consent_recorded_at: new Date().toISOString(),
-              consent_recorded_by: staff.user.id,
-            })
-            .eq("id", assetData.id)
-            .select()
-            .single();
+      const { data: consentAsset, error: updateError } = await recordConsent(
+        client,
+        assetData,
+        consentStatus,
+        staff.user.id,
+      );
 
       if (updateError || !consentAsset) {
         console.error("consent recording failed:", updateError);

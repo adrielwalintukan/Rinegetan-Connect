@@ -178,8 +178,10 @@ export async function getPublicMediaAssets(options = {}) {
 
     if (category && category !== "all" && category !== "Semua") {
       const catLower = category.toLowerCase();
-      assets = assets.filter((asset) =>
-        asset.album_assets?.some((aa) => aa.album?.category === catLower)
+      assets = assets.filter(
+        (asset) =>
+          asset.category === catLower ||
+          asset.album_assets?.some((aa) => aa.album?.category === catLower)
       );
     }
 
