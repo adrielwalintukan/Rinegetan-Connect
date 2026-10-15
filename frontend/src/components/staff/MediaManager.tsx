@@ -85,16 +85,9 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
 
   // Handle status update (draft/published/archived)
   const handleStatusChange = async (asset: MediaAsset, newStatus: ContentStatus) => {
-    // Child Consent Invariant check
-    if (
-      newStatus === "published" &&
-      asset.subject_age_group === "child" &&
-      asset.consent_status !== "approved"
-    ) {
-      onNotification(
-        "error",
-        "Foto anak wajib memiliki izin (consent approved) sebelum dapat dipublikasikan."
-      );
+    // Public visibility (RLS) requires approved consent for every photo, so publishing without it is meaningless.
+    if (newStatus === "published" && asset.consent_status !== "approved") {
+      onNotification("error", "Ubah izin (consent) menjadi Approved sebelum menerbitkan foto ini.");
       return;
     }
 
@@ -121,6 +114,58 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
       onNotification("success", `Status media diubah menjadi ${newStatus}`);
     } catch (err) {
       onNotification("error", clientErrorMessage(err, "Terjadi kesalahan"));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const updateAssetLocally = (updated: MediaAsset) =>
+    setAssets((prev) => prev.map((item) => (item.id === updated.id ? { ...item, ...updated } : item)));
+
+  const handleConsentChange = async (asset: MediaAsset, consentStatus: string) => {
+    try {
+      setIsSubmitting(true);
+      const res = await fetch("/api/staff/media/consent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: asset.id, consent_status: consentStatus }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.data) {
+        throw new Error(json.message || "Gagal mengubah izin (consent)");
+      }
+      updateAssetLocally(json.data);
+      onNotification(
+        "success",
+        consentStatus === "approved"
+          ? "Izin tercatat. Foto ini sekarang dapat diterbitkan."
+          : asset.status === "published"
+          ? "Izin diperbarui. Foto dikembalikan ke Draft karena belum diizinkan tampil."
+          : "Izin (consent) diperbarui."
+      );
+    } catch (err) {
+      onNotification("error", clientErrorMessage(err, "Gagal mengubah izin (consent)"));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCategoryChange = async (asset: MediaAsset, category: string) => {
+    try {
+      setIsSubmitting(true);
+      const res = await fetch("/api/staff/content/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entityType: "media_assets", id: asset.id, data: { category } }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.data) {
+        throw new Error(json.error || "Gagal mengubah kategori");
+      }
+      updateAssetLocally(json.data);
+      onNotification("success", "Kategori foto diperbarui.");
+    } catch (err) {
+      onNotification("error", clientErrorMessage(err, "Gagal mengubah kategori"));
     } finally {
       setIsSubmitting(false);
     }
@@ -363,7 +408,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
           {filteredAssets.map((asset) => {
             const imageUrl = getMediaPublicUrl(asset.storage_path);
             const isChild = asset.subject_age_group === "child";
-            const canPublish = !isChild || asset.consent_status === "approved";
+            const canPublish = asset.consent_status === "approved";
 
             return (
               <div
@@ -424,24 +469,47 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
                     </p>
                   )}
 
-                  {/* Metadata Chips */}
-                  <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[0.6875rem]">
-                    <span
-                      className={`font-medium capitalize ${
-                        asset.consent_status === "approved"
-                          ? "text-emerald-600"
-                          : asset.consent_status === "pending"
-                          ? "text-amber-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      Consent: {asset.consent_status}
-                    </span>
-
-                    <span className="text-slate-400 font-mono">
-                      {(Number(asset.bytes) / 1024).toFixed(0)} KB
-                    </span>
+                  <div className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3">
+                    <label className="block text-[0.6875rem] font-semibold text-slate-600">
+                      Izin (consent)
+                      <select
+                        value={asset.consent_status}
+                        disabled={isSubmitting}
+                        onChange={(e) => handleConsentChange(asset, e.target.value)}
+                        className={`mt-1 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold ${
+                          asset.consent_status === "approved"
+                            ? "text-emerald-700"
+                            : asset.consent_status === "pending"
+                            ? "text-amber-700"
+                            : "text-red-700"
+                        }`}
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="revoked">Revoked</option>
+                      </select>
+                    </label>
+                    <label className="block text-[0.6875rem] font-semibold text-slate-600">
+                      Kategori
+                      <select
+                        value={asset.category}
+                        disabled={isSubmitting}
+                        onChange={(e) => handleCategoryChange(asset, e.target.value)}
+                        className="mt-1 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-navy"
+                      >
+                        <option value="ibadah">Ibadah</option>
+                        <option value="pemuda">Pemuda</option>
+                        <option value="sekolah_sabat">Sekolah Sabat</option>
+                        <option value="sosial">Sosial</option>
+                        <option value="fellowship">Fellowship</option>
+                        <option value="umum">Umum</option>
+                      </select>
+                    </label>
                   </div>
+                  <p className="mt-1.5 text-right font-mono text-[0.6875rem] text-slate-400">
+                    {(Number(asset.bytes) / 1024).toFixed(0)} KB
+                  </p>
 
                   {asset.hidden_reason && (
                     <p className="mt-2 text-[0.6875rem] text-red-600 bg-red-50 p-1.5 rounded-lg border border-red-100">
@@ -450,10 +518,13 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
                   )}
 
                   {/* Child Consent Warning */}
-                  {isChild && asset.consent_status !== "approved" && (
+                  {asset.consent_status !== "approved" && (
                     <div className="mt-2 text-[0.6875rem] text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-200 flex items-start gap-1.5">
                       <Lock className="h-3.5 w-3.5 shrink-0 mt-0.5 text-amber-600" />
-                      <span>Publikasi dikunci: foto anak wajib memiliki persetujuan consent.</span>
+                      <span>
+                        Belum dapat tampil di publik: izin (consent) belum Approved
+                        {isChild ? " (foto anak wajib izin wali)" : ""}.
+                      </span>
                     </div>
                   )}
 
@@ -478,7 +549,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
                           onClick={() => handleStatusChange(asset, "published")}
                           title={
                             !canPublish
-                              ? "Foto anak wajib consent approved sebelum dipublikasikan"
+                              ? "Ubah izin (consent) menjadi Approved sebelum menerbitkan"
                               : "Publikasikan ke galeri"
                           }
                           className="px-2.5 py-1 text-[0.6875rem] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"

@@ -100,9 +100,9 @@ export default function MediaPage({
       // 2. Category filter
       if (selectedCategory !== "Semua") {
         const targetCategory = selectedCategory.toLowerCase().replace(/\s+/g, "_");
-        const matchesCategory = asset.album_assets?.some(
-          (aa) => aa.album?.category === targetCategory
-        );
+        const matchesCategory =
+          asset.category === targetCategory ||
+          asset.album_assets?.some((aa) => aa.album?.category === targetCategory);
         if (!matchesCategory) return false;
       }
 

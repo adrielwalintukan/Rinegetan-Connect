@@ -42,11 +42,11 @@ test("media assets can be published, hidden and deleted through the CMS routes",
 test("upload stores the chosen consent with a consent record and returns data the dialog reads", () => {
   const route = read("src/app/api/staff/media/upload/route.ts");
   assert.match(route, /formData\.get\("consent_status"\)/);
-  // Chosen consent is applied only after its consent_records evidence is written.
-  assert.match(route, /from\("consent_records"\)\.insert/);
-  assert.match(route, /consent_status: consentStatus/);
+  // Chosen consent is applied only after its consent_records evidence is written (shared helper).
+  assert.match(route, /recordConsent\(/);
+  const helper = read("src/lib/media/consent.ts");
   assert.ok(
-    route.indexOf('from("consent_records")') < route.indexOf("consent_recorded_at: new Date()"),
+    helper.indexOf('from("consent_records")') < helper.indexOf('from("media_assets")'),
     "consent must be recorded before the asset is marked",
   );
   assert.doesNotMatch(route, /from\("audit_logs"\)/, "authenticated cannot insert audit_logs; the DB trigger audits");
@@ -176,4 +176,22 @@ test("default Supabase invite emails land on a page that reads the session fragm
   assert.match(page, /"use client"/);
   assert.match(page, /setSession\(\{ access_token: accessToken, refresh_token: refreshToken \}\)/);
   assert.match(page, /history\.replaceState/, "tokens are removed from the address bar");
+});
+
+test("photos carry their own category so public filters work without albums", () => {
+  const sql = read("../supabase/migrations/20261015090000_p2_502_media_asset_category.sql");
+  assert.match(sql, /add column category public\.media_category not null default 'umum'/);
+  assert.match(read("src/app/api/staff/media/upload/route.ts"), /consent_status: "pending",\s+category,/);
+  assert.match(read("src/components/pages/MediaPage.tsx"), /asset\.category === targetCategory/);
+  assert.match(read("src/lib/public/queries.mjs"), /asset\.category === catLower/);
+});
+
+test("staff can record consent later, and only approved photos can be published", () => {
+  const route = read("src/app/api/staff/media/consent/route.ts");
+  assert.match(route, /requireActiveStaff/);
+  assert.match(route, /recordConsent\(/);
+  assert.match(route, /status: "draft"/, "withdrawn consent takes a published photo back to draft");
+  const manager = read("src/components/staff/MediaManager.tsx");
+  assert.match(manager, /const canPublish = asset\.consent_status === "approved";/);
+  assert.match(manager, /fetch\("\/api\/staff\/media\/consent"/);
 });
