@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { MailPlus, Trash2, UserCheck, UserMinus, UserRound, X } from "lucide-react";
-import { MODAL_BACKDROP } from "@/components/ui/modal";
+import { Modal, MODAL_BACKDROP } from "@/components/ui/modal";
 import { clientErrorMessage } from "@/lib/api/errors";
 
 export interface StaffMember {
@@ -269,8 +269,13 @@ export const StaffManager: React.FC<StaffManagerProps> = ({ initialStaff, curren
         })}
       </ul>
 
-      {pending && config && (
-        <div className={MODAL_BACKDROP} role="dialog" aria-modal="true" aria-labelledby="staff-action-title">
+      <Modal
+        isOpen={Boolean(pending && config)}
+        onClose={() => setPending(null)}
+        className={MODAL_BACKDROP}
+        labelledBy="staff-action-title"
+      >
+        {pending && config && (
           <form onSubmit={handleAction} className="relative w-full max-w-md rounded-2xl bg-white p-5 sm:p-6 pb-8 shadow-2xl">
             <button
               type="button"
@@ -317,8 +322,8 @@ export const StaffManager: React.FC<StaffManagerProps> = ({ initialStaff, curren
               </button>
             </div>
           </form>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 };

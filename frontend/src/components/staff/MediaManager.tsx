@@ -21,7 +21,7 @@ import {
 import type { MediaAlbum, MediaAsset } from "@/types/media";
 import type { ContentStatus } from "@/types/content";
 import { clientErrorMessage } from "@/lib/api/errors";
-import { MODAL_BACKDROP } from "@/components/ui/modal";
+import { Modal, MODAL_BACKDROP } from "@/components/ui/modal";
 import { SelectDropdown } from "@/components/ui/SelectDropdown";
 
 export interface MediaManagerProps {
@@ -609,12 +609,13 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
       />
 
       {/* Takedown / Hide Dialog */}
-      {takedownAsset && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className={MODAL_BACKDROP}
-        >
+      <Modal
+        isOpen={Boolean(takedownAsset)}
+        onClose={() => setTakedownAsset(null)}
+        className={MODAL_BACKDROP}
+        label="Tarik Media dari Publik"
+      >
+        {takedownAsset && (
           <div className="w-full max-w-md card-surface rounded-2xl bg-white p-6 shadow-xl border border-slate-200">
             <h3 className="text-base font-bold text-navy flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-red-600" />
@@ -658,8 +659,8 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
               </div>
             </form>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 };
