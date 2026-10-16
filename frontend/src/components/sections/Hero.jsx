@@ -1,3 +1,5 @@
+"use client";
+
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
@@ -6,13 +8,17 @@ import { GridGuides } from "@/components/layout/CreationGrid";
 import { AdventistSymbol } from "@/components/identity/AdventistSymbol";
 import { CHURCH, IMAGES, SABBATH } from "@/data/content";
 
-export const Hero = () => {
+export const Hero = ({ sectionMedia = null }) => {
     const frameRef = useRef(null);
     const { scrollYProgress } = useScroll({
         target: frameRef,
         offset: ["start end", "end start"],
     });
     const imgY = useTransform(scrollYProgress, [0, 1], ["-10%", "10%"]);
+
+    const heroSrc = sectionMedia?.home_hero?.url || IMAGES.hero.src;
+    const heroAlt = sectionMedia?.home_hero?.alt_text || IMAGES.hero.alt;
+    const heroCaption = sectionMedia?.home_hero?.caption || IMAGES.hero.caption;
 
     return (
         <section data-testid="hero" className="relative overflow-hidden">
@@ -25,9 +31,6 @@ export const Hero = () => {
                         transition={{ duration: 0.7, delay: 0.05 }}
                         className="flex flex-wrap items-center gap-x-3 gap-y-2"
                     >
-                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-navy text-sabbath-400">
-                            <AdventistSymbol className="h-4 w-4" />
-                        </span>
                         <span className="label-eyebrow">
                             {CHURCH.fullName} — {CHURCH.entity}
                         </span>
@@ -57,7 +60,7 @@ export const Hero = () => {
                                         />
                                     </span>
                                     .
-                                </>,
+                                </>
                             ]}
                         />
                     </h1>
@@ -106,15 +109,15 @@ export const Hero = () => {
                         data-testid="hero-image-frame"
                     >
                         <motion.img
-                            src={IMAGES.hero.src}
-                            alt={IMAGES.hero.alt}
+                            src={heroSrc}
+                            alt={heroAlt}
                             style={{ y: imgY }}
                             className="h-[122%] w-full -translate-y-[8%] object-cover will-change-transform"
                             fetchPriority="high"
                         />
                         <figcaption className="absolute bottom-4 left-4 flex items-center gap-2 rounded-full bg-navy/80 px-4 py-2 text-xs font-medium text-white backdrop-blur-md">
                             <span className="h-1.5 w-1.5 rounded-full bg-sabbath-400" aria-hidden="true" />
-                            {IMAGES.hero.caption}
+                            {heroCaption}
                         </figcaption>
                     </motion.div>
                 </div>
@@ -125,15 +128,15 @@ export const Hero = () => {
                     transition={{ duration: 0.9, delay: 1.1, ease: [0.22, 1, 0.36, 1] }}
                     data-testid="hero-sabbath-column"
                     aria-label="Kolom Sabat"
-                    className="flex flex-row items-center justify-between gap-5 rounded-xl border border-sabbath-500/30 bg-sabbath-100/70 p-5 lg:col-span-1 lg:min-h-[32rem] lg:flex-col lg:items-start lg:justify-between lg:border-y-0 lg:border-l lg:border-r-0 lg:border-t-0 lg:bg-transparent lg:p-0 lg:pl-8"
+                    className="flex flex-row items-center justify-between gap-5 rounded-xl border border-sabbath-500/30 bg-sabbath-100/70 p-5 lg:col-span-1 lg:min-h-[32rem] lg:flex-col lg:items-center lg:justify-between lg:border-y-0 lg:border-l lg:border-r-0 lg:border-t-0 lg:bg-transparent lg:p-0 lg:pl-8"
                 >
                     <span className="font-mono text-[0.6875rem] font-medium uppercase tracking-[0.3em] text-sabbath-700 lg:[writing-mode:vertical-rl] lg:rotate-180">
-                        Kolom Ketujuh — {SABBATH.title}
+                        Sabat · Jumat petang – Sabtu petang
                     </span>
-                    <div className="text-sabbath-600 lg:self-end">
+                    <div className="text-sabbath-600">
                         <AdventistSymbol className="h-12 w-12 lg:h-16 lg:w-16" />
                     </div>
-                    <div className="hidden lg:block">
+                    <div className="hidden text-center lg:block">
                         <p className="font-serif text-lg italic text-navy">Sabtu</p>
                         <p className="mt-1 font-mono text-xs text-slate-500">
                             {SABBATH.items[0].time}

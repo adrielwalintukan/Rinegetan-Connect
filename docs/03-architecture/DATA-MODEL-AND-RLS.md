@@ -90,7 +90,7 @@ Policy publik tidak boleh menggunakan kondisi sekadar status Published jika aset
 2. Berikan kembali SELECT anonim hanya untuk tabel/kolom konten yang benar-benar publik.
 3. Buat fungsi helper security definer yang sempit, misalnya is_admin() dan is_editor_or_admin(), dengan search_path tetap dan tanpa parameter dari klien.
 4. Role dibaca dari staff_roles milik auth.uid(); jangan dari raw user metadata.
-5. Masing-masing tabel mendapat policy per operasi: SELECT, INSERT, UPDATE, DELETE.
+5. Masing-masing tabel mendapat policy per operasi: SELECT, INSERT, UPDATE, DELETE. Jika beberapa persona berbagi operasi yang sama, gabungkan predicate dalam satu permissive policy agar tidak memunculkan `multiple_permissive_policies`.
 6. View publik harus dibuat aman; view tidak otomatis mewarisi RLS pada cara yang aman.
 7. Setiap migration berisi tabel + RLS + grants + policy + test dalam satu perubahan.
 
@@ -114,3 +114,15 @@ Tambah indeks hanya sesudah melihat pola query dan EXPLAIN ANALYZE pada data rep
 ## Kontrak audit
 
 Audit mencatat action, actor_id, entity_type, entity_id, occurred_at, request correlation ID, serta delta terredaksi. Jangan catat password, token, payload doa lengkap, nomor telepon lengkap, atau URL bertanda tangan di audit log.
+
+## Lifecycle staf P2-203
+
+Mutasi staf tidak dilakukan melalui `insert`, `update`, atau `delete` Data API dari browser. Migration P2-203 menyediakan RPC berikut pada schema `public`:
+
+| RPC | Caller | Hasil |
+| --- | --- | --- |
+| `bootstrap_first_admin(text)` | Auth user pertama, saat belum ada role | Membuat profile Admin dan audit `staff.bootstrapped` satu kali |
+| `provision_invited_editor(uuid, text)` | Admin aktif | Memasangkan Auth user yang sudah diundang sebagai Editor dan audit `staff.invited` |
+| `deactivate_staff(uuid, text)` | Admin aktif | Menonaktifkan Editor dan audit `staff.deactivated` |
+
+RPC memakai `SECURITY DEFINER`, `SET search_path = ''`, nama schema lengkap, advisory lock, validasi `auth.uid()`, dan explicit `REVOKE PUBLIC`/`GRANT authenticated`. `SUPABASE_SECRET_KEY` hanya berada pada server admin client untuk Auth invitation dan tidak boleh masuk bundle browser, response, fixture, atau audit. Route invitation melakukan kompensasi `auth.admin.deleteUser` bila provisioning database gagal. UI sign-in, reset password, refresh-session, dan route guard penuh adalah scope P2-204.

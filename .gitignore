@@ -19,14 +19,21 @@ node_modules/
 # Testing
 /coverage
 
+# Playwright generated artifacts (approved snapshots remain versioned)
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+
 # Next.js
 /.next/
+**/.next/
 /out/
 next-env.d.ts
 *.tsbuildinfo
 
 # Production builds
 /build
+**/build/
 dist/
 dist
 
@@ -83,6 +90,24 @@ android-sdk/
 .env
 .env.*
 *.env
+!.env.example
 credentials.json
 *.key
 .credentials
+
+# Supabase CLI generated metadata and local service state
+supabase/.temp/
+.supabase/
+
+# Legacy Emergent workspace artifacts (superseded by docs/ and current CI)
+.emergent/
+memory/
+test_reports/
+test_result.md
+design_guidelines.json
+.gitconfig
+
+# AI agent local context and tooling cache
+.ai-context/
+.claude/
+

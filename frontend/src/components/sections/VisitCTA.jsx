@@ -1,8 +1,9 @@
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";
 import { GridGuides } from "@/components/layout/CreationGrid";
 import { AdventistSymbol } from "@/components/identity/AdventistSymbol";
+import { SABBATH } from "@/data/content";
 
 export const VisitCTA = () => (
     <section
@@ -23,12 +24,12 @@ export const VisitCTA = () => (
                     bersama kami.
                 </h2>
                 <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-600">
-                    Tidak perlu mendaftar, tidak perlu membawa apa-apa. Pintu kami terbuka sejak
-                    pukul 08.30 WITA — tim penyambut akan menemani Anda sejak langkah pertama.
+                    Tidak perlu mendaftar. Ibadah terbuka untuk umum, dan Sekolah Sabat dimulai
+                    pukul {SABBATH.items[0].time}.
                 </p>
                 <div className="mt-9 flex flex-wrap gap-3">
                     <Link
-                        to="/kontak#berkunjung"
+                        href="/kontak#berkunjung"
                         data-testid="visit-cta-button"
                         className="btn-primary group"
                     >
@@ -38,7 +39,7 @@ export const VisitCTA = () => (
                             aria-hidden="true"
                         />
                     </Link>
-                    <Link to="/sekolah-sabat" data-testid="visit-cta-ss" className="btn-secondary">
+                    <Link href="/sekolah-sabat" data-testid="visit-cta-ss" className="btn-secondary">
                         Tentang Sekolah Sabat
                     </Link>
                 </div>

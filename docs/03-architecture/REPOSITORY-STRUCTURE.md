@@ -15,6 +15,10 @@ archive/
 
 Folder frontend-next adalah scaffold sementara, bukan struktur rilis. Setelah frontend Phase 1 dipindahkan aman ke archive/phase-1-web, aplikasi Next.js dipromosikan menjadi frontend/ di root.
 
+## Status refactor
+
+Next.js telah dipromosikan sebagai aplikasi `frontend/` dan menjadi target CI/deployment. FastAPI/MongoDB di `backend/` masih dipertahankan sementara; pemindahannya ke arsip tetap bergantung pada foundation Supabase yang sudah lulus migrasi dan validasi RLS.
+
 ## Batas runtime
 
 Supabase adalah backend produk: Auth, Postgres, Storage, RLS, dan Edge Functions. Tidak ada API FastAPI yang aktif pada arsitektur target. Route Handler Next.js hanya menangani pekerjaan server-side yang dekat dengan web, misalnya validasi form, verifikasi Turnstile, dan unduhan koleksi media.

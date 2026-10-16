@@ -15,7 +15,7 @@
 
 - **Label:** chore, ci, docs, priority:high
 - **Sprint:** 0
-- **Status:** selesai pada branch bootstrap; menunggu integrasi Phase 2
+- **Status:** selesai
 - **Acceptance criteria:** remote milik organisasi; development tersedia; workflow CI mengecek build frontend dan syntax backend; dokumentasi berada di repository.
 
 ### P2-101 — Inventaris kontrak Phase 1
@@ -30,6 +30,7 @@
 
 - **Label:** docs, priority:high
 - **Sprint:** 0
+- **Status:** selesai
 - **Dependencies:** P2-001, P2-002
 - **Acceptance criteria:** PR `docs/phase-2-foundation` menuju `development` memuat dokumen produk, desain, arsitektur, keamanan, sprint, backlog, dan spesifikasi cutover; scope PR tidak mencakup kode aplikasi atau CI.
 
@@ -37,6 +38,7 @@
 
 - **Label:** feature, frontend, priority:critical
 - **Sprint:** 1
+- **Status:** selesai
 - **Dependencies:** P2-101
 - **Acceptance criteria:** aplikasi Next.js dapat build/typecheck/lint; struktur public/staff route tersedia; environment tidak memuat secret di client.
 
@@ -44,6 +46,7 @@
 
 - **Label:** feature, frontend, accessibility, priority:critical
 - **Sprint:** 1
+- **Status:** selesai
 - **Dependencies:** P2-102
 - **Acceptance criteria:** tujuh URL publik dan Creation Grid dipertahankan; symbol resmi tidak berubah; keyboard, focus, mobile layout, reduced-motion tervalidasi.
 
@@ -51,6 +54,7 @@
 
 - **Label:** chore, frontend, accessibility, priority:high
 - **Sprint:** 1
+- **Status:** selesai
 - **Dependencies:** P2-103
 - **Acceptance criteria:** screenshot/reference viewport 320, 375, 768, 1024, 1440 tersedia; test mendeteksi overflow, heading/focus, dan regresi rute utama.
 
@@ -58,6 +62,7 @@
 
 - **Label:** feature, database, security, priority:critical
 - **Sprint:** 2
+- **Status:** selesai
 - **Dependencies:** P2-102
 - **Acceptance criteria:** CLI command ditemukan dari help; config/migration source-controlled; client browser/server terpisah; .env.example hanya memuat nama variabel.
 
@@ -65,6 +70,7 @@
 
 - **Label:** feature, database, auth, security, priority:critical
 - **Sprint:** 2
+- **Status:** selesai
 - **Dependencies:** P2-201
 - **Acceptance criteria:** hanya Admin/Editor; role bukan user metadata; policy/grant explicit; audit redacted; RLS tests membuktikan allow dan deny.
 
@@ -72,13 +78,23 @@
 
 - **Label:** feature, auth, security, priority:critical
 - **Sprint:** 2
+- **Status:** selesai
 - **Dependencies:** P2-202
-- **Acceptance criteria:** prosedur Admin pertama aman; Admin dapat invite/deactivate Editor; sign-in/reset berfungsi; tidak ada public signup.
+- **Acceptance criteria:** prosedur Admin pertama aman; Admin dapat invite/provision dan deactivate Editor; lifecycle mutation diaudit; tidak ada public signup.
+
+### P2-204 — Staff sign-in, invitation acceptance, reset password, session refresh, dan route guard
+
+- **Label:** feature, frontend, auth, security, priority:critical
+- **Sprint:** 2
+- **Status:** selesai
+- **Dependencies:** P2-203
+- **Acceptance criteria:** Admin/Editor dapat sign-in; link invitation acceptance dan reset password dapat diselesaikan; session cookie direfresh; `/staff/*` terlindungi server-side; tidak ada public signup atau open redirect.
 
 ### P2-301 — Schema CMS konten publik
 
 - **Label:** feature, database, frontend, priority:critical
 - **Sprint:** 3
+- **Status:** selesai
 - **Dependencies:** P2-202
 - **Acceptance criteria:** announcements, events, departments memakai Draft/Published/Archived; slug unik dan validasi ketat; public query hanya Published.
 
@@ -86,6 +102,7 @@
 
 - **Label:** feature, database, frontend, priority:high
 - **Sprint:** 3
+- **Status:** selesai
 - **Dependencies:** P2-301
 - **Acceptance criteria:** recurrence mingguan, add/override/cancel per tanggal, dan tampilan Asia/Makassar diuji.
 
@@ -93,13 +110,23 @@
 
 - **Label:** feature, frontend, auth, priority:critical
 - **Sprint:** 3
+- **Status:** selesai
 - **Dependencies:** P2-203, P2-301
 - **Acceptance criteria:** Editor dapat draft/publish/archive; Admin dapat permanent delete sesuai prosedur; setiap mutation menghasilkan audit redacted.
+
+### P2-304 — Query publik, cache/revalidation, empty states, dan metadata
+
+- **Label:** feature, frontend, performance, priority:high
+- **Sprint:** 3
+- **Status:** selesai
+- **Dependencies:** P2-301, P2-302, P2-303
+- **Acceptance criteria:** Query publik hanya membaca konten published; revalidasi cache bekerja saat konten dimutasi; empty states dan metadata SEO tersedia.
 
 ### P2-401 — Schema media, consent, dan Storage policy
 
 - **Label:** feature, database, media, security, priority:critical
 - **Sprint:** 4
+- **Status:** selesai
 - **Dependencies:** P2-202
 - **Acceptance criteria:** album/aset/consent model ada; policy storage dan query menolak pending/revoked/hidden; asset child tanpa izin tidak dapat terbit.
 
@@ -107,6 +134,7 @@
 
 - **Label:** feature, media, security, priority:high
 - **Sprint:** 4
+- **Status:** selesai
 - **Dependencies:** P2-401
 - **Acceptance criteria:** type/size/pixel limit tervalidasi; derivative menghapus EXIF/geolocation; original tidak tersimpan pada pilot; kuota 1 GB terpantau.
 
@@ -114,6 +142,7 @@
 
 - **Label:** feature, frontend, media, accessibility, priority:high
 - **Sprint:** 4
+- **Status:** selesai
 - **Dependencies:** P2-303, P2-402
 - **Acceptance criteria:** filter album/kategori, lightbox keyboard, alt text, publish flow, dan empty state tersedia.
 
@@ -121,13 +150,23 @@
 
 - **Label:** feature, media, security, priority:high
 - **Sprint:** 4
+- **Status:** selesai
 - **Dependencies:** P2-403
 - **Acceptance criteria:** single/album/category download hanya memasukkan aset eligible; URL/result berumur pendek; file/byte/rate limit dan audit diuji.
+
+### P2-405 — Pengelolaan media dan banner seksi halaman publik
+
+- **Label:** feature, cms, media, priority:high
+- **Sprint:** 4
+- **Status:** selesai
+- **Dependencies:** P2-403
+- **Acceptance criteria:** admin dan editor dapat memilih/mengubah gambar seksi halaman publik (Hero beranda, Selamat Datang, Sekolah Sabat, Tentang Kami) melalui portal staf `/staff`; gambar tersimpan di Supabase Storage/media_assets; perubahan langsung ter-revalidasi ke halaman publik dengan fallback statis jika belum dikonfigurasi; audit log mutasi tercatat.
 
 ### P2-501 — Quality gate dan CI Phase 2
 
 - **Label:** chore, ci, database, accessibility, priority:critical
 - **Sprint:** 5
+- **Status:** selesai
 - **Dependencies:** seluruh issue sebelumnya
 - **Acceptance criteria:** CI menjalankan build/typecheck/lint/unit/E2E/RLS test yang relevan; lint/format aman; security regression memiliki test.
 
@@ -135,13 +174,23 @@
 
 - **Label:** chore, security, priority:high
 - **Sprint:** 5
+- **Status:** selesai — catatan hasil: `docs/04-delivery/records/P2-502-2026-10-15.md`
 - **Dependencies:** P2-501
 - **Acceptance criteria:** migration deploy/rollback runbook dijalankan; backup terenkripsi dibuat; restore nonproduksi dicatat; smoke test pilot lulus.
+
+### P2-506 — Refactor UI publik dan portal staf mobile-first
+
+- **Label:** feature, ui, accessibility, priority:high
+- **Sprint:** 5
+- **Status:** selesai (PR #25)
+- **Dependencies:** P2-502
+- **Acceptance criteria:** semua permukaan publik dan portal staf (Admin/Editor, seluruh fitur) nyaman di 320–1440px tanpa scroll horizontal; simbol Advent resmi dipakai di portal staf dan login; navbar portal satu baris dan konsisten antar tab; tabel menjadi kartu dan dialog menjadi bottom sheet di HP; tidak ada konten/fakta lokal karangan (kegiatan, khotbah, nama orang, kontak) — data lokal hanya dari CMS atau yang terverifikasi gereja; formulir yang belum tersimpan tidak boleh mengaku terkirim.
 
 ### P2-503 — Review dan PR kode Phase 2
 
 - **Label:** chore, docs, priority:high
 - **Sprint:** 5
+- **Status:** selesai — catatan hasil: `docs/04-delivery/records/P2-503-2026-10-16.md`
 - **Dependencies:** P2-502
 - **Acceptance criteria:** semua exit criteria roadmap tervalidasi; PR branch implementasi Phase 2 ke development berisi ringkasan/test/risiko; CI hijau sebelum merge. PR dokumentasi awal tidak menggantikan PR kode ini.
 

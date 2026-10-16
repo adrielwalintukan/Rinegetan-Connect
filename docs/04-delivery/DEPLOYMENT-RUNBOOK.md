@@ -34,7 +34,7 @@ Men-deploy pilot secara repeatable tanpa membocorkan rahasia, melewati migration
 
 ## Rollback
 
-1. Jika masalah ada pada kode tanpa perubahan schema yang tidak kompatibel, rollback deployment Vercel ke commit sebelumnya.
+1. Jika masalah ada pada kode tanpa perubahan schema yang tidak kompatibel, rollback deployment Vercel ke commit sebelumnya (`vercel rollback <deployment>`, ±2 detik pada drill P2-502). Setelah rollback, Vercel berhenti auto-promote: deployment berikutnya wajib di-promote manual (`vercel promote`).
 2. Jika masalah terkait konten, archive/hide konten melalui CMS dan tunggu revalidation.
 3. Jika migration gagal, hentikan deploy berikutnya dan gunakan migration forward-only yang sudah direview. Jangan menghapus/menulis ulang migration yang pernah diterapkan.
 4. Restore backup hanya setelah dampak, titik pemulihan, dan pemilik keputusan disetujui gereja. Lakukan terlebih dahulu pada environment nonproduksi bila memungkinkan.

@@ -46,9 +46,9 @@ export const SabbathSection = () => (
                 </MainColumns>
                 <Reveal delay={0.2} className="lg:col-span-1">
                     <SabbathColumn label="Sabat · Hari Ketujuh">
-                        <p className="hidden font-mono text-[0.6875rem] leading-relaxed text-sabbath-700 lg:block">
-                            Kolom ketujuh dari Creation Grid — ruang henti, sengaja dibiarkan
-                            bernafas.
+                        <p className="hidden text-center text-xs leading-relaxed text-sabbath-700 lg:block">
+                            “{SABBATH.verse}.”
+                            <span className="mt-1 block font-semibold">{SABBATH.verseRef}</span>
                         </p>
                     </SabbathColumn>
                 </Reveal>

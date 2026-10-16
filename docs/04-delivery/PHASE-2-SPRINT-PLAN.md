@@ -68,6 +68,7 @@ Dokumentasi Phase 2 diajukan sekarang melalui PR `docs/phase-2-foundation` menuj
 | P2-402 | Pipeline JPEG derivative, limit upload, dan pembersihan metadata |
 | P2-403 | Admin media workflow serta public album/category/gallery |
 | P2-404 | Unduhan foto, album, kategori dengan eligibility, limit, dan audit |
+| P2-405 | Kustomisasi foto/banner seksi halaman publik oleh Admin/Editor |
 
 **Exit criteria:** aset tanpa consent/hidden tidak dapat muncul atau diunduh; hanya derivative publik; batas 1 GB diterapkan/terpantau.
 

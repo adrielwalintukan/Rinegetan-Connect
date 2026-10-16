@@ -4,16 +4,15 @@ export const CHURCH = {
     entity: "Jemaat Rinegetan",
     region: "Minahasa · Sulawesi Utara",
     tagline: "Tempat Bertumbuh dalam Iman, Melayani, dan Bersama",
-    address: "Jl. Rinegetan No. 7, Tondano, Kabupaten Minahasa, Sulawesi Utara 95611",
-    phone: "+62 812-3456-7890",
-    whatsapp: "https://wa.me/6281234567890",
-    email: "halo@gmahkrinegetan.org",
-    mapsQuery: "Rinegetan, Tondano, Minahasa, Sulawesi Utara",
-    socials: [
-        { label: "Facebook", href: "https://facebook.com/gmahkrinegetan", icon: "facebook" },
-        { label: "Instagram", href: "https://instagram.com/gmahkrinegetan", icon: "instagram" },
-        { label: "YouTube", href: "https://youtube.com/@gmahkrinegetan", icon: "youtube" },
-    ],
+    // Street number and postal code are not verified yet; only the area of the Maps pin is shown.
+    address: "Rinegetan, Tondano, Kabupaten Minahasa, Sulawesi Utara",
+    // Contact details are hidden until the church confirms them (placeholders were never real).
+    phone: null,
+    whatsapp: null,
+    email: null,
+    // Exact pin of "GMAHK Jemaat Rinegetan" (https://maps.app.goo.gl/dUfu9roHcnH5pfdn8); a name search lands on the kelurahan boundary.
+    mapsQuery: "1.2980427,124.9081001",
+    socials: [],
 };
 
 export const NAV_LINKS = [
@@ -87,175 +86,6 @@ export const EVENT_CATEGORIES = [
     "Sosial",
 ];
 
-export const EVENTS = [
-    {
-        id: "perjamuan-kudus-q3",
-        title: "Ibadah Sabat & Perjamuan Kudus",
-        date: "Sabtu, 25 Juli 2026",
-        time: "08.45 WITA",
-        location: "Gereja GMAHK Rinegetan",
-        category: "Ibadah",
-        image: IMAGES.sabbath.src,
-        description:
-            "Sabat istimewa dengan upacara Perjamuan Kudus — momen pembaruan komitmen dan pelayanan satu sama lain dalam kerendahan hati.",
-    },
-    {
-        id: "ay-vesper-juli",
-        title: "Kebaktian Pemuda Advent (AY)",
-        date: "Sabtu, 25 Juli 2026",
-        time: "16.00 WITA",
-        location: "Aula Pemuda GMAHK Rinegetan",
-        category: "Pemuda",
-        image: IMAGES.fellowship.src,
-        description:
-            "Sore Sabat bersama pemuda: pujian, kesaksian, dan diskusi Alkitab yang relevan dengan kehidupan anak muda Minahasa.",
-    },
-    {
-        id: "pelajaran-ss-triwulan-3",
-        title: "Pelajaran Sekolah Sabat — Triwulan III",
-        date: "Setiap Sabtu",
-        time: "08.45 WITA",
-        location: "Ruang kelas Sekolah Sabat",
-        category: "Sekolah Sabat",
-        image: IMAGES.bibleStudy.src,
-        description:
-            "Pendalaman Alkitab triwulan ketiga dalam kelompok kecil — anak-anak, remaja, pemuda, dan dewasa belajar sesuai kelas masing-masing.",
-    },
-    {
-        id: "bakti-sosial-agustus",
-        title: "Bakti Sosial: Pemeriksaan Kesehatan Gratis",
-        date: "Minggu, 2 Agustus 2026",
-        time: "09.00 WITA",
-        location: "Balai Desa Rinegetan",
-        category: "Sosial",
-        image: IMAGES.community.src,
-        description:
-            "Departemen Kesehatan dan Diakonia melayani masyarakat desa: pemeriksaan tensi, gula darah, dan konsultasi gaya hidup sehat.",
-    },
-    {
-        id: "kebaktian-doa-rabu",
-        title: "Kebaktian Permintaan Doa",
-        date: "Setiap Rabu",
-        time: "19.00 WITA",
-        location: "Gereja GMAHK Rinegetan",
-        category: "Ibadah",
-        image: IMAGES.bibleStudy.src,
-        description:
-            "Pertengahan pekan yang tenang untuk berdoa, membaca Firman, dan saling menguatkan dalam persekutuan kecil.",
-    },
-    {
-        id: "pekan-doa-penginjilan",
-        title: "Pekan Doa & Penginjilan “Harapan bagi Minahasa”",
-        date: "8–15 Agustus 2026",
-        time: "19.00 WITA",
-        location: "Gereja GMAHK Rinegetan",
-        category: "Penginjilan",
-        image: IMAGES.hero.src,
-        description:
-            "Delapan malam pembahasan Alkitab tentang pengharapan — terbuka untuk seluruh masyarakat Rinegetan dan sekitarnya.",
-    },
-];
-
-export const DEPARTMENTS = [
-    {
-        slug: "sekolah-sabat",
-        name: "Sekolah Sabat",
-        icon: "book-open",
-        description: "Pendalaman Alkitab untuk segala usia, dari anak hingga dewasa, setiap Sabtu pagi.",
-    },
-    {
-        slug: "pemuda-advent",
-        name: "Pemuda Advent",
-        icon: "flame",
-        description: "Wadah bertumbuh anak muda — kebaktian AY, kegiatan sosial, dan kepemimpinan.",
-    },
-    {
-        slug: "pathfinder",
-        name: "Pathfinder",
-        icon: "compass",
-        description: "Klub remaja 10–15 tahun: keterampilan, alam, disiplin, dan iman yang hidup.",
-    },
-    {
-        slug: "adventurer",
-        name: "Adventurer",
-        icon: "sun",
-        description: "Klub anak 6–9 tahun belajar tentang Yesus melalui bermain, lagu, dan petualangan.",
-    },
-    {
-        slug: "anak",
-        name: "Anak",
-        icon: "smile",
-        description: "Pelayanan anak Sekolah Sabat dengan cerita Alkitab, lagu, dan kreativitas.",
-    },
-    {
-        slug: "diakonia",
-        name: "Diakonia",
-        icon: "heart-handshake",
-        description: "Kepedulian nyata: mengunjungi, menolong, dan melayani keluarga yang membutuhkan.",
-    },
-    {
-        slug: "kesehatan",
-        name: "Kesehatan",
-        icon: "heart-pulse",
-        description: "Pesan kesehatan Advent — hidup sehat, seminar gaya hidup, dan pelayanan medis desa.",
-    },
-    {
-        slug: "musik",
-        name: "Musik",
-        icon: "music",
-        description: "Paduan suara, pujian, dan musisi jemaat yang memuliakan Tuhan dalam setiap ibadah.",
-    },
-    {
-        slug: "penginjilan",
-        name: "Penginjilan",
-        icon: "megaphone",
-        description: "Membagikan pengharapan — pelajaran Alkitab pribadi, pekan doa, dan literatur.",
-    },
-];
-
-export const MEDIA_ITEMS = [
-    {
-        id: "khotbah-pengharapan-teguh",
-        type: "Khotbah",
-        title: "Pengharapan yang Teguh di Tengah Badai",
-        meta: "Pdt. J. Rantung · Sabtu, 18 Juli 2026 · 38 menit",
-        image: IMAGES.sabbath.src,
-        description: "Renungan khotbah Sabat dari Ibrani 6:19 — jangkar bagi jiwa yang letih.",
-    },
-    {
-        id: "renungan-beristirahat",
-        type: "Renungan",
-        title: "Beristirahat dalam Janji-Nya",
-        meta: "Renungan Sabat · 5 menit baca",
-        image: IMAGES.nature.src,
-        description: "Sabat bukan sekadar berhenti bekerja — ia adalah undangan untuk pulang.",
-    },
-    {
-        id: "foto-sabat-juli",
-        type: "Foto",
-        title: "Galeri: Sabat Kedua Juli",
-        meta: "24 foto · Ibadah & persekutuan",
-        image: IMAGES.hero.src,
-        description: "Dokumentasi ibadah, Sekolah Sabat, dan makan bersama jemaat.",
-    },
-    {
-        id: "video-profil-pelayanan",
-        type: "Video",
-        title: "Profil Pelayanan Jemaat Rinegetan",
-        meta: "Video · 4 menit",
-        image: IMAGES.fellowship.src,
-        description: "Cuplikan kehidupan jemaat: ibadah, pelayanan anak, dan bakti sosial.",
-    },
-    {
-        id: "materi-ss-triwulan-3",
-        type: "Materi",
-        title: "Pelajaran Sekolah Sabat Triwulan III 2026",
-        meta: "PDF · 13 pelajaran",
-        image: IMAGES.bibleStudy.src,
-        description: "Unduh panduan pendalaman Alkitab dewasa untuk triwulan berjalan.",
-    },
-];
-
 export const MINISTRY_CARDS = [
     {
         id: "pelajari-alkitab",
@@ -263,7 +93,6 @@ export const MINISTRY_CARDS = [
         description:
             "Belajar Alkitab secara pribadi atau kelompok kecil, daring maupun tatap muka — gratis dan terbuka untuk semua.",
         icon: "book-open",
-        phase: "Fase 3",
     },
     {
         id: "permohonan-doa",
@@ -271,7 +100,6 @@ export const MINISTRY_CARDS = [
         description:
             "Kirimkan pokok doa Anda — tim pendoa jemaat akan mendoakannya dalam kebaktian doa mingguan.",
         icon: "hands-praying",
-        phase: "Fase 3",
     },
     {
         id: "pertama-kali-berkunjung",
@@ -279,7 +107,6 @@ export const MINISTRY_CARDS = [
         description:
             "Panduan ramah untuk kunjungan pertama: apa yang diharapkan, apa yang dikenakan, dan siapa yang akan menyambut Anda.",
         icon: "door-open",
-        phase: "Fase 3",
     },
 ];
 

@@ -52,6 +52,7 @@ Fitur:
 - Login staf berbasis undangan email dan reset password; tanpa daftar publik maupun OAuth.
 - Admin dan Editor beserta audit aktivitas.
 - CMS untuk pengumuman, kegiatan, jadwal, departemen, media, album, dan aset.
+- Pengelolaan foto/banner seksi halaman publik (Hero beranda, Sambutan/Tentang jemaat, Sekolah Sabat, Tentang Kami) oleh Admin dan Editor melalui portal staf tanpa deploy/edit source code.
 - Jadwal mingguan berulang serta pengecualian untuk tanggal tertentu.
 - Galeri foto publik dengan album dan kategori: Ibadah, Pemuda, Sekolah Sabat, Pelayanan, Penginjilan, Sosial, dan Departemen bila relevan.
 - Persetujuan foto, status dapat diunduh, turunan JPEG yang telah dibersihkan dari EXIF/geolocation, serta unduhan satu foto, album, atau kategori.
