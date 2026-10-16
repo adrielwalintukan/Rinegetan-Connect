@@ -11,6 +11,7 @@ import {
   X,
   Loader2,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { IMAGES } from "@/data/content";
 import { MediaUploadDialog } from "./MediaUploadDialog";
@@ -68,16 +69,22 @@ const SECTION_CONFIGS: SectionConfig[] = [
 
 interface SectionMediaManagerProps {
   initialSectionMedia?: SiteSectionMediaMap;
+  sectionMedia?: SiteSectionMediaMap;
+  onSectionMediaChange?: React.Dispatch<React.SetStateAction<SiteSectionMediaMap>>;
   mediaAssets?: MediaAsset[];
   mediaAlbums?: MediaAlbum[];
 }
 
 export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
   initialSectionMedia = {},
+  sectionMedia: externalSectionMedia,
+  onSectionMediaChange,
   mediaAssets = [],
   mediaAlbums = [],
 }) => {
-  const [sectionMedia, setSectionMedia] = useState<SiteSectionMediaMap>(initialSectionMedia);
+  const router = useRouter();
+  const [internalSectionMedia, setInternalSectionMedia] = useState<SiteSectionMediaMap>(initialSectionMedia);
+  const currentSectionMedia = externalSectionMedia || internalSectionMedia;
   const [savingKey, setSavingKey] = useState<string | null>(null);
 
   // Picker modal state
@@ -112,17 +119,29 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
         throw new Error(data.message || "Gagal memperbarui gambar seksi.");
       }
 
-      setSectionMedia((prev) => ({
-        ...prev,
-        [sectionKey]: {
-          section_key: sectionKey,
-          asset_id: asset.id,
-          image_url: getMediaPublicUrl(asset.storage_path),
-          alt_text: asset.alt_text,
-          caption: asset.caption,
-        },
-      }));
+      const mediaUrl = getMediaPublicUrl(asset.storage_path);
+      const updatedItem = {
+        section_key: sectionKey,
+        asset_id: asset.id,
+        image_url: mediaUrl,
+        url: mediaUrl,
+        alt_text: asset.alt_text,
+        caption: asset.caption,
+      };
 
+      if (onSectionMediaChange) {
+        onSectionMediaChange((prev) => ({
+          ...prev,
+          [sectionKey]: updatedItem,
+        }));
+      } else {
+        setInternalSectionMedia((prev) => ({
+          ...prev,
+          [sectionKey]: updatedItem,
+        }));
+      }
+
+      router.refresh();
       toast.success(`Gambar untuk seksi berhasil diperbarui.`);
     } catch (err: unknown) {
       const msg = clientErrorMessage(err, "Terjadi kesalahan.");
@@ -149,12 +168,21 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
         throw new Error(data.message || "Gagal mereset gambar seksi.");
       }
 
-      setSectionMedia((prev) => {
-        const copy = { ...prev };
-        delete copy[sectionKey];
-        return copy;
-      });
+      if (onSectionMediaChange) {
+        onSectionMediaChange((prev) => {
+          const copy = { ...prev };
+          delete copy[sectionKey];
+          return copy;
+        });
+      } else {
+        setInternalSectionMedia((prev) => {
+          const copy = { ...prev };
+          delete copy[sectionKey];
+          return copy;
+        });
+      }
 
+      router.refresh();
       toast.success(`Seksi dikembalikan ke gambar bawaan.`);
     } catch (err: unknown) {
       const msg = clientErrorMessage(err, "Terjadi kesalahan.");
@@ -184,7 +212,7 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
 
       <div className="grid gap-6 md:grid-cols-2">
         {SECTION_CONFIGS.map((config) => {
-          const current = sectionMedia[config.key];
+          const current = currentSectionMedia[config.key];
           const isCustom = Boolean(current && current.image_url);
           const activeSrc = isCustom ? current.image_url : config.defaultSrc;
           const activeAlt = isCustom ? current.alt_text : config.defaultAlt;

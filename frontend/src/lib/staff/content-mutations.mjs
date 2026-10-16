@@ -169,6 +169,13 @@ export function sanitizeSavePayload(entityType, rawData) {
     }
   }
 
+  if (result.cover_asset_id === "") {
+    result.cover_asset_id = null;
+  }
+  if (result.department_id === "") {
+    result.department_id = null;
+  }
+
   return result;
 }
 

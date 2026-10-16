@@ -16,7 +16,7 @@ export const Hero = ({ sectionMedia = null }) => {
     });
     const imgY = useTransform(scrollYProgress, [0, 1], ["-10%", "10%"]);
 
-    const heroSrc = sectionMedia?.home_hero?.url || IMAGES.hero.src;
+    const heroSrc = sectionMedia?.home_hero?.image_url || sectionMedia?.home_hero?.url || IMAGES.hero.src;
     const heroAlt = sectionMedia?.home_hero?.alt_text || IMAGES.hero.alt;
     const heroCaption = sectionMedia?.home_hero?.caption || IMAGES.hero.caption;
 

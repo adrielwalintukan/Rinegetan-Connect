@@ -129,7 +129,7 @@ export default function TentangKamiPage({ sectionMedia = null }) {
                     <Reveal delay={0.15}>
                         <figure className="img-frame mt-10 aspect-[21/9]">
                             <img
-                                src={sectionMedia?.tentang_kami?.url || IMAGES.community.src}
+                                src={sectionMedia?.tentang_kami?.image_url || sectionMedia?.tentang_kami?.url || IMAGES.community.src}
                                 alt={sectionMedia?.tentang_kami?.alt_text || IMAGES.community.alt}
                                 loading="lazy"
                                 className="h-full w-full object-cover"

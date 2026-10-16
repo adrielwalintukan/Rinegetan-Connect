@@ -23,7 +23,7 @@ const EXPECTATIONS = [
 ];
 
 export const WelcomeSection = ({ sectionMedia = null }) => {
-    const welcomeSrc = sectionMedia?.home_welcome?.url || IMAGES.fellowship.src;
+    const welcomeSrc = sectionMedia?.home_welcome?.image_url || sectionMedia?.home_welcome?.url || IMAGES.fellowship.src;
     const welcomeAlt = sectionMedia?.home_welcome?.alt_text || IMAGES.fellowship.alt;
 
     return (

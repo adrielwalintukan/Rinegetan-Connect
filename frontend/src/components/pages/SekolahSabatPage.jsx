@@ -118,7 +118,7 @@ export default function SekolahSabatPage({ initialSchedules = null, sectionMedia
                         <Reveal delay={0.2}>
                             <figure className="img-frame mt-6 aspect-[21/9]">
                                 <img
-                                    src={sectionMedia?.sekolah_sabat?.url || IMAGES.bibleStudy.src}
+                                    src={sectionMedia?.sekolah_sabat?.image_url || sectionMedia?.sekolah_sabat?.url || IMAGES.bibleStudy.src}
                                     alt={sectionMedia?.sekolah_sabat?.alt_text || IMAGES.bibleStudy.alt}
                                     loading="lazy"
                                     className="h-full w-full object-cover"
