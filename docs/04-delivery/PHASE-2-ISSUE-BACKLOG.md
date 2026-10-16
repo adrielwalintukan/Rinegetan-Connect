@@ -174,6 +174,7 @@
 
 - **Label:** chore, security, priority:high
 - **Sprint:** 5
+- **Status:** selesai — catatan hasil: `docs/04-delivery/records/P2-502-2026-10-15.md`
 - **Dependencies:** P2-501
 - **Acceptance criteria:** migration deploy/rollback runbook dijalankan; backup terenkripsi dibuat; restore nonproduksi dicatat; smoke test pilot lulus.
 
