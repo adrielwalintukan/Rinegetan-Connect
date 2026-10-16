@@ -10,6 +10,8 @@ import {
   validateDeletePayload,
   assertCanMutateStatus,
   assertCanDeletePermanently,
+  sanitizeSavePayload,
+  normalizeWitaDateTime,
 } from "../src/lib/staff/content-mutations.mjs";
 
 const frontendRoot = fileURLToPath(new URL("..", import.meta.url));
@@ -114,4 +116,71 @@ test("Content mutation API route files exist and define POST handlers", () => {
   );
   assert.ok(existsSync(deleteRoutePath), "API route delete/route.ts harus ada");
   assert.match(readText(deleteRoutePath), /export async function POST/);
+});
+
+test("normalizeWitaDateTime appends WITA (+08:00) offset correctly", () => {
+  assert.equal(
+    normalizeWitaDateTime("2026-10-24T18:00"),
+    "2026-10-24T18:00:00+08:00"
+  );
+  assert.equal(
+    normalizeWitaDateTime("2026-10-24T18:00:00"),
+    "2026-10-24T18:00:00+08:00"
+  );
+  assert.equal(
+    normalizeWitaDateTime("2026-10-24T10:00:00Z"),
+    "2026-10-24T10:00:00Z"
+  );
+  assert.equal(
+    normalizeWitaDateTime("2026-10-24T18:00:00+08:00"),
+    "2026-10-24T18:00:00+08:00"
+  );
+});
+
+test("sanitizeSavePayload strips disallowed fields such as category from events and formats WITA timestamps", () => {
+  const dirtyEventPayload = {
+    title: "Kebaktian Sabat Istimewa",
+    description: "Ibadah bersama jemaat",
+    category: "Ibadah", // Disallowed in events table! Causes Postgres error 42703
+    starts_at: "2026-10-24T09:00",
+    ends_at: "2026-10-24T12:00",
+    status: "published",
+    unknown_field_xyz: 123,
+  };
+
+  const sanitized = sanitizeSavePayload("events", dirtyEventPayload);
+  assert.equal(sanitized.title, "Kebaktian Sabat Istimewa");
+  assert.equal(sanitized.summary, "Ibadah bersama jemaat");
+  assert.equal("category" in sanitized, false, "events payload must NOT contain category");
+  assert.equal("unknown_field_xyz" in sanitized, false);
+  assert.equal(sanitized.starts_at, "2026-10-24T09:00:00+08:00");
+  assert.equal(sanitized.ends_at, "2026-10-24T12:00:00+08:00");
+  assert.equal(sanitized.venue, "GMAHK Rinegetan");
+  assert.equal(sanitized.timezone, "Asia/Makassar");
+  assert.equal(sanitized.status, "published");
+});
+
+test("Reusable mobile-responsive components exist", () => {
+  const selectDropdownPath = resolve(
+    frontendRoot,
+    "src",
+    "components",
+    "ui",
+    "SelectDropdown.tsx"
+  );
+  assert.ok(existsSync(selectDropdownPath), "SelectDropdown.tsx harus ada");
+  const selectContent = readText(selectDropdownPath);
+  assert.match(selectContent, /export function SelectDropdown/);
+
+  const dateTimeInputPath = resolve(
+    frontendRoot,
+    "src",
+    "components",
+    "ui",
+    "DateTimeInput.tsx"
+  );
+  assert.ok(existsSync(dateTimeInputPath), "DateTimeInput.tsx harus ada");
+  const dateTimeContent = readText(dateTimeInputPath);
+  assert.match(dateTimeContent, /export function DateTimeInput/);
+  assert.match(dateTimeContent, /export function toDateTimeLocalValue/);
 });

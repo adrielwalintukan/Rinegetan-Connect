@@ -6,6 +6,7 @@ import { X, UploadCloud, AlertTriangle, ShieldCheck, CheckCircle2 } from "lucide
 import type { MediaAlbum, MediaAsset, MediaCategory, SubjectAgeGroup, ConsentStatus } from "@/types/media";
 import { clientErrorMessage } from "@/lib/api/errors";
 import { MODAL_BACKDROP } from "@/components/ui/modal";
+import { SelectDropdown } from "@/components/ui/SelectDropdown";
 
 export interface MediaUploadDialogProps {
   isOpen: boolean;
@@ -253,78 +254,61 @@ export const MediaUploadDialog: React.FC<MediaUploadDialogProps> = ({
 
           {/* Category & Album Dropdown */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            <div>
-              <label htmlFor="category-select" className="block text-xs font-semibold text-navy mb-1.5">
-                Kategori Media
-              </label>
-              <select
-                id="category-select"
-                value={category}
-                onChange={(e) => setCategory(e.target.value as MediaCategory)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs focus:border-sabbath-500 focus:outline-none focus:ring-1 focus:ring-sabbath-500 bg-white"
-              >
-                <option value="umum">Umum</option>
-                <option value="ibadah">Ibadah</option>
-                <option value="pemuda">Pemuda</option>
-                <option value="sekolah_sabat">Sekolah Sabat</option>
-                <option value="sosial">Sosial</option>
-                <option value="fellowship">Fellowship</option>
-              </select>
-            </div>
+            <SelectDropdown
+              id="category-select"
+              label="Kategori Media"
+              value={category}
+              onChange={(val) => setCategory(val as MediaCategory)}
+              options={[
+                { value: "umum", label: "Umum" },
+                { value: "ibadah", label: "Ibadah" },
+                { value: "pemuda", label: "Pemuda" },
+                { value: "sekolah_sabat", label: "Sekolah Sabat" },
+                { value: "sosial", label: "Sosial" },
+                { value: "fellowship", label: "Fellowship" },
+              ]}
+            />
 
-            <div>
-              <label htmlFor="album-select" className="block text-xs font-semibold text-navy mb-1.5">
-                Pilih Album (Opsional)
-              </label>
-              <select
-                id="album-select"
-                value={albumId}
-                onChange={(e) => setAlbumId(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs focus:border-sabbath-500 focus:outline-none focus:ring-1 focus:ring-sabbath-500 bg-white"
-              >
-                <option value="">-- Tanpa Album --</option>
-                {albums.map((album) => (
-                  <option key={album.id} value={album.id}>
-                    {album.title}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <SelectDropdown
+              id="album-select"
+              label="Pilih Album (Opsional)"
+              value={albumId}
+              onChange={(val) => setAlbumId(val)}
+              options={[
+                { value: "", label: "-- Tanpa Album --" },
+                ...albums.map((album) => ({
+                  value: album.id,
+                  label: album.title,
+                })),
+              ]}
+            />
           </div>
 
           {/* Subject Age Group & Consent Status */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1 border-t border-slate-100">
-            <div>
-              <label htmlFor="age-group-select" className="block text-xs font-semibold text-navy mb-1.5">
-                Kelompok Usia Subjek Foto
-              </label>
-              <select
-                id="age-group-select"
-                value={subjectAgeGroup}
-                onChange={(e) => setSubjectAgeGroup(e.target.value as SubjectAgeGroup)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs focus:border-sabbath-500 focus:outline-none focus:ring-1 focus:ring-sabbath-500 bg-white"
-              >
-                <option value="general">Umum / Dewasa</option>
-                <option value="child">Anak-anak (Child)</option>
-              </select>
-            </div>
+            <SelectDropdown
+              id="age-group-select"
+              label="Kelompok Usia Subjek Foto"
+              value={subjectAgeGroup}
+              onChange={(val) => setSubjectAgeGroup(val as SubjectAgeGroup)}
+              options={[
+                { value: "general", label: "Umum / Dewasa" },
+                { value: "child", label: "Anak-anak (Child)" },
+              ]}
+            />
 
-            <div>
-              <label htmlFor="consent-status-select" className="block text-xs font-semibold text-navy mb-1.5">
-                Status Consent / Izin
-              </label>
-              <select
-                id="consent-status-select"
-                value={consentStatus}
-                onChange={(e) => setConsentStatus(e.target.value as ConsentStatus)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs focus:border-sabbath-500 focus:outline-none focus:ring-1 focus:ring-sabbath-500 bg-white"
-              >
-                <option value="pending">Pending (Menunggu)</option>
-                <option value="approved">Approved (Disetujui)</option>
-                <option value="rejected">Rejected (Ditolak)</option>
-                <option value="revoked">Revoked (Dicabut)</option>
-              </select>
-            </div>
+            <SelectDropdown
+              id="consent-status-select"
+              label="Status Consent / Izin"
+              value={consentStatus}
+              onChange={(val) => setConsentStatus(val as ConsentStatus)}
+              options={[
+                { value: "pending", label: "Pending (Menunggu)" },
+                { value: "approved", label: "Approved (Disetujui)" },
+                { value: "rejected", label: "Rejected (Ditolak)" },
+                { value: "revoked", label: "Revoked (Dicabut)" },
+              ]}
+            />
           </div>
 
           {/* Child Protection Notice */}

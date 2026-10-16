@@ -271,7 +271,7 @@ export const StaffManager: React.FC<StaffManagerProps> = ({ initialStaff, curren
 
       {pending && config && (
         <div className={MODAL_BACKDROP} role="dialog" aria-modal="true" aria-labelledby="staff-action-title">
-          <form onSubmit={handleAction} className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+          <form onSubmit={handleAction} className="relative w-full max-w-md rounded-2xl bg-white p-5 sm:p-6 pb-8 shadow-2xl">
             <button
               type="button"
               onClick={() => setPending(null)}

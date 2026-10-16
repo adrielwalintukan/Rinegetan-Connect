@@ -22,6 +22,7 @@ import type { MediaAlbum, MediaAsset } from "@/types/media";
 import type { ContentStatus } from "@/types/content";
 import { clientErrorMessage } from "@/lib/api/errors";
 import { MODAL_BACKDROP } from "@/components/ui/modal";
+import { SelectDropdown } from "@/components/ui/SelectDropdown";
 
 export interface MediaManagerProps {
   initialAssets: MediaAsset[];
@@ -369,29 +370,31 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
 
         <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
           {/* Status Filter */}
-          <select
+          <SelectDropdown
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-xl border border-slate-200 px-3 py-2 text-xs focus:border-sabbath-500 focus:outline-none focus:ring-1 focus:ring-sabbath-500 bg-white text-slate-700"
-          >
-            <option value="all">Semua Status</option>
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
-            <option value="archived">Archived</option>
-          </select>
+            onChange={(val) => setStatusFilter(val)}
+            className="w-full sm:w-40"
+            options={[
+              { value: "all", label: "Semua Status" },
+              { value: "draft", label: "Draft" },
+              { value: "published", label: "Published" },
+              { value: "archived", label: "Archived" },
+            ]}
+          />
 
           {/* Consent Filter */}
-          <select
+          <SelectDropdown
             value={consentFilter}
-            onChange={(e) => setConsentFilter(e.target.value)}
-            className="rounded-xl border border-slate-200 px-3 py-2 text-xs focus:border-sabbath-500 focus:outline-none focus:ring-1 focus:ring-sabbath-500 bg-white text-slate-700"
-          >
-            <option value="all">Semua Izin (Consent)</option>
-            <option value="approved">Consent Approved</option>
-            <option value="pending">Consent Pending</option>
-            <option value="rejected">Consent Rejected</option>
-            <option value="revoked">Consent Revoked</option>
-          </select>
+            onChange={(val) => setConsentFilter(val)}
+            className="w-full sm:w-48"
+            options={[
+              { value: "all", label: "Semua Izin (Consent)" },
+              { value: "approved", label: "Consent Approved" },
+              { value: "pending", label: "Consent Pending" },
+              { value: "rejected", label: "Consent Rejected" },
+              { value: "revoked", label: "Consent Revoked" },
+            ]}
+          />
         </div>
       </div>
 
@@ -469,43 +472,33 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
                     </p>
                   )}
 
-                  <div className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3">
-                    <label className="block text-[0.6875rem] font-semibold text-slate-600">
-                      Izin (consent)
-                      <select
-                        value={asset.consent_status}
-                        disabled={isSubmitting}
-                        onChange={(e) => handleConsentChange(asset, e.target.value)}
-                        className={`mt-1 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold ${
-                          asset.consent_status === "approved"
-                            ? "text-emerald-700"
-                            : asset.consent_status === "pending"
-                            ? "text-amber-700"
-                            : "text-red-700"
-                        }`}
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="approved">Approved</option>
-                        <option value="rejected">Rejected</option>
-                        <option value="revoked">Revoked</option>
-                      </select>
-                    </label>
-                    <label className="block text-[0.6875rem] font-semibold text-slate-600">
-                      Kategori
-                      <select
-                        value={asset.category}
-                        disabled={isSubmitting}
-                        onChange={(e) => handleCategoryChange(asset, e.target.value)}
-                        className="mt-1 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-navy"
-                      >
-                        <option value="ibadah">Ibadah</option>
-                        <option value="pemuda">Pemuda</option>
-                        <option value="sekolah_sabat">Sekolah Sabat</option>
-                        <option value="sosial">Sosial</option>
-                        <option value="fellowship">Fellowship</option>
-                        <option value="umum">Umum</option>
-                      </select>
-                    </label>
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 border-t border-slate-100 pt-3">
+                    <SelectDropdown
+                      label="Izin (consent)"
+                      value={asset.consent_status}
+                      disabled={isSubmitting}
+                      onChange={(val) => handleConsentChange(asset, val)}
+                      options={[
+                        { value: "pending", label: "Pending" },
+                        { value: "approved", label: "Approved" },
+                        { value: "rejected", label: "Rejected" },
+                        { value: "revoked", label: "Revoked" },
+                      ]}
+                    />
+                    <SelectDropdown
+                      label="Kategori"
+                      value={asset.category}
+                      disabled={isSubmitting}
+                      onChange={(val) => handleCategoryChange(asset, val)}
+                      options={[
+                        { value: "ibadah", label: "Ibadah" },
+                        { value: "pemuda", label: "Pemuda" },
+                        { value: "sekolah_sabat", label: "Sekolah Sabat" },
+                        { value: "sosial", label: "Sosial" },
+                        { value: "fellowship", label: "Fellowship" },
+                        { value: "umum", label: "Umum" },
+                      ]}
+                    />
                   </div>
                   <p className="mt-1.5 text-right font-mono text-[0.6875rem] text-slate-400">
                     {(Number(asset.bytes) / 1024).toFixed(0)} KB
