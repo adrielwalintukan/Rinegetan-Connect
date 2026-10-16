@@ -64,3 +64,111 @@ export function assertCanDeletePermanently(role) {
     throw error;
   }
 }
+
+/**
+ * Whitelist of allowed database columns per entity type to prevent invalid column errors.
+ */
+export const ALLOWED_FIELDS = {
+  announcements: [
+    "title",
+    "slug",
+    "summary",
+    "body",
+    "department_id",
+    "cover_asset_id",
+    "status",
+    "published_at",
+  ],
+  events: [
+    "title",
+    "slug",
+    "summary",
+    "body",
+    "starts_at",
+    "ends_at",
+    "all_day",
+    "timezone",
+    "venue",
+    "department_id",
+    "cover_asset_id",
+    "status",
+    "published_at",
+  ],
+  schedules: [
+    "name",
+    "slug",
+    "day_of_week",
+    "start_time",
+    "end_time",
+    "location",
+    "category",
+    "status",
+  ],
+  departments: [
+    "name",
+    "slug",
+    "description",
+    "status",
+  ],
+};
+
+/**
+ * Appends +08:00 offset to local YYYY-MM-DDTHH:mm if no offset/Z is present.
+ * @param {string} dt
+ * @returns {string}
+ */
+export function normalizeWitaDateTime(dt) {
+  const trimmed = dt.trim();
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$/.test(trimmed)) {
+    const withSecs = trimmed.length === 16 ? `${trimmed}:00` : trimmed;
+    return `${withSecs}+08:00`;
+  }
+  return trimmed;
+}
+
+/**
+ * Sanitizes and normalizes payload for saving an entity.
+ * Strips unknown fields (e.g. invalid category on events) and ensures valid timestamps.
+ * @param {string} entityType
+ * @param {Record<string, unknown>} rawData
+ * @returns {Record<string, unknown>}
+ */
+export function sanitizeSavePayload(entityType, rawData) {
+  const allowed = ALLOWED_FIELDS[entityType];
+  if (!allowed || !rawData || typeof rawData !== "object") return rawData;
+
+  const result = {};
+  for (const key of allowed) {
+    if (key in rawData && rawData[key] !== undefined) {
+      result[key] = rawData[key];
+    }
+  }
+
+  // Format events starts_at and ends_at for WITA (UTC+8) and handle summary fallback
+  if (entityType === "events") {
+    if (!result.summary && rawData.description) {
+      result.summary = String(rawData.description).slice(0, 500);
+    }
+    if (typeof result.starts_at === "string" && result.starts_at) {
+      result.starts_at = normalizeWitaDateTime(result.starts_at);
+    }
+    if (typeof result.ends_at === "string" && result.ends_at) {
+      result.ends_at = normalizeWitaDateTime(result.ends_at);
+    }
+    if (!result.venue) {
+      result.venue = "GMAHK Rinegetan";
+    }
+    if (!result.timezone) {
+      result.timezone = "Asia/Makassar";
+    }
+  }
+
+  if (entityType === "announcements") {
+    if (!result.summary && rawData.description) {
+      result.summary = String(rawData.description).slice(0, 500);
+    }
+  }
+
+  return result;
+}
+

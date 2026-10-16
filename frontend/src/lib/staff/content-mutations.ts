@@ -7,6 +7,7 @@ import {
   validateDeletePayload,
   assertCanMutateStatus,
   assertCanDeletePermanently,
+  sanitizeSavePayload,
 } from "./content-mutations.mjs";
 import { UserFacingError } from "@/lib/api/errors";
 
@@ -103,10 +104,12 @@ export async function executeSaveContent(
     throw new UserFacingError(`Entitas tidak valid: ${params.entityType}`);
   }
 
+  const payload = sanitizeSavePayload(params.entityType, params.data);
+
   if (params.id) {
     const { data, error } = await client
       .from(params.entityType)
-      .update(params.data)
+      .update(payload)
       .eq("id", params.id)
       .select()
       .single();
@@ -118,7 +121,7 @@ export async function executeSaveContent(
   } else {
     const { data, error } = await client
       .from(params.entityType)
-      .insert(params.data)
+      .insert(payload)
       .select()
       .single();
 
@@ -128,3 +131,4 @@ export async function executeSaveContent(
     return data;
   }
 }
+

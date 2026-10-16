@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { X } from "lucide-react";
 import { clientErrorMessage } from "@/lib/api/errors";
 import { MODAL_BACKDROP } from "@/components/ui/modal";
+import { SelectDropdown } from "@/components/ui/SelectDropdown";
+import { DateTimeInput, toDateTimeLocalValue } from "@/components/ui/DateTimeInput";
 
 interface ContentMutationDialogProps {
   isOpen: boolean;
@@ -19,6 +21,13 @@ function getInitialFormData(
   entityType?: "announcements" | "events" | "schedules" | "departments"
 ): Record<string, unknown> {
   if (initialData) {
+    if (entityType === "events") {
+      return {
+        ...initialData,
+        starts_at: toDateTimeLocalValue(initialData.starts_at as string),
+        ends_at: toDateTimeLocalValue(initialData.ends_at as string),
+      };
+    }
     return initialData;
   }
   if (entityType === "announcements") {
@@ -39,7 +48,6 @@ function getInitialFormData(
       starts_at: "",
       ends_at: "",
       venue: "Gereja GMAHK Rinegetan",
-      category: "Ibadah",
       status: "draft",
     };
   }
@@ -118,7 +126,7 @@ export const ContentMutationDialog: React.FC<ContentMutationDialogProps> = ({
 
   return (
     <div className={MODAL_BACKDROP}>
-      <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
+      <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto overflow-x-hidden rounded-2xl bg-white p-5 sm:p-6 pb-8 shadow-2xl">
         <button
           type="button"
           onClick={onClose}
@@ -183,78 +191,68 @@ export const ContentMutationDialog: React.FC<ContentMutationDialogProps> = ({
 
           {/* Schedule specific: day_of_week and times */}
           {entityType === "schedules" && (
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700">Hari</label>
-                <select
-                  name="day_of_week"
-                  value={Number(formData.day_of_week ?? 6)}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      day_of_week: Number(e.target.value),
-                    }))
-                  }
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs text-navy focus:border-navy focus:outline-none focus:ring-1 focus:ring-navy"
-                >
-                  <option value={6}>Sabat (Sabtu)</option>
-                  <option value={5}>Jumat</option>
-                  <option value={3}>Rabu</option>
-                  <option value={0}>Minggu</option>
-                  <option value={1}>Senin</option>
-                  <option value={2}>Selasa</option>
-                  <option value={4}>Kamis</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-700">Mulai (WITA)</label>
-                <input
-                  type="time"
-                  name="start_time"
-                  value={String(formData.start_time || "08:45")}
-                  onChange={handleChange}
-                  required
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs text-navy focus:border-navy focus:outline-none focus:ring-1 focus:ring-navy"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-700">Selesai (WITA)</label>
-                <input
-                  type="time"
-                  name="end_time"
-                  value={String(formData.end_time || "")}
-                  onChange={handleChange}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs text-navy focus:border-navy focus:outline-none focus:ring-1 focus:ring-navy"
-                />
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <SelectDropdown
+                label="Hari"
+                name="day_of_week"
+                value={Number(formData.day_of_week ?? 6)}
+                onChange={(val) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    day_of_week: Number(val),
+                  }))
+                }
+                options={[
+                  { value: 6, label: "Sabat (Sabtu)" },
+                  { value: 5, label: "Jumat" },
+                  { value: 3, label: "Rabu" },
+                  { value: 0, label: "Minggu" },
+                  { value: 1, label: "Senin" },
+                  { value: 2, label: "Selasa" },
+                  { value: 4, label: "Kamis" },
+                ]}
+              />
+              <DateTimeInput
+                type="time"
+                name="start_time"
+                label="Mulai"
+                badge="WITA"
+                value={String(formData.start_time || "08:45")}
+                onChange={handleChange}
+                required
+              />
+              <DateTimeInput
+                type="time"
+                name="end_time"
+                label="Selesai"
+                badge="WITA"
+                value={String(formData.end_time || "")}
+                onChange={handleChange}
+              />
             </div>
           )}
 
           {/* Event specific: dates */}
           {entityType === "events" && (
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700">Waktu Mulai (WITA)</label>
-                <input
-                  type="datetime-local"
-                  name="starts_at"
-                  value={String(formData.starts_at || "")}
-                  onChange={handleChange}
-                  required
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs text-navy focus:border-navy focus:outline-none focus:ring-1 focus:ring-navy"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-700">Waktu Selesai (WITA)</label>
-                <input
-                  type="datetime-local"
-                  name="ends_at"
-                  value={String(formData.ends_at || "")}
-                  onChange={handleChange}
-                  required
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs text-navy focus:border-navy focus:outline-none focus:ring-1 focus:ring-navy"
-                />
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <DateTimeInput
+                type="datetime-local"
+                name="starts_at"
+                label="Waktu Mulai"
+                badge="WITA"
+                value={String(formData.starts_at || "")}
+                onChange={handleChange}
+                required
+              />
+              <DateTimeInput
+                type="datetime-local"
+                name="ends_at"
+                label="Waktu Selesai"
+                badge="WITA"
+                value={String(formData.ends_at || "")}
+                onChange={handleChange}
+                required
+              />
             </div>
           )}
 
@@ -290,19 +288,17 @@ export const ContentMutationDialog: React.FC<ContentMutationDialogProps> = ({
           )}
 
           {/* Status Selection */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700">Status Awal</label>
-            <select
-              name="status"
-              value={String(formData.status || "draft")}
-              onChange={handleChange}
-              className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs text-navy focus:border-navy focus:outline-none focus:ring-1 focus:ring-navy"
-            >
-              <option value="draft">Draft (Hanya Staf)</option>
-              <option value="published">Terbit (Publik)</option>
-              <option value="archived">Arsip</option>
-            </select>
-          </div>
+          <SelectDropdown
+            label="Status Awal"
+            name="status"
+            value={String(formData.status || "draft")}
+            onChange={(val) => setFormData((prev) => ({ ...prev, status: val }))}
+            options={[
+              { value: "draft", label: "Draft (Hanya Staf)", description: "Belum tampak oleh jemaat/publik" },
+              { value: "published", label: "Terbit (Publik)", description: "Dapat dilihat oleh semua pengunjung" },
+              { value: "archived", label: "Arsip", description: "Disembunyikan dari rute publik aktif" },
+            ]}
+          />
 
           <div className="flex items-center justify-end gap-2 pt-3">
             <button
