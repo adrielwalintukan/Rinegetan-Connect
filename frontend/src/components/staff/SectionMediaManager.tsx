@@ -18,7 +18,7 @@ import { getMediaPublicUrl } from "@/lib/media/url";
 import type { MediaAsset, MediaAlbum } from "@/types/media";
 import type { SiteSectionMediaMap, SectionMediaKey } from "@/lib/public/queries";
 import { clientErrorMessage } from "@/lib/api/errors";
-import { MODAL_BACKDROP } from "@/components/ui/modal";
+import { Modal, MODAL_BACKDROP } from "@/components/ui/modal";
 
 interface SectionConfig {
   key: SectionMediaKey;
@@ -284,13 +284,13 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
       </div>
 
       {/* Gallery Picker Modal */}
-      {pickerSectionKey && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Pilih foto dari galeri media"
-          className={MODAL_BACKDROP}
-        >
+      <Modal
+        isOpen={Boolean(pickerSectionKey)}
+        onClose={() => setPickerSectionKey(null)}
+        className={MODAL_BACKDROP}
+        label="Pilih foto dari galeri media"
+      >
+        {pickerSectionKey && (
           <div className="card-surface rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-navy/20 overflow-hidden">
             <div className="p-5 border-b border-navy/10 flex items-center justify-between">
               <div>
@@ -352,8 +352,8 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       {/* Direct Upload Dialog */}
       <MediaUploadDialog

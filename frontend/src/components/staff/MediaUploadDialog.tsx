@@ -5,7 +5,7 @@ import React, { useState, useRef } from "react";
 import { X, UploadCloud, AlertTriangle, ShieldCheck, CheckCircle2 } from "lucide-react";
 import type { MediaAlbum, MediaAsset, MediaCategory, SubjectAgeGroup, ConsentStatus } from "@/types/media";
 import { clientErrorMessage } from "@/lib/api/errors";
-import { MODAL_BACKDROP } from "@/components/ui/modal";
+import { Modal, MODAL_BACKDROP } from "@/components/ui/modal";
 import { SelectDropdown } from "@/components/ui/SelectDropdown";
 
 export interface MediaUploadDialogProps {
@@ -130,10 +130,10 @@ export const MediaUploadDialog: React.FC<MediaUploadDialogProps> = ({
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="upload-dialog-title"
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      labelledBy="upload-dialog-title"
       className={`${MODAL_BACKDROP} overflow-y-auto`}
     >
       <div className="card-surface relative w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden rounded-2xl bg-white shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
@@ -354,6 +354,6 @@ export const MediaUploadDialog: React.FC<MediaUploadDialogProps> = ({
           </div>
         </form>
       </div>
-    </div>
+    </Modal>
   );
 };

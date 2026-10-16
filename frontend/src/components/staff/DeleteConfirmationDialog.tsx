@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { AlertTriangle, X } from "lucide-react";
 import { clientErrorMessage } from "@/lib/api/errors";
-import { MODAL_BACKDROP } from "@/components/ui/modal";
+import { Modal, MODAL_BACKDROP } from "@/components/ui/modal";
 
 interface DeleteConfirmationDialogProps {
   isOpen: boolean;
@@ -46,7 +46,7 @@ export const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> =
   };
 
   return (
-    <div className={MODAL_BACKDROP}>
+    <Modal isOpen={isOpen} onClose={onClose} className={MODAL_BACKDROP}>
       <div className="relative w-full max-w-md rounded-2xl border border-red-100 bg-white p-6 shadow-2xl">
         <button
           type="button"
@@ -117,6 +117,6 @@ export const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> =
           </div>
         </form>
       </div>
-    </div>
+    </Modal>
   );
 };

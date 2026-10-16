@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
 import { clientErrorMessage } from "@/lib/api/errors";
-import { MODAL_BACKDROP } from "@/components/ui/modal";
+import { Modal, MODAL_BACKDROP } from "@/components/ui/modal";
 import { SelectDropdown } from "@/components/ui/SelectDropdown";
 import { DateTimeInput, toDateTimeLocalValue } from "@/components/ui/DateTimeInput";
 
@@ -125,7 +125,7 @@ export const ContentMutationDialog: React.FC<ContentMutationDialogProps> = ({
   const isEditing = Boolean(initialData?.id);
 
   return (
-    <div className={MODAL_BACKDROP}>
+    <Modal isOpen={isOpen} onClose={onClose} className={MODAL_BACKDROP}>
       <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto overflow-x-hidden rounded-2xl bg-white p-5 sm:p-6 pb-8 shadow-2xl">
         <button
           type="button"
@@ -319,6 +319,6 @@ export const ContentMutationDialog: React.FC<ContentMutationDialogProps> = ({
           </div>
         </form>
       </div>
-    </div>
+    </Modal>
   );
 };

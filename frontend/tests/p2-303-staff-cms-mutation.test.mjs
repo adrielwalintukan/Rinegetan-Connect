@@ -183,4 +183,28 @@ test("Reusable mobile-responsive components exist", () => {
   const dateTimeContent = readText(dateTimeInputPath);
   assert.match(dateTimeContent, /export function DateTimeInput/);
   assert.match(dateTimeContent, /export function toDateTimeLocalValue/);
+
+  const modalDialogPath = resolve(
+    frontendRoot,
+    "src",
+    "components",
+    "ui",
+    "ModalDialog.tsx"
+  );
+  assert.ok(existsSync(modalDialogPath), "ModalDialog.tsx harus ada");
+  const modalContent = readText(modalDialogPath);
+  assert.match(modalContent, /export function Modal/);
+  assert.match(modalContent, /createPortal/);
+
+  const modalBackdropPath = resolve(
+    frontendRoot,
+    "src",
+    "components",
+    "ui",
+    "modal.ts"
+  );
+  assert.ok(existsSync(modalBackdropPath), "modal.ts harus ada");
+  const backdropContent = readText(modalBackdropPath);
+  assert.match(backdropContent, /backdrop-blur-md/, "backdrop must use full blur");
+  assert.match(backdropContent, /z-\[100\]/, "backdrop must sit on top of sticky header");
 });
