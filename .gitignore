@@ -106,3 +106,8 @@ test_reports/
 test_result.md
 design_guidelines.json
 .gitconfig
+
+# AI agent local context and tooling cache
+.ai-context/
+.claude/
+
