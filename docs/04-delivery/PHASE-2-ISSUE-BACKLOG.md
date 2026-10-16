@@ -182,6 +182,7 @@
 
 - **Label:** feature, ui, accessibility, priority:high
 - **Sprint:** 5
+- **Status:** selesai (PR #25)
 - **Dependencies:** P2-502
 - **Acceptance criteria:** semua permukaan publik dan portal staf (Admin/Editor, seluruh fitur) nyaman di 320–1440px tanpa scroll horizontal; simbol Advent resmi dipakai di portal staf dan login; navbar portal satu baris dan konsisten antar tab; tabel menjadi kartu dan dialog menjadi bottom sheet di HP; tidak ada konten/fakta lokal karangan (kegiatan, khotbah, nama orang, kontak) — data lokal hanya dari CMS atau yang terverifikasi gereja; formulir yang belum tersimpan tidak boleh mengaku terkirim.
 
@@ -189,6 +190,7 @@
 
 - **Label:** chore, docs, priority:high
 - **Sprint:** 5
+- **Status:** selesai — catatan hasil: `docs/04-delivery/records/P2-503-2026-10-16.md`
 - **Dependencies:** P2-502
 - **Acceptance criteria:** semua exit criteria roadmap tervalidasi; PR branch implementasi Phase 2 ke development berisi ringkasan/test/risiko; CI hijau sebelum merge. PR dokumentasi awal tidak menggantikan PR kode ini.
 
