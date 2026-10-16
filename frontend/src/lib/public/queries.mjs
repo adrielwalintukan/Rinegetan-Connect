@@ -33,6 +33,46 @@ export async function getPublishedAnnouncements() {
   }
 }
 
+/**
+ * Formats event timestamps into readable WITA date and time string.
+ * @param {string | null | undefined} startsAt
+ * @param {string | null | undefined} endsAt
+ * @returns {{ date: string; time: string }}
+ */
+export function formatEventWita(startsAt, endsAt) {
+  if (!startsAt) return { date: "", time: "WITA" };
+  try {
+    const start = new Date(startsAt);
+    if (isNaN(start.getTime())) return { date: "", time: "WITA" };
+    const df = new Intl.DateTimeFormat("id-ID", {
+      timeZone: "Asia/Makassar",
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+    const tf = new Intl.DateTimeFormat("id-ID", {
+      timeZone: "Asia/Makassar",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    const dateStr = df.format(start);
+    const startTime = tf.format(start).replace(":", ".");
+    if (!endsAt) {
+      return { date: dateStr, time: `${startTime} WITA` };
+    }
+    const end = new Date(endsAt);
+    if (isNaN(end.getTime())) {
+      return { date: dateStr, time: `${startTime} WITA` };
+    }
+    const endTime = tf.format(end).replace(":", ".");
+    return { date: dateStr, time: `${startTime} – ${endTime} WITA` };
+  } catch {
+    return { date: "", time: "WITA" };
+  }
+}
+
 export async function getPublishedEvents() {
   const client = getPublicClient();
   if (!client) return [];
@@ -46,7 +86,42 @@ export async function getPublishedEvents() {
       console.error("Error fetching published events:", error);
       return [];
     }
-    return data || [];
+
+    const rawEvents = data || [];
+    const coverAssetIds = rawEvents
+      .map((e) => e.cover_asset_id)
+      .filter(Boolean);
+
+    let assetsMap = {};
+    if (coverAssetIds.length > 0) {
+      try {
+        const { data: assets } = await client
+          .from("media_assets")
+          .select("id, storage_path, alt_text")
+          .in("id", coverAssetIds);
+        for (const a of assets || []) {
+          assetsMap[a.id] = a;
+        }
+      } catch (e) {
+        console.warn("Failed to fetch cover assets for events:", e);
+      }
+    }
+
+    return rawEvents.map((event) => {
+      const cover = event.cover_asset_id ? assetsMap[event.cover_asset_id] : null;
+      const coverUrl = cover?.storage_path ? getMediaPublicUrl(cover.storage_path) : null;
+      const dt = formatEventWita(event.starts_at, event.ends_at);
+      return {
+        ...event,
+        image_url: coverUrl || event.image_url || event.image || null,
+        start_date: dt.date,
+        date: dt.date,
+        start_time: dt.time,
+        time: dt.time,
+        location: event.venue || event.location || "Gereja GMAHK Rinegetan",
+        venue: event.venue || event.location || "Gereja GMAHK Rinegetan",
+      };
+    });
   } catch (err) {
     console.error("Failed to query events:", err);
     return [];
@@ -230,6 +305,7 @@ export async function getSiteSectionMedia() {
         section_key: item.section_key,
         asset_id: item.asset_id,
         image_url: getMediaPublicUrl(item.asset.storage_path),
+        url: getMediaPublicUrl(item.asset.storage_path),
         alt_text: item.custom_alt_text || item.asset.alt_text,
         caption: item.custom_caption || item.asset.caption,
       };
@@ -265,12 +341,13 @@ export function triggerPublicRevalidation(entityType, hooks = null) {
         hooks.revalidatePath("/");
         hooks.revalidatePath("/sekolah-sabat");
         hooks.revalidatePath("/tentang-kami");
+        hooks.revalidatePath("/staff");
       }
       return;
     }
 
     // In Next.js runtime
-    import("next/cache").then(({ revalidateTag, revalidatePath }) => {
+    return import("next/cache").then(({ revalidateTag, revalidatePath }) => {
       try {
         revalidateTag("public-content");
         revalidateTag(`public-${entityType}`);
@@ -293,6 +370,7 @@ export function triggerPublicRevalidation(entityType, hooks = null) {
           revalidatePath("/");
           revalidatePath("/sekolah-sabat");
           revalidatePath("/tentang-kami");
+          revalidatePath("/staff");
         }
       } catch (innerErr) {
         console.warn("Revalidation warning:", innerErr);

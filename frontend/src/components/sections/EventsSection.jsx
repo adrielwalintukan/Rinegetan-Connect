@@ -5,50 +5,78 @@ import { ChapterHeading } from "./ChapterHeading";
 import { Reveal } from "@/components/motion/Reveal";
 import { EmptyState } from "@/components/ui/EmptyState";
 
-export const EventCard = ({ event, featured = false }) => (
-    <article
-        data-testid={`event-card-${event.id}`}
-        className="card-surface group flex h-full flex-col overflow-hidden"
-    >
-        <div className="img-frame relative aspect-[16/9] rounded-b-none border-0">
-            <img
-                src={event.image_url || event.image || "https://images.unsplash.com/photo-1662151900393-97f6bc1567ef?crop=entropy&cs=srgb&fm=jpg&w=1200&q=80"}
-                alt={`Foto kegiatan: ${event.title}`}
-                loading="lazy"
-                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
-            />
-            <span className="chip absolute left-4 top-4 !bg-white/95 shadow-sm">
-                {event.category}
-            </span>
-        </div>
-        <div className="flex flex-1 flex-col p-6">
-            <p className="flex items-center gap-2 font-mono text-xs font-medium uppercase tracking-[0.14em] text-sabbath-700">
-                <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
-                {event.start_date || event.date}
-            </p>
-            <h3
-                className={`mt-3 font-semibold tracking-tight text-navy ${
-                    featured ? "text-xl sm:text-2xl" : "text-lg"
-                }`}
-            >
-                {event.title}
-            </h3>
-            <p className="mt-2.5 flex-1 text-sm leading-relaxed text-slate-600 line-clamp-3">
-                {event.description || event.body}
-            </p>
-            <div className="mt-5 flex flex-wrap gap-x-5 gap-y-1.5 border-t border-navy/[0.07] pt-4 text-xs text-slate-500">
-                <span className="flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5 text-sabbath-600" aria-hidden="true" />
-                    {event.start_time || event.time || "WITA"}
-                </span>
-                <span className="flex items-center gap-1.5">
-                    <MapPin className="h-3.5 w-3.5 text-sabbath-600" aria-hidden="true" />
-                    {event.location}
-                </span>
+export const EventCard = ({ event, featured = false }) => {
+    const hasImage = Boolean(event.image_url || event.image);
+    const dateText = event.start_date || event.date;
+    const timeText = event.start_time || event.time;
+    const locationText = event.location || event.venue;
+    const descText = event.summary || event.description || event.body;
+
+    return (
+        <article
+            data-testid={`event-card-${event.id}`}
+            className="card-surface group flex h-full flex-col overflow-hidden"
+        >
+            {hasImage ? (
+                <div className="img-frame relative aspect-[16/9] rounded-b-none border-0">
+                    <img
+                        src={event.image_url || event.image}
+                        alt={`Foto kegiatan: ${event.title}`}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                    />
+                    {event.category && (
+                        <span className="chip absolute left-4 top-4 !bg-white/95 shadow-sm">
+                            {event.category}
+                        </span>
+                    )}
+                </div>
+            ) : event.category ? (
+                <div className="px-6 pt-5">
+                    <span className="chip !bg-slate-100 text-slate-700">
+                        {event.category}
+                    </span>
+                </div>
+            ) : null}
+            <div className="flex flex-1 flex-col p-6">
+                {dateText && (
+                    <p className="flex items-center gap-2 font-mono text-xs font-medium uppercase tracking-[0.14em] text-sabbath-700">
+                        <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
+                        {dateText}
+                    </p>
+                )}
+                <h3
+                    className={`font-semibold tracking-tight text-navy ${dateText ? "mt-3" : ""} ${
+                        featured ? "text-xl sm:text-2xl" : "text-lg"
+                    }`}
+                >
+                    {event.title}
+                </h3>
+                {descText && (
+                    <p className="mt-2.5 flex-1 text-sm leading-relaxed text-slate-600 line-clamp-3">
+                        {descText}
+                    </p>
+                )}
+                {(timeText || locationText) && (
+                    <div className="mt-5 flex flex-wrap gap-x-5 gap-y-1.5 border-t border-navy/[0.07] pt-4 text-xs text-slate-500">
+                        {timeText && (
+                            <span className="flex items-center gap-1.5">
+                                <Clock className="h-3.5 w-3.5 text-sabbath-600" aria-hidden="true" />
+                                {timeText}
+                            </span>
+                        )}
+                        {locationText && (
+                            <span className="flex items-center gap-1.5">
+                                <MapPin className="h-3.5 w-3.5 text-sabbath-600" aria-hidden="true" />
+                                {locationText}
+                            </span>
+                        )}
+                    </div>
+                )}
             </div>
-        </div>
-    </article>
-);
+        </article>
+    );
+};
 
 export const EventsSection = ({ events = null }) => {
     const displayEvents = events ?? [];

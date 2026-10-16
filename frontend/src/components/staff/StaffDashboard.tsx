@@ -77,6 +77,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   const [schedules, setSchedules] = useState<ContentItem[]>(initialSchedules);
   const [departments, setDepartments] = useState<ContentItem[]>(initialDepartments);
   const [auditLogs, setAuditLogs] = useState<AuditEntry[]>(initialAuditLogs);
+  const [sectionMedia, setSectionMedia] = useState<SiteSectionMediaMap>(initialSectionMedia);
 
   // Dialog states
   const [isMutationOpen, setIsMutationOpen] = useState(false);
@@ -427,7 +428,9 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
             />
           ) : activeTab === "banners" ? (
             <SectionMediaManager
-              initialSectionMedia={initialSectionMedia}
+              initialSectionMedia={sectionMedia}
+              sectionMedia={sectionMedia}
+              onSectionMediaChange={setSectionMedia}
               mediaAssets={initialMediaAssets}
               mediaAlbums={initialMediaAlbums}
             />
@@ -473,6 +476,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
           onSave={handleSave}
           entityType={activeTab}
           initialData={editingItem}
+          mediaAssets={initialMediaAssets}
           isSaving={isLoading}
         />
       )}
