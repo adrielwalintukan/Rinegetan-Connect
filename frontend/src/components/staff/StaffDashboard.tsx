@@ -78,7 +78,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
       "media",
       "banners",
       "audit",
-      "staff",
+      ...(role === "admin" ? (["staff"] as const) : []),
     ];
     if (initialTab && validTabs.includes(initialTab)) return initialTab;
     if (typeof window !== "undefined") {
@@ -93,6 +93,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   });
 
   const handleTabChange = (tabId: TabType) => {
+    if (tabId === "staff" && role !== "admin") return;
     setActiveTab(tabId);
     setCurrentFilter("all");
     setSearchQuery("");
@@ -108,9 +109,9 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const urlTab = new URLSearchParams(window.location.search).get("tab") as TabType;
-      if (!urlTab && activeTab) {
-        const url = new URL(window.location.href);
+      const url = new URL(window.location.href);
+      const urlTab = url.searchParams.get("tab") as TabType;
+      if (urlTab !== activeTab) {
         url.searchParams.set("tab", activeTab);
         window.history.replaceState({}, "", url.toString());
       }
@@ -461,11 +462,13 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
           {activeTab === "audit" ? (
             <AuditLogViewer logs={auditLogs} />
           ) : activeTab === "staff" ? (
-            <StaffManager
-              initialStaff={initialStaff}
-              currentUserId={currentUserId}
-              onNotification={showNotification}
-            />
+            role === "admin" ? (
+              <StaffManager
+                initialStaff={initialStaff}
+                currentUserId={currentUserId}
+                onNotification={showNotification}
+              />
+            ) : null
           ) : activeTab === "media" ? (
             <MediaManager
               initialAssets={initialMediaAssets}

@@ -216,7 +216,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
           id: takedownAsset.id,
           data: {
             hidden_at: new Date().toISOString(),
-            hidden_reason: "Ditarik dari publik oleh staf",
+            hidden_reason: `Pencabutan tayang (takedown) aset "${takedownAsset.alt_text || takedownAsset.storage_path}" dari publik oleh staf`,
             status: "draft", // automatically unpublish upon takedown
           },
         }),

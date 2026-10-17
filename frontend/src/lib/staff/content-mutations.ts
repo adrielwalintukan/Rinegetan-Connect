@@ -82,6 +82,12 @@ export async function executePermanentDelete(
     throw new UserFacingError(validation.message || "Alasan penghapusan tidak valid");
   }
 
+  try {
+    await client.rpc("set_audit_reason", { p_reason: validation.reason });
+  } catch {
+    // optional audit reason setting
+  }
+
   const { error } = await client
     .from(params.entityType)
     .delete()

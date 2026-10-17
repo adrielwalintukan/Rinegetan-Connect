@@ -15,9 +15,10 @@ export default async function StaffHomePage({
   searchParams?: Promise<{ tab?: string }>;
 }) {
   const resolvedParams = searchParams ? await searchParams : {};
-  const initialTab = typeof resolvedParams?.tab === "string" ? resolvedParams.tab : undefined;
   const client = await createServerSupabaseClient();
   const staff = await requireActiveStaff(client);
+  const rawTab = typeof resolvedParams?.tab === "string" ? resolvedParams.tab : undefined;
+  const initialTab = rawTab === "staff" && staff.role !== "admin" ? "announcements" : rawTab;
 
   // Fetch initial content securely server-side
   const [
