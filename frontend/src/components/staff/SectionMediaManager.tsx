@@ -104,6 +104,7 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
       setSavingKey(sectionKey);
       setPickerSectionKey(null);
 
+      const currentPos = currentSectionMedia[sectionKey]?.object_position || "center";
       const res = await fetch("/api/staff/settings/section-media", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -112,6 +113,7 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
           asset_id: asset.id,
           custom_alt_text: asset.alt_text,
           custom_caption: asset.caption,
+          object_position: currentPos,
         }),
       });
 
@@ -128,6 +130,7 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
         url: mediaUrl,
         alt_text: asset.alt_text,
         caption: asset.caption,
+        object_position: currentPos,
       };
 
       if (onSectionMediaChange) {
@@ -147,6 +150,54 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
     } catch (err: unknown) {
       const msg = clientErrorMessage(err, "Terjadi kesalahan.");
       toast.error(msg);
+    } finally {
+      setSavingKey(null);
+    }
+  };
+
+  const handleUpdatePosition = async (sectionKey: SectionMediaKey, position: string) => {
+    const current = currentSectionMedia[sectionKey];
+    if (!current || !current.asset_id) return;
+    try {
+      setSavingKey(sectionKey);
+      const res = await fetch("/api/staff/settings/section-media", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          section_key: sectionKey,
+          asset_id: current.asset_id,
+          custom_alt_text: current.alt_text,
+          custom_caption: current.caption,
+          object_position: position,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.message || "Gagal memperbarui posisi gambar.");
+      }
+
+      const updatedItem = {
+        ...current,
+        object_position: position,
+      };
+
+      if (onSectionMediaChange) {
+        onSectionMediaChange((prev) => ({
+          ...prev,
+          [sectionKey]: updatedItem,
+        }));
+      } else {
+        setInternalSectionMedia((prev) => ({
+          ...prev,
+          [sectionKey]: updatedItem,
+        }));
+      }
+
+      router.refresh();
+      toast.success("Posisi tampilan gambar berhasil diperbarui.");
+    } catch (err: unknown) {
+      toast.error(clientErrorMessage(err, "Gagal mengubah posisi gambar."));
     } finally {
       setSavingKey(null);
     }
@@ -219,7 +270,17 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
           const activeSrc = isCustom ? current.image_url : config.defaultSrc;
           const activeAlt = isCustom ? current.alt_text : config.defaultAlt;
           const activeCaption = isCustom ? current.caption : config.defaultCaption;
+          const activePosition = current?.object_position || "center";
           const isBusy = savingKey === config.key;
+
+          const positionClass =
+            activePosition === "contain"
+              ? "object-contain"
+              : activePosition === "bottom"
+              ? "object-cover object-bottom"
+              : activePosition === "top"
+              ? "object-cover object-top"
+              : "object-cover object-center";
 
           return (
             <div
@@ -233,7 +294,7 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
                   <img
                     src={activeSrc}
                     alt={activeAlt}
-                    className="w-full h-full object-cover"
+                    className={`w-full h-full ${positionClass}`}
                   />
                   <div className="absolute top-3 right-3 flex items-center gap-2">
                     {isCustom ? (
@@ -265,6 +326,38 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
                       <p>
                         <strong>Caption:</strong> {activeCaption}
                       </p>
+                    )}
+                    {isCustom && (
+                      <div className="pt-2 border-t border-navy/5 flex flex-col gap-1.5">
+                        <span className="text-[0.6875rem] font-semibold text-slate-700">
+                          Penyesuaian Tampilan (Fokus Foto):
+                        </span>
+                        <div className="grid grid-cols-4 gap-1">
+                          {[
+                            { id: "top", label: "Atas" },
+                            { id: "center", label: "Tengah" },
+                            { id: "bottom", label: "Bawah" },
+                            { id: "contain", label: "Utuh (Fit)" },
+                          ].map((pos) => {
+                            const isSelected = activePosition === pos.id;
+                            return (
+                              <button
+                                key={pos.id}
+                                type="button"
+                                onClick={() => handleUpdatePosition(config.key, pos.id)}
+                                disabled={isBusy}
+                                className={`py-1 px-1 text-[0.6875rem] font-medium rounded-lg border transition text-center ${
+                                  isSelected
+                                    ? "bg-navy text-white border-navy shadow-sm"
+                                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                                }`}
+                              >
+                                {pos.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
