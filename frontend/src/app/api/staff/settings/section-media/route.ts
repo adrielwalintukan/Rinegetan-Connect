@@ -2,14 +2,14 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireActiveStaff, StaffAccessError } from "@/lib/staff/server";
 import { triggerPublicRevalidation } from "@/lib/public/queries";
 import { publicErrorMessage } from "@/lib/api/errors";
-import { recordConsent } from "@/lib/media/consent";
-
 const VALID_SECTIONS = [
   "home_hero",
   "home_welcome",
   "sekolah_sabat",
   "tentang_kami",
 ];
+
+const VALID_POSITIONS = ["top", "center", "bottom", "contain"];
 
 export async function POST(request: Request) {
   try {
@@ -25,11 +25,21 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { section_key, asset_id, custom_alt_text, custom_caption, reset } = body;
+    const { section_key, asset_id, custom_alt_text, custom_caption, object_position, reset } = body;
 
     if (!section_key || !VALID_SECTIONS.includes(section_key)) {
       return Response.json(
         { error: "invalid_section", message: "Seksi halaman tidak valid." },
+        { status: 400 }
+      );
+    }
+
+    if (object_position && !VALID_POSITIONS.includes(object_position)) {
+      return Response.json(
+        {
+          error: "invalid_position",
+          message: "Posisi gambar tidak valid. Pilihan yang diizinkan: top, center, bottom, contain.",
+        },
         { status: 400 }
       );
     }
@@ -87,9 +97,15 @@ export async function POST(request: Request) {
       );
     }
 
-    // Pastikan foto yang dijadikan banner publik memiliki persetujuan izin (consent) dan berstatus terbit (published)
+    // Pastikan foto yang dijadikan banner publik memiliki persetujuan izin (consent approved)
     if (asset.consent_status !== "approved") {
-      await recordConsent(client, asset, "approved", staff.user.id);
+      return Response.json(
+        {
+          error: "consent_not_approved",
+          message: "Foto belum memiliki izin persetujuan (consent approved) dan tidak dapat digunakan sebagai banner publik.",
+        },
+        { status: 400 }
+      );
     }
 
     if (asset.status !== "published") {
@@ -107,6 +123,7 @@ export async function POST(request: Request) {
         asset_id,
         custom_alt_text: custom_alt_text?.trim() || null,
         custom_caption: custom_caption?.trim() || null,
+        object_position: object_position || "center",
         updated_at: new Date().toISOString(),
         updated_by: staff.user.id,
       })

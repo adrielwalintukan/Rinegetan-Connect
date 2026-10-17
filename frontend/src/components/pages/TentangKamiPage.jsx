@@ -132,7 +132,15 @@ export default function TentangKamiPage({ sectionMedia = null }) {
                                 src={sectionMedia?.tentang_kami?.image_url || sectionMedia?.tentang_kami?.url || IMAGES.community.src}
                                 alt={sectionMedia?.tentang_kami?.alt_text || IMAGES.community.alt}
                                 loading="lazy"
-                                className="h-full w-full object-cover"
+                                className={`h-full w-full ${
+                                    sectionMedia?.tentang_kami?.object_position === "contain"
+                                        ? "object-contain"
+                                        : sectionMedia?.tentang_kami?.object_position === "bottom"
+                                        ? "object-cover object-bottom"
+                                        : sectionMedia?.tentang_kami?.object_position === "top"
+                                        ? "object-cover object-top"
+                                        : "object-cover object-center"
+                                }`}
                             />
                         </figure>
                     </Reveal>

@@ -1,6 +1,6 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireActiveStaff } from "@/lib/staff/server";
-import { StaffDashboard } from "@/components/staff/StaffDashboard";
+import { StaffDashboard, type TabType } from "@/components/staff/StaffDashboard";
 import { getSiteSectionMedia } from "@/lib/public/queries";
 import type { ContentItem } from "@/components/staff/ContentTable";
 import type { AuditEntry } from "@/components/staff/AuditLogViewer";
@@ -9,9 +9,16 @@ import type { StaffMember } from "@/components/staff/StaffManager";
 
 export const dynamic = "force-dynamic";
 
-export default async function StaffHomePage() {
+export default async function StaffHomePage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ tab?: string }>;
+}) {
+  const resolvedParams = searchParams ? await searchParams : {};
   const client = await createServerSupabaseClient();
   const staff = await requireActiveStaff(client);
+  const rawTab = typeof resolvedParams?.tab === "string" ? resolvedParams.tab : undefined;
+  const initialTab = rawTab === "staff" && staff.role !== "admin" ? "announcements" : rawTab;
 
   // Fetch initial content securely server-side
   const [
@@ -88,6 +95,7 @@ export default async function StaffHomePage() {
       initialSectionMedia={sectionMedia}
       currentUserId={staff.user.id}
       initialStaff={initialStaff}
+      initialTab={initialTab as TabType | undefined}
     />
   );
 }

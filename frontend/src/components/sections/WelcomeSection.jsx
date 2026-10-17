@@ -25,6 +25,7 @@ const EXPECTATIONS = [
 export const WelcomeSection = ({ sectionMedia = null }) => {
     const welcomeSrc = sectionMedia?.home_welcome?.image_url || sectionMedia?.home_welcome?.url || IMAGES.fellowship.src;
     const welcomeAlt = sectionMedia?.home_welcome?.alt_text || IMAGES.fellowship.alt;
+    const welcomePosition = sectionMedia?.home_welcome?.object_position || "center";
 
     return (
         <section data-testid="welcome-section" aria-labelledby="welcome-heading" className="py-20 lg:py-28">
@@ -66,7 +67,15 @@ export const WelcomeSection = ({ sectionMedia = null }) => {
                             src={welcomeSrc}
                             alt={welcomeAlt}
                             loading="lazy"
-                            className="h-full w-full object-cover transition-transform duration-700 hover:scale-[1.03]"
+                            className={`h-full w-full ${
+                                welcomePosition === "contain"
+                                    ? "object-contain"
+                                    : welcomePosition === "bottom"
+                                    ? "object-cover object-bottom"
+                                    : welcomePosition === "top"
+                                    ? "object-cover object-top"
+                                    : "object-cover object-center"
+                            } transition-transform duration-700 hover:scale-[1.03]`}
                         />
                     </figure>
                 </Reveal>

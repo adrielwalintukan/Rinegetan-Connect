@@ -120,9 +120,11 @@ test("admins can invite and deactivate editors from the portal", () => {
 
   const dashboard = read("src/components/staff/StaffDashboard.tsx");
   assert.match(dashboard, /role === "admin" \? \[\{ id: "staff"/, "staff tab is admin-only");
+  assert.match(dashboard, /tabId === "staff" && role !== "admin"/, "staff tab cannot be switched to by editors");
 
   const page = read("src/app/staff/(protected)/page.tsx");
   assert.match(page, /staff\.role === "admin"/, "staff list is only queried for admins");
+  assert.match(page, /rawTab === "staff" && staff\.role !== "admin"/, "staff tab deep link fallback to announcements for editor");
 });
 
 test("map points at the real church pin, not the kelurahan boundary or a made-up street", async () => {

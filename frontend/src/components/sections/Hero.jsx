@@ -19,6 +19,7 @@ export const Hero = ({ sectionMedia = null }) => {
     const heroSrc = sectionMedia?.home_hero?.image_url || sectionMedia?.home_hero?.url || IMAGES.hero.src;
     const heroAlt = sectionMedia?.home_hero?.alt_text || IMAGES.hero.alt;
     const heroCaption = sectionMedia?.home_hero?.caption || IMAGES.hero.caption;
+    const heroPosition = sectionMedia?.home_hero?.object_position || "center";
 
     return (
         <section data-testid="hero" className="relative overflow-hidden">
@@ -111,8 +112,16 @@ export const Hero = ({ sectionMedia = null }) => {
                         <motion.img
                             src={heroSrc}
                             alt={heroAlt}
-                            style={{ y: imgY }}
-                            className="h-[122%] w-full -translate-y-[8%] object-cover will-change-transform"
+                            style={heroPosition === "contain" ? undefined : { y: imgY }}
+                            className={
+                                heroPosition === "contain"
+                                    ? "h-full w-full object-contain"
+                                    : heroPosition === "bottom"
+                                    ? "h-full w-full object-cover object-bottom will-change-transform"
+                                    : heroPosition === "top"
+                                    ? "h-full w-full object-cover object-top will-change-transform"
+                                    : "h-[110%] w-full object-cover object-center will-change-transform"
+                            }
                             fetchPriority="high"
                         />
                         <figcaption className="absolute bottom-4 left-4 flex items-center gap-2 rounded-full bg-navy/80 px-4 py-2 text-xs font-medium text-white backdrop-blur-md">
