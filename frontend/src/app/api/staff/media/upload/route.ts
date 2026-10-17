@@ -199,6 +199,20 @@ export async function POST(request: Request) {
       }
     }
 
+    // Jika upload menandai auto_publish dan consent disetujui, terbitkan foto langsung
+    const autoPublish = formData.get("auto_publish") === "true";
+    if (autoPublish && consentStatus === "approved") {
+      const { data: publishedAsset, error: pubError } = await client
+        .from("media_assets")
+        .update({ status: "published" })
+        .eq("id", assetData.id)
+        .select()
+        .single();
+      if (!pubError && publishedAsset) {
+        savedAsset = publishedAsset;
+      }
+    }
+
     // 8. Relasikan dengan album jika album_id disertakan
     if (albumId && typeof albumId === "string") {
       await client.from("album_assets").insert({

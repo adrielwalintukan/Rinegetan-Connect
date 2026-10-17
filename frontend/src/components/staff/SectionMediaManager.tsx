@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Image as ImageIcon,
   UploadCloud,
@@ -92,6 +92,7 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
 
   // Upload dialog state
   const [uploadSectionKey, setUploadSectionKey] = useState<SectionMediaKey | null>(null);
+  const activeUploadingSectionRef = useRef<SectionMediaKey | null>(null);
 
   // Published & eligible assets for picker
   const eligibleAssets = mediaAssets.filter(
@@ -193,9 +194,10 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
   };
 
   const handleUploadSuccess = async (newAsset: MediaAsset) => {
-    if (!uploadSectionKey) return;
-    const targetKey = uploadSectionKey;
+    const targetKey = activeUploadingSectionRef.current || uploadSectionKey;
+    activeUploadingSectionRef.current = null;
     setUploadSectionKey(null);
+    if (!targetKey) return;
     await handleSelectAsset(targetKey, newAsset);
   };
 
@@ -282,7 +284,10 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => setUploadSectionKey(config.key)}
+                  onClick={() => {
+                    activeUploadingSectionRef.current = config.key;
+                    setUploadSectionKey(config.key);
+                  }}
                   disabled={isBusy}
                   className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5 rounded-lg text-sabbath-700 hover:text-sabbath-800"
                 >
@@ -385,10 +390,16 @@ export const SectionMediaManager: React.FC<SectionMediaManagerProps> = ({
 
       {/* Direct Upload Dialog */}
       <MediaUploadDialog
+        key={uploadSectionKey || "closed"}
         isOpen={Boolean(uploadSectionKey)}
-        onClose={() => setUploadSectionKey(null)}
+        onClose={() => {
+          activeUploadingSectionRef.current = null;
+          setUploadSectionKey(null);
+        }}
         onSuccess={handleUploadSuccess}
         albums={mediaAlbums}
+        defaultConsent="approved"
+        autoPublish={true}
       />
     </div>
   );
