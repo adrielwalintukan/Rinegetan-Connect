@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { section_key, asset_id, custom_alt_text, custom_caption, reset } = body;
+    const { section_key, asset_id, custom_alt_text, custom_caption, object_position, reset } = body;
 
     if (!section_key || !VALID_SECTIONS.includes(section_key)) {
       return Response.json(
@@ -107,6 +107,7 @@ export async function POST(request: Request) {
         asset_id,
         custom_alt_text: custom_alt_text?.trim() || null,
         custom_caption: custom_caption?.trim() || null,
+        object_position: object_position || "center",
         updated_at: new Date().toISOString(),
         updated_by: staff.user.id,
       })

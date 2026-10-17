@@ -80,11 +80,9 @@ export const StaffManager: React.FC<StaffManagerProps> = ({ initialStaff, curren
   const [email, setEmail] = useState("");
   const [isInviting, setIsInviting] = useState(false);
   const [pending, setPending] = useState<{ member: StaffMember; action: StaffAction } | null>(null);
-  const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const openAction = (member: StaffMember, action: StaffAction) => {
-    setReason("");
     setPending({ member, action });
   };
 
@@ -126,6 +124,12 @@ export const StaffManager: React.FC<StaffManagerProps> = ({ initialStaff, curren
     if (!pending) return;
     const { member, action } = pending;
     const config = ACTIONS[action];
+    const reason =
+      action === "delete"
+        ? "Penghapusan akun staf oleh Admin"
+        : action === "deactivate"
+        ? "Deaktivasi akun staf oleh Admin"
+        : "Reaktivasi akun staf oleh Admin";
     setIsSubmitting(true);
     try {
       const res = await fetch(config.endpoint, {
@@ -290,18 +294,6 @@ export const StaffManager: React.FC<StaffManagerProps> = ({ initialStaff, curren
               {config.title} {pending.member.display_name}?
             </h3>
             <p className="mt-2 text-sm leading-6 text-slate-600">{config.impact} Tindakan ini tercatat di Log Audit.</p>
-            <label className="mt-4 block text-xs font-semibold text-slate-700">
-              Alasan
-              <textarea
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                required
-                minLength={pending.action === "delete" ? 5 : 1}
-                maxLength={240}
-                rows={3}
-                className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm text-navy focus:border-navy focus:outline-none focus:ring-1 focus:ring-navy"
-              />
-            </label>
             <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button
                 type="button"

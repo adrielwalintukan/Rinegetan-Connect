@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Bell,
   Calendar,
@@ -41,9 +41,10 @@ interface StaffDashboardProps {
   initialSectionMedia?: SiteSectionMediaMap;
   currentUserId: string;
   initialStaff?: StaffMember[];
+  initialTab?: TabType;
 }
 
-type TabType =
+export type TabType =
   | "announcements"
   | "events"
   | "schedules"
@@ -66,8 +67,59 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   initialSectionMedia = {},
   currentUserId,
   initialStaff = [],
+  initialTab,
 }) => {
-  const [activeTab, setActiveTab] = useState<TabType>("announcements");
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    const validTabs: TabType[] = [
+      "announcements",
+      "events",
+      "schedules",
+      "departments",
+      "media",
+      "banners",
+      "audit",
+      "staff",
+    ];
+    if (initialTab && validTabs.includes(initialTab)) return initialTab;
+    if (typeof window !== "undefined") {
+      const urlTab = new URLSearchParams(window.location.search).get("tab") as TabType;
+      if (urlTab && validTabs.includes(urlTab)) return urlTab;
+      try {
+        const savedTab = localStorage.getItem("staff_active_tab") as TabType;
+        if (savedTab && validTabs.includes(savedTab)) return savedTab;
+      } catch {}
+    }
+    return "announcements";
+  });
+
+  const handleTabChange = (tabId: TabType) => {
+    setActiveTab(tabId);
+    setCurrentFilter("all");
+    setSearchQuery("");
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("tab", tabId);
+      window.history.replaceState({}, "", url.toString());
+      try {
+        localStorage.setItem("staff_active_tab", tabId);
+      } catch {}
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const urlTab = new URLSearchParams(window.location.search).get("tab") as TabType;
+      if (!urlTab && activeTab) {
+        const url = new URL(window.location.href);
+        url.searchParams.set("tab", activeTab);
+        window.history.replaceState({}, "", url.toString());
+      }
+      try {
+        localStorage.setItem("staff_active_tab", activeTab);
+      } catch {}
+    }
+  }, [activeTab]);
+
   const [currentFilter, setCurrentFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -373,11 +425,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
                 <button
                   key={tab.id}
                   type="button"
-                  onClick={() => {
-                    setActiveTab(tab.id);
-                    setCurrentFilter("all");
-                    setSearchQuery("");
-                  }}
+                  onClick={() => handleTabChange(tab.id)}
                   aria-current={isActive ? "page" : undefined}
                   className={`flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 text-xs font-bold transition ${
                     isActive

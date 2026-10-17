@@ -279,6 +279,7 @@ export async function getSiteSectionMedia() {
         asset_id,
         custom_alt_text,
         custom_caption,
+        object_position,
         asset:asset_id (
           id,
           storage_path,
@@ -308,6 +309,7 @@ export async function getSiteSectionMedia() {
         url: getMediaPublicUrl(item.asset.storage_path),
         alt_text: item.custom_alt_text || item.asset.alt_text,
         caption: item.custom_caption || item.asset.caption,
+        object_position: item.object_position || "center",
       };
     }
     return map;

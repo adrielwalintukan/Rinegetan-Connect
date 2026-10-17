@@ -21,6 +21,7 @@ export interface SectionMediaItem {
   image_url: string;
   alt_text: string;
   caption?: string | null;
+  object_position?: string | null;
 }
 
 export type SiteSectionMediaMap = Record<string, SectionMediaItem>;
