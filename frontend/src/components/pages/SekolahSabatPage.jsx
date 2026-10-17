@@ -121,7 +121,15 @@ export default function SekolahSabatPage({ initialSchedules = null, sectionMedia
                                     src={sectionMedia?.sekolah_sabat?.image_url || sectionMedia?.sekolah_sabat?.url || IMAGES.bibleStudy.src}
                                     alt={sectionMedia?.sekolah_sabat?.alt_text || IMAGES.bibleStudy.alt}
                                     loading="lazy"
-                                    className="h-full w-full object-cover"
+                                    className={`h-full w-full ${
+                                        sectionMedia?.sekolah_sabat?.object_position === "contain"
+                                            ? "object-contain"
+                                            : sectionMedia?.sekolah_sabat?.object_position === "bottom"
+                                            ? "object-cover object-bottom"
+                                            : sectionMedia?.sekolah_sabat?.object_position === "top"
+                                            ? "object-cover object-top"
+                                            : "object-cover object-center"
+                                    }`}
                                 />
                             </figure>
                         </Reveal>

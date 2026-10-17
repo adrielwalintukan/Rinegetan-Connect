@@ -7,7 +7,9 @@ import { publicErrorMessage } from "@/lib/api/errors";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { entityType, id, data } = body;
+    const entityType = body.entityType;
+    const id = body.id;
+    const data = body.data || body.payload;
 
     if (!entityType || !data || typeof data !== "object") {
       return Response.json({ error: "missing_fields" }, { status: 400 });

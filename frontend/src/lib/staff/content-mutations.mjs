@@ -110,6 +110,15 @@ export const ALLOWED_FIELDS = {
     "description",
     "status",
   ],
+  media_assets: [
+    "hidden_at",
+    "hidden_reason",
+    "status",
+    "alt_text",
+    "caption",
+    "category",
+    "public_download_enabled",
+  ],
 };
 
 /**

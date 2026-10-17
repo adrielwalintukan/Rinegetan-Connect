@@ -47,7 +47,6 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
 
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [takedownAsset, setTakedownAsset] = useState<MediaAsset | null>(null);
-  const [hiddenReason, setHiddenReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Storage Quota Metrics
@@ -203,14 +202,9 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
   };
 
   // Instant takedown (hide) flow
-  const handleTakedownSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleTakedownSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!takedownAsset) return;
-
-    if (hiddenReason.trim().length < 3) {
-      onNotification("error", "Alasan penarikan wajib diisi minimal 3 karakter.");
-      return;
-    }
 
     try {
       setIsSubmitting(true);
@@ -220,9 +214,9 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
         body: JSON.stringify({
           entityType: "media_assets",
           id: takedownAsset.id,
-          payload: {
+          data: {
             hidden_at: new Date().toISOString(),
-            hidden_reason: hiddenReason.trim(),
+            hidden_reason: "Ditarik dari publik oleh staf",
             status: "draft", // automatically unpublish upon takedown
           },
         }),
@@ -239,7 +233,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
             ? {
                 ...item,
                 hidden_at: new Date().toISOString(),
-                hidden_reason: hiddenReason.trim(),
+                hidden_reason: "Ditarik dari publik oleh staf",
                 status: "draft",
               }
             : item
@@ -248,7 +242,6 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
 
       onNotification("success", "Foto berhasil ditarik dari tampilan publik");
       setTakedownAsset(null);
-      setHiddenReason("");
     } catch (err) {
       onNotification("error", clientErrorMessage(err, "Gagal memproses penarikan"));
     } finally {
@@ -625,39 +618,24 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
               Tindakan ini akan langsung menyembunyikan foto dari galeri publik jemaat dan mengubah statusnya menjadi draft.
             </p>
 
-            <form onSubmit={handleTakedownSubmit} className="mt-4 space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-navy mb-1.5">
-                  Alasan Penarikan (Wajib, min 3 karakter) <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  required
-                  rows={3}
-                  value={hiddenReason}
-                  onChange={(e) => setHiddenReason(e.target.value)}
-                  placeholder="Contoh: Permintaan keberatan privasi dari pihak jemaat yang bersangkutan"
-                  className="w-full rounded-xl border border-slate-200 p-3 text-xs focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 resize-none"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setTakedownAsset(null)}
-                  disabled={isSubmitting}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting || hiddenReason.trim().length < 3}
-                  className="px-4 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl disabled:opacity-50"
-                >
-                  {isSubmitting ? "Memproses..." : "Konfirmasi Tarik Foto"}
-                </button>
-              </div>
-            </form>
+            <div className="mt-6 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setTakedownAsset(null)}
+                disabled={isSubmitting}
+                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={() => handleTakedownSubmit()}
+                disabled={isSubmitting}
+                className="px-4 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl disabled:opacity-50"
+              >
+                {isSubmitting ? "Memproses..." : "Konfirmasi Tarik Foto"}
+              </button>
+            </div>
           </div>
         )}
       </Modal>
