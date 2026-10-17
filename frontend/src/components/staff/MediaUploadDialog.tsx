@@ -13,6 +13,8 @@ export interface MediaUploadDialogProps {
   onClose: () => void;
   onSuccess: (newAsset: MediaAsset, warning?: string | null) => void;
   albums?: MediaAlbum[];
+  defaultConsent?: ConsentStatus;
+  autoPublish?: boolean;
 }
 
 // Vercel functions reject request bodies above ~4.5 MB, so large phone photos are shrunk in the browser first.
@@ -39,6 +41,8 @@ export const MediaUploadDialog: React.FC<MediaUploadDialogProps> = ({
   onClose,
   onSuccess,
   albums = [],
+  defaultConsent = "pending",
+  autoPublish = false,
 }) => {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -46,7 +50,7 @@ export const MediaUploadDialog: React.FC<MediaUploadDialogProps> = ({
   const [caption, setCaption] = useState("");
   const [category, setCategory] = useState<MediaCategory>("umum");
   const [subjectAgeGroup, setSubjectAgeGroup] = useState<SubjectAgeGroup>("general");
-  const [consentStatus, setConsentStatus] = useState<ConsentStatus>("pending");
+  const [consentStatus, setConsentStatus] = useState<ConsentStatus>(defaultConsent);
   const [albumId, setAlbumId] = useState<string>("");
 
   const [isLoading, setIsLoading] = useState(false);
@@ -98,6 +102,7 @@ export const MediaUploadDialog: React.FC<MediaUploadDialogProps> = ({
       formData.append("category", category);
       formData.append("subject_age_group", subjectAgeGroup);
       formData.append("consent_status", consentStatus);
+      if (autoPublish) formData.append("auto_publish", "true");
       if (albumId) formData.append("album_id", albumId);
 
       const res = await fetch("/api/staff/media/upload", {
@@ -117,7 +122,7 @@ export const MediaUploadDialog: React.FC<MediaUploadDialogProps> = ({
       setCaption("");
       setCategory("umum");
       setSubjectAgeGroup("general");
-      setConsentStatus("pending");
+      setConsentStatus(defaultConsent);
       setAlbumId("");
 
       onSuccess(json.data, json.warning);

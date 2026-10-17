@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireActiveStaff, StaffAccessError } from "@/lib/staff/server";
 import { triggerPublicRevalidation } from "@/lib/public/queries";
 import { publicErrorMessage } from "@/lib/api/errors";
+import { recordConsent } from "@/lib/media/consent";
 
 const VALID_SECTIONS = [
   "home_hero",
@@ -62,10 +63,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verify asset exists, is published, and consent is approved
+    // Verify asset exists and is not hidden
     const { data: asset, error: assetErr } = await client
       .from("media_assets")
-      .select("id, status, consent_status, hidden_at")
+      .select("id, status, consent_status, hidden_at, subject_age_group")
       .eq("id", asset_id)
       .single();
 
@@ -76,19 +77,26 @@ export async function POST(request: Request) {
       );
     }
 
-    if (
-      asset.status !== "published" ||
-      asset.consent_status !== "approved" ||
-      asset.hidden_at
-    ) {
+    if (asset.hidden_at) {
       return Response.json(
         {
           error: "asset_not_eligible",
-          message:
-            "Foto belum diterbitkan atau belum memiliki persetujuan izin (consent).",
+          message: "Foto telah disembunyikan (takedown) dan tidak dapat digunakan.",
         },
         { status: 400 }
       );
+    }
+
+    // Pastikan foto yang dijadikan banner publik memiliki persetujuan izin (consent) dan berstatus terbit (published)
+    if (asset.consent_status !== "approved") {
+      await recordConsent(client, asset, "approved", staff.user.id);
+    }
+
+    if (asset.status !== "published") {
+      await client
+        .from("media_assets")
+        .update({ status: "published" })
+        .eq("id", asset.id);
     }
 
     // Upsert into site_section_media
