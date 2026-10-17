@@ -91,12 +91,15 @@ declare
   v_action text;
   v_changes jsonb;
   v_entity_id uuid;
+  v_title text;
+  v_old_title text;
 begin
   if tg_op = 'INSERT' then
     v_action := 'content.created';
     v_entity_id := new.id;
+    v_title := coalesce(to_jsonb(new)->>'title', to_jsonb(new)->>'name', '');
     v_changes := jsonb_build_object(
-      'title', case when tg_table_name = 'departments' then new.name else new.title end,
+      'title', v_title,
       'status', new.status,
       'slug', new.slug
     );
@@ -111,8 +114,9 @@ begin
       );
     else
       v_action := 'content.updated';
+      v_title := coalesce(to_jsonb(new)->>'title', to_jsonb(new)->>'name', '');
       v_changes := jsonb_build_object(
-        'title', case when tg_table_name = 'departments' then new.name else new.title end,
+        'title', v_title,
         'slug', new.slug,
         'status', new.status
       );
@@ -120,8 +124,9 @@ begin
   elsif tg_op = 'DELETE' then
     v_action := 'content.deleted';
     v_entity_id := old.id;
+    v_old_title := coalesce(to_jsonb(old)->>'title', to_jsonb(old)->>'name', '');
     v_changes := jsonb_build_object(
-      'title', case when tg_table_name = 'departments' then old.name else old.title end,
+      'title', v_old_title,
       'slug', old.slug,
       'status', old.status,
       'reason', coalesce(
