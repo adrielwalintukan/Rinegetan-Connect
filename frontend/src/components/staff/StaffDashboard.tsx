@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Bell,
   Calendar,
@@ -36,6 +37,7 @@ interface StaffDashboardProps {
   initialSchedules: ContentItem[];
   initialDepartments: ContentItem[];
   initialAuditLogs: AuditEntry[];
+  auditLogsError?: string | null;
   initialMediaAssets?: MediaAsset[];
   initialMediaAlbums?: MediaAlbum[];
   initialSectionMedia?: SiteSectionMediaMap;
@@ -62,6 +64,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   initialSchedules,
   initialDepartments,
   initialAuditLogs,
+  auditLogsError,
   initialMediaAssets = [],
   initialMediaAlbums = [],
   initialSectionMedia = {},
@@ -69,6 +72,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   initialStaff = [],
   initialTab,
 }) => {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     const validTabs: TabType[] = [
       "announcements",
@@ -77,8 +81,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
       "departments",
       "media",
       "banners",
-      "audit",
-      ...(role === "admin" ? (["staff"] as const) : []),
+      ...(role === "admin" ? (["audit", "staff"] as const) : []),
     ];
     if (initialTab && validTabs.includes(initialTab)) return initialTab;
     if (typeof window !== "undefined") {
@@ -93,7 +96,8 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   });
 
   const handleTabChange = (tabId: TabType) => {
-    if (tabId === "staff" && role !== "admin") return;
+    if ((tabId === "staff" || tabId === "audit") && role !== "admin") return;
+    if (tabId === "audit") router.refresh();
     setActiveTab(tabId);
     setCurrentFilter("all");
     setSearchQuery("");
@@ -129,7 +133,6 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   const [events, setEvents] = useState<ContentItem[]>(initialEvents);
   const [schedules, setSchedules] = useState<ContentItem[]>(initialSchedules);
   const [departments, setDepartments] = useState<ContentItem[]>(initialDepartments);
-  const [auditLogs, setAuditLogs] = useState<AuditEntry[]>(initialAuditLogs);
   const [sectionMedia, setSectionMedia] = useState<SiteSectionMediaMap>(initialSectionMedia);
 
   // Dialog states
@@ -230,19 +233,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
         prev.map((item) => (item.id === id ? { ...item, status: newStatus } : item))
       );
 
-      // Add local audit entry
-      setAuditLogs((prev) => [
-        {
-          id: String(Date.now()),
-          actor_id: userEmail,
-          action: `${activeTab}.status_changed`,
-          entity_type: activeTab,
-          entity_id: id,
-          changes: { new_status: newStatus },
-          created_at: new Date().toISOString(),
-        },
-        ...prev,
-      ]);
+      router.refresh();
 
       showNotification("success", `Status berhasil diubah menjadi ${newStatus}`);
     } catch (err) {
@@ -284,6 +275,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
       }
 
       setEditingItem(null);
+      router.refresh();
     } catch (err) {
       showNotification("error", clientErrorMessage(err, "Gagal menyimpan"));
       throw err;
@@ -314,18 +306,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
 
       updateCurrentItems((prev) => prev.filter((item) => item.id !== deletingItem.id));
 
-      setAuditLogs((prev) => [
-        {
-          id: String(Date.now()),
-          actor_id: userEmail,
-          action: `${activeTab}.deleted`,
-          entity_type: activeTab,
-          entity_id: deletingItem.id,
-          changes: { reason, title: deletingItem.title || deletingItem.name },
-          created_at: new Date().toISOString(),
-        },
-        ...prev,
-      ]);
+      router.refresh();
 
       showNotification("success", "Konten berhasil dihapus permanen");
       setDeletingItem(null);
@@ -344,8 +325,10 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
     { id: "departments" as TabType, label: "Departemen", icon: Building },
     { id: "media" as TabType, label: "Media & Galeri", icon: ImageIcon },
     { id: "banners" as TabType, label: "Banner Halaman", icon: LayoutTemplate },
-    { id: "audit" as TabType, label: "Log Audit", icon: History },
-    ...(role === "admin" ? [{ id: "staff" as TabType, label: "Kelola Staf", icon: Users }] : []),
+    ...(role === "admin" ? [
+      { id: "audit" as TabType, label: "Log Audit", icon: History },
+      { id: "staff" as TabType, label: "Kelola Staf", icon: Users },
+    ] : []),
   ];
 
   return (
@@ -460,7 +443,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
         {/* Tab Content Section */}
         <div className="mt-6">
           {activeTab === "audit" ? (
-            <AuditLogViewer logs={auditLogs} />
+            role === "admin" ? <AuditLogViewer logs={initialAuditLogs} error={auditLogsError} /> : null
           ) : activeTab === "staff" ? (
             role === "admin" ? (
               <StaffManager

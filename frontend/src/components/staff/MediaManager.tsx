@@ -39,7 +39,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
   onNotification,
 }) => {
   const [assets, setAssets] = useState<MediaAsset[]>(initialAssets);
-  const [albums] = useState<MediaAlbum[]>(initialAlbums);
+  const [albums, setAlbums] = useState<MediaAlbum[]>(initialAlbums);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [consentFilter, setConsentFilter] = useState<string>("all");
@@ -201,6 +201,32 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
     }
   };
 
+  const handleAlbumDownloadToggle = async (album: MediaAlbum, enabled: boolean) => {
+    try {
+      setIsSubmitting(true);
+      const res = await fetch("/api/staff/media/album-download", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ albumId: album.id, enabled }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.data) {
+        throw new Error(json.message || "Gagal mengubah izin unduhan album");
+      }
+      setAlbums((prev) =>
+        prev.map((item) => (item.id === album.id ? { ...item, ...json.data } : item))
+      );
+      onNotification(
+        "success",
+        enabled ? "Izin unduhan album diaktifkan." : "Unduhan publik untuk album dimatikan."
+      );
+    } catch (err) {
+      onNotification("error", clientErrorMessage(err, "Gagal mengubah izin unduhan album"));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   // Instant takedown (hide) flow
   const handleTakedownSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -279,7 +305,10 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
       }
 
       setAssets((prev) => prev.filter((item) => item.id !== asset.id));
-      onNotification("success", "Aset media berhasil dihapus permanen.");
+      onNotification(
+        json.data?.warning ? "error" : "success",
+        json.data?.warning || "Aset media berhasil dihapus permanen."
+      );
     } catch (err) {
       onNotification("error", clientErrorMessage(err, "Gagal menghapus aset"));
     } finally {
@@ -347,6 +376,43 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
           </p>
         )}
       </div>
+
+      <section aria-labelledby="album-download-heading" className="card-surface min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <h3 id="album-download-heading" className="text-sm font-bold text-navy">Unduhan album</h3>
+        <p className="mt-1 text-xs leading-relaxed text-slate-500">
+          Unduhan publik memerlukan album terbit dan foto yang memenuhi izin tayang serta unduhan.
+        </p>
+        {albums.length === 0 ? (
+          <p className="mt-4 text-sm text-slate-500">Belum ada album.</p>
+        ) : (
+          <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {albums.map((album) => (
+              <div key={album.id} className="min-w-0 rounded-xl border border-slate-200 p-3">
+                <h4 className="break-words text-sm font-semibold text-navy">{album.title}</h4>
+                <p className="mt-1 text-xs text-slate-500">
+                  Status: {album.status === "published" ? "Terbit" : album.status === "draft" ? "Draft" : "Diarsipkan"}
+                </p>
+                {album.status !== "published" && (
+                  <p className="mt-2 text-xs leading-relaxed text-amber-700">
+                    Unduhan publik hanya tersedia setelah album diterbitkan.
+                  </p>
+                )}
+                <label className="mt-3 flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700">
+                  <span className="min-w-0 break-words">Izinkan unduhan album</span>
+                  <input
+                    type="checkbox"
+                    aria-label={`Izinkan unduhan album ${album.title}`}
+                    checked={album.public_download_enabled}
+                    disabled={isSubmitting}
+                    onChange={(e) => handleAlbumDownloadToggle(album, e.target.checked)}
+                    className="h-5 w-5 shrink-0 accent-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sabbath-500 disabled:cursor-not-allowed"
+                  />
+                </label>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
