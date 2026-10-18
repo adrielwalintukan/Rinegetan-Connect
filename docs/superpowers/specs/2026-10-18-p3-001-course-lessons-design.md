@@ -1,6 +1,6 @@
 # P3-001 — Model dan CMS Course/Lesson
 
-**Status:** Usulan untuk ditinjau; implementasi belum dimulai.
+**Status:** Disetujui pemilik project pada 2026-10-18; implementasi menunggu review rencana eksekusi.
 **Dasar integrasi:** `development` pada `efed2c3`.
 **Keputusan pemilik:** melanjutkan pengembangan Phase 3, menunda backup/persiapan rilis, dan memakai teks berparagraf untuk isi lesson.
 
@@ -73,6 +73,7 @@ Policy lesson memeriksa status induk di database sehingga akses langsung ke Data
 ## Mutasi, validasi, dan audit
 
 - Form membuat Draft terlebih dahulu; publikasi merupakan tindakan eksplisit setelah tersimpan.
+- Keputusan lanjutan pemilik: menyimpan revisi course/lesson Published mempertahankan status dan langsung memperbarui isi yang terbaca publik jika induknya Published. Staf menggunakan Jadikan Draft secara eksplisit bila materi perlu disembunyikan selama revisi; tidak ada salinan revisi/versioning pada P3-001.
 - Server memverifikasi sesi serta staf aktif, UUID, action, tipe payload, panjang field, slug, integer position, dan whitelist kolom.
 - Validasi penting diulang melalui constraint/trigger database untuk caller yang mengakses Data API langsung. Metadata actor/waktu dan identitas tidak dapat dipalsukan lewat payload.
 - Batas Published: judul dan slug valid; isi lesson tidak boleh kosong/whitespace. Teks bukan HTML atau Markdown; tampilkan sebagai teks React dengan pemisahan paragraf, tanpa `dangerouslySetInnerHTML`.
