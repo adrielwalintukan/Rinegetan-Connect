@@ -6,6 +6,8 @@ Rencana ini memakai cadence usulan satu minggu per sprint fokus. Cadence adalah 
 
 Dokumentasi Phase 2 diajukan sekarang melalui PR `docs/phase-2-foundation` menuju `development`. Setelah dokumentasi disetujui dan digabung, refactor dimulai dari branch implementasi baru berbasis `development`. PR kode Phase 2 dibuat setelah seluruh exit criteria Phase 2 terpenuhi, sesuai keputusan saat ini.
 
+Penomoran dan cakupan issue mengikuti [Issue Backlog Phase 2](PHASE-2-ISSUE-BACKLOG.md), termasuk P2-501, P2-502, P2-506, dan P2-503 pada Sprint 5.
+
 ## Sprint 0 — Bootstrap dan tata kelola
 
 **Tujuan:** Menyimpan baseline lokal, dokumentasi, workflow Git, dan CI awal.
@@ -78,10 +80,10 @@ Dokumentasi Phase 2 diajukan sekarang melalui PR `docs/phase-2-foundation` menuj
 
 | Issue | Hasil |
 | --- | --- |
-| P2-501 | Unit, integration, E2E, visual, accessibility, dan RLS coverage |
-| P2-502 | CI diperluas untuk Next.js dan database test |
-| P2-503 | Backup/restore drill, logging, deployment/rollback smoke test |
-| P2-504 | Review Phase 2, PR kode menuju development, dan pilot checklist |
+| P2-501 | Quality gate dan CI: build, typecheck, lint, unit, E2E, accessibility, dan RLS coverage |
+| P2-502 | Deployment, backup/restore drill, logging, dan rollback smoke test |
+| P2-506 | Refactor UI publik dan portal staf mobile-first |
+| P2-503 | Review Phase 2, PR kode menuju development, dan pilot checklist |
 
 **Exit criteria:** semua verifikasi hijau, backup/restore drill tercatat, runbook teruji, dan review mengonfirmasi seluruh exit criteria Phase 2.
 

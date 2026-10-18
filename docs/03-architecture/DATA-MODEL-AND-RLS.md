@@ -107,7 +107,7 @@ Supabase menegaskan bahwa tabel pada schema exposed tanpa RLS dapat diakses oleh
 | media_albums | (status, occurred_on desc), (category, status, occurred_on desc), unique(slug) |
 | media_assets | (processing_state, consent_status, hidden_at), (created_at desc) |
 | album_assets | unique(album_id, asset_id), (album_id, position) |
-| audit_logs | (actor_id, created_at desc), (entity_type, entity_id, created_at desc) |
+| audit_logs | (actor_id, occurred_at desc), (entity_type, entity_id, occurred_at desc) |
 
 Tambah indeks hanya sesudah melihat pola query dan EXPLAIN ANALYZE pada data representatif. Hindari indeks duplikat dan indeks untuk kolom ber-cardinality rendah tanpa predicate yang tepat.
 

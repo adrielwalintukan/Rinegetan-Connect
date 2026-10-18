@@ -3,7 +3,7 @@ import { requireActiveStaff } from "@/lib/staff/server";
 import { StaffDashboard, type TabType } from "@/components/staff/StaffDashboard";
 import { getSiteSectionMedia } from "@/lib/public/queries";
 import type { ContentItem } from "@/components/staff/ContentTable";
-import type { AuditEntry } from "@/components/staff/AuditLogViewer";
+import { loadAuditLogs } from "@/lib/staff/audit";
 import type { MediaAsset, MediaAlbum } from "@/types/media";
 import type { StaffMember } from "@/components/staff/StaffManager";
 
@@ -18,7 +18,7 @@ export default async function StaffHomePage({
   const client = await createServerSupabaseClient();
   const staff = await requireActiveStaff(client);
   const rawTab = typeof resolvedParams?.tab === "string" ? resolvedParams.tab : undefined;
-  const initialTab = rawTab === "staff" && staff.role !== "admin" ? "announcements" : rawTab;
+  const initialTab = (rawTab === "staff" || rawTab === "audit") && staff.role !== "admin" ? "announcements" : rawTab;
 
   // Fetch initial content securely server-side
   const [
@@ -47,11 +47,7 @@ export default async function StaffHomePage({
       .from("departments")
       .select("*")
       .order("name", { ascending: true }),
-    client
-      .from("audit_logs")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(50),
+    loadAuditLogs(client, staff.role),
     client
       .from("media_assets")
       .select("*")
@@ -89,7 +85,8 @@ export default async function StaffHomePage({
       initialEvents={(eventsRes.data as ContentItem[]) || []}
       initialSchedules={(schedulesRes.data as ContentItem[]) || []}
       initialDepartments={(departmentsRes.data as ContentItem[]) || []}
-      initialAuditLogs={(auditLogsRes.data as AuditEntry[]) || []}
+      initialAuditLogs={auditLogsRes.data}
+      auditLogsError={auditLogsRes.error}
       initialMediaAssets={(mediaAssetsRes.data as MediaAsset[]) || []}
       initialMediaAlbums={(mediaAlbumsRes.data as MediaAlbum[]) || []}
       initialSectionMedia={sectionMedia}
