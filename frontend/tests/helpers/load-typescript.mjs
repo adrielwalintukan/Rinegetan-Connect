@@ -3,13 +3,14 @@ import { fileURLToPath } from "node:url";
 import ts from "typescript";
 
 // Load the TypeScript entry used by the app, with network boundaries supplied by each test.
-export async function loadTypeScript(relativePath) {
+export async function loadTypeScript(relativePath, imports = {}) {
   const sourceUrl = new URL(`../../${relativePath}`, import.meta.url);
   const { outputText } = ts.transpileModule(readFileSync(sourceUrl, "utf8"), {
     fileName: fileURLToPath(sourceUrl),
     compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
   });
   const source = outputText.replace(/(from\s+["'])([^"']+)(["'])/g, (match, before, specifier, after) => {
+    if (Object.hasOwn(imports, specifier)) return `${before}${imports[specifier]}${after}`;
     if (specifier.startsWith(".")) return `${before}${new URL(specifier, sourceUrl).href}${after}`;
     if (specifier === "@/lib/api/errors") return `${before}${new URL("../../src/lib/api/errors.mjs", import.meta.url).href}${after}`;
     return match;
