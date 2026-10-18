@@ -37,7 +37,7 @@
 
 | File | Tanggung jawab |
 | --- | --- |
-| `supabase/migrations/20261018180000_p3_001_course_lessons.sql` | Dua tabel, constraint, grants, RLS, trigger metadata/audit |
+| `supabase/migrations/20261019000000_p3_001_course_lessons.sql` | Dua tabel, constraint, grants, RLS, trigger metadata/audit |
 | `supabase/tests/p3_001_course_lessons.test.sql` | Test perilaku database untuk semua persona |
 | `frontend/src/types/courses.ts` | Kontrak Course, CourseLesson, CourseContent |
 | `frontend/src/lib/courses/mutations.mjs` + `.ts` | Parser whitelist, mutasi, dan error P3 |
@@ -64,7 +64,7 @@
 - Produces: `public.courses` dan `public.course_lessons` persis seperti spec. `Course` memuat id/title/slug/summary/status/published_at/created_at/updated_at/created_by/updated_by; `CourseLesson` menambah course_id/body/position. `CourseContent = { courses: Course[]; lessons: CourseLesson[] }`.
 - Trigger baru: `private.prepare_course_content()` untuk metadata/invariant, `private.record_course_content_audit()` untuk audit. Keduanya `RETURNS trigger`, search_path kosong; audit SECURITY DEFINER. Trigger metadata boleh SECURITY DEFINER hanya untuk memeriksa FK Auth yang sedang dihapus; executable grants kedua fungsi dicabut dari PUBLIC/anon/authenticated. Jangan mengubah trigger Phase 2.
 
-- [ ] **Step 1: Tulis test pgTAP gagal dengan fixture sintetis dan rollback.** Gunakan persona anon, auth tanpa role, Editor aktif, Editor nonaktif, Admin. Assertion perilaku pokok:
+- [x] **Step 1: Tulis test pgTAP gagal dengan fixture sintetis dan rollback.** Gunakan persona anon, auth tanpa role, Editor aktif, Editor nonaktif, Admin. Assertion perilaku pokok:
 
 ```sql
 -- Setelah fixture disiapkan sebagai postgres dan role anon dipilih:
@@ -78,13 +78,13 @@ select results_eq(
 ```
 
   Uji grants kolom actor anon ditolak; anon tidak bisa menulis; auth nonstaf/nonaktif tidak bisa membaca Draft atau memutasi; Editor CRUD non-delete; Admin delete; FK RESTRICT; audit tetap privat. Uji SQLSTATE constraint sebagai persona yang memang memiliki izin, agar RLS tidak menyamarkan kegagalan. Editor DELETE yang ditolak RLS dapat menghasilkan nol baris.
-- [ ] **Step 2: Jalankan baseline pgTAP P3 pada Supabase lokal sebelum migration baru.** Dari root: `frontend/node_modules/.bin/supabase.cmd --workdir . test db --local supabase/tests/p3_001_course_lessons.test.sql`. Expected: FAIL karena tabel belum ada. Start lokal hanya project ini jika perlu; tangkap output startup dan tampilkan status/diagnostik teredaksi saja, karena output CLI dapat memuat kredensial lokal.
-- [ ] **Step 3: Implementasikan migration dan tipe.** Gunakan CHECK panjang/trim/body Published, uniqueness slug dan position sesuai scope, FK RESTRICT, RLS SELECT dengan pemeriksaan induk, INSERT/UPDATE Editor aktif dan DELETE Admin aktif. Anon mendapat SELECT kolom publik eksplisit, bukan seluruh tabel. authenticated mendapat grant yang diperlukan dengan policy aktif.
+- [x] **Step 2: Jalankan baseline pgTAP P3 pada Supabase lokal sebelum migration baru.** Dari root: `frontend/node_modules/.bin/supabase.cmd --workdir . test db --local supabase/tests/p3_001_course_lessons.test.sql`. Expected: FAIL karena tabel belum ada. Start lokal hanya project ini jika perlu; tangkap output startup dan tampilkan status/diagnostik teredaksi saja, karena output CLI dapat memuat kredensial lokal.
+- [x] **Step 3: Implementasikan migration dan tipe.** Gunakan CHECK panjang/trim/body Published, uniqueness slug dan position sesuai scope, FK RESTRICT, RLS SELECT dengan pemeriksaan induk, INSERT/UPDATE Editor aktif dan DELETE Admin aktif. Anon mendapat SELECT kolom publik eksplisit, bukan seluruh tabel. authenticated mendapat grant yang diperlukan dengan policy aktif.
 
   `prepare_course_content()` mengisi actor/waktu dari sesi/database, mempertahankan created_by/created_at dan published_at pertama pada UPDATE, menolak perubahan ID/course_id/slug terkunci. INSERT Published langsung melalui Data API tetap harus memenuhi constraint dan mendapatkan metadata database. FK actor menggunakan ON DELETE SET NULL mengikuti lifecycle staf saat ini. Penjagaan metadata tidak boleh membatalkan pengosongan FK saat Auth user terkait benar-benar dihapus; pengecualian ini hanya berlaku jika referensi lama sudah tidak ada, bukan berdasarkan nilai kiriman caller. `record_course_content_audit()` menghasilkan action `content.created/updated/status_changed/deleted`, entity_type nama tabel, delta status/course_id/position tanpa body. Penghapusan mencatat alasan standar Admin sebagaimana UI saat ini; jangan mengandalkan `set_audit_reason` melalui RPC terpisah yang berbeda transaksi.
-- [ ] **Step 4: Tambahkan assertion spoofing, perubahan posisi, slug terkunci, dan revisi Published.** UPDATE langsung dengan created_by/updated_by/timestamp palsu tidak mengubah atribusi; Published pertama menentukan published_at dan publikasi ulang tidak mengubahnya. Judul/isi Published dapat disunting dengan status tetap Published; whitespace-only body tidak dapat Published. Audit mendapat actor sesi dan posisi lama/baru, tidak memiliki key body atau salinan isinya. Hapus Auth user fixture yang menjadi pembuat sebagai postgres: konten tetap ada, FK actor menjadi NULL, dan operasi tidak gagal karena trigger metadata. Ini merupakan regresi lifecycle staf, bukan izin menghapus akun production.
+- [x] **Step 4: Tambahkan assertion spoofing, perubahan posisi, slug terkunci, dan revisi Published.** UPDATE langsung dengan created_by/updated_by/timestamp palsu tidak mengubah atribusi; Published pertama menentukan published_at dan publikasi ulang tidak mengubahnya. Judul/isi Published dapat disunting dengan status tetap Published; whitespace-only body tidak dapat Published. Audit mendapat actor sesi dan posisi lama/baru, tidak memiliki key body atau salinan isinya. Hapus Auth user fixture yang menjadi pembuat sebagai postgres: konten tetap ada, FK actor menjadi NULL, dan operasi tidak gagal karena trigger metadata. Ini merupakan regresi lifecycle staf, bukan izin menghapus akun production.
 - [ ] **Step 5: Terapkan hanya lokal dan jalankan seluruh pgTAP.** `frontend/node_modules/.bin/supabase.cmd --workdir . migration up --local`, lalu `frontend/node_modules/.bin/supabase.cmd --workdir . test db --local`. Expected: seluruh suite PASS. Uji rebuild dari database kosong melalui job database CI yang sudah ada; jangan reset volume lokal dengan data yang belum dikenali. Jika RAM terbatas, hentikan hanya container Supabase project ini sebelum quality gate frontend.
-- [ ] **Step 6: Commit migration, tipe, test, dan model data yang terkait.** Pesan: `feat(courses): add course lesson schema and access controls`.
+- [x] **Step 6: Commit migration, tipe, test, dan model data yang terkait.** Pesan: `feat(courses): add course lesson schema and access controls`.
 
 ### Task 2: Mutasi server dan Route Handler yang diuji nyata
 
