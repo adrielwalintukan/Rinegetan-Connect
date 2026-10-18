@@ -28,13 +28,31 @@
 
 ### Tabel Phase 3
 
-courses, course_lessons, course_imports, study_interest_leads, prayer_requests, visitor_submissions, consent_records, dan form_rate_events.
+P3-001 menyediakan courses dan course_lessons. Berikutnya: course_imports, study_interest_leads, prayer_requests, visitor_submissions, consent_records, dan form_rate_events.
 
 ### Tabel Phase 4–5
 
 sabbath_content_cache, sabbath_offline_manifests, notification_preferences, push_subscriptions, notification_deliveries. Progres pelajaran tidak menjadi tabel karena tetap lokal di browser.
 
 ## Bentuk record penting
+
+### courses dan course_lessons (P3-001)
+
+Course menyimpan id UUID, title (1–200 karakter, terpangkas), slug (1–220, huruf kecil/angka/tanda hubung, unik global), summary (maksimal 500, terpangkas, default kosong), status (default Draft), published_at, created_at, updated_at, created_by, dan updated_by. Course kosong boleh Published.
+
+Lesson menambah course_id wajib (`ON DELETE RESTRICT`), body berupa teks berparagraf (maksimal 50.000 karakter, default kosong), dan position integer positif. Slug dan position unik dalam course; nomor urut boleh bercelah. Body Published harus berisi karakter selain whitespace. HTML/Markdown tidak dirender sebagai markup. Constraint unique `(course_id, slug)` dan `(course_id, position)` sekaligus melayani pencarian anak; tidak ada indeks duplikat.
+
+ID tidak dapat diubah dan lesson tidak dapat dipindah ke course lain. Slug boleh disunting sebelum publikasi pertama, lalu terkunci meski kembali Draft/Archived. Trigger `private.prepare_course_content()` mengabaikan metadata kiriman caller: database mengisi actor dari sesi, waktu insert/update, dan published_at pertama; created_at/created_by serta published_at pertama dipertahankan saat update. FK actor memakai `ON DELETE SET NULL`; pembersihan FK hanya dapat mengosongkan referensi lama yang benar-benar sudah tidak ada pada auth.users. Konten dan atribusi actor lain tetap bertahan saat akun staf dihapus.
+
+| Persona | Baca course/lesson | Buat/ubah/publish/archive | Hapus permanen |
+| --- | --- | --- | --- |
+| anon, Auth tanpa role, staf nonaktif | Course Published; lesson Published dengan induk Published | Tidak | Tidak |
+| Editor aktif | Semua status | Ya | Tidak |
+| Admin aktif | Semua status | Ya | Ya, course harus tanpa lesson |
+
+RLS lesson memeriksa status induk di database, termasuk lookup langsung melalui ID. Mengembalikan induk ke Draft/Archived segera menyembunyikan anak Published; publikasi ulang menampilkannya kembali tanpa mengubah status anak. Revisi konten Published mempertahankan status dan langsung terbaca publik jika induknya Published. Grants anon hanya meliputi kolom publik eksplisit, tanpa created_by/updated_by; pembaca publik wajib menggunakan proyeksi tersebut.
+
+Trigger terpisah `private.record_course_content_audit()` mencatat `content.created`, `content.updated`, `content.status_changed`, dan `content.deleted`, dengan entity_type `courses`/`course_lessons`, actor sesi, status, course_id dan posisi lama/baru yang relevan. Body lesson tidak disalin. Delete mencatat alasan standar `Penghapusan permanen course oleh Admin` atau `Penghapusan permanen lesson oleh Admin` dalam transaksi yang sama, tanpa RPC alasan terpisah. Audit tetap hanya dapat dibaca Admin dan tidak dapat ditulis langsung oleh role Data API. Kedua fungsi trigger memiliki search_path kosong dan executable grant dicabut dari PUBLIC/anon/authenticated; SECURITY DEFINER metadata hanya digunakan untuk pemeriksaan lifecycle FK Auth.
 
 ### events
 
@@ -65,6 +83,7 @@ events ──0:N── media_albums
 departments ──0:N── media_albums
 media_albums ──N:M── media_assets melalui album_assets
 media_assets ──1:N── consent_records
+courses ──1:N── course_lessons (RESTRICT)
 ~~~
 
 Gunakan soft archive untuk konten. Penghapusan permanen melakukan pemeriksaan relasi, penghapusan object Storage yang aman, dan audit log; hanya Admin.
