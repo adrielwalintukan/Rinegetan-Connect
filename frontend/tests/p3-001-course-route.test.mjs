@@ -50,7 +50,8 @@ test("real POST returns saved Draft course/lesson rows", async () => {
 });
 test("real POST revisions retain Published status and return actual updated row", async () => {
   for (const entity of ["courses", "course_lessons"]) {
-    const { course_id, ...lessonUpdate } = lesson;
+    const lessonUpdate = { ...lesson };
+    delete lessonUpdate.course_id;
     const data = entity === "courses" ? course : lessonUpdate;
     const row = { ...data, id, status: "published" };
     const { response, body, client } = await request({ entity, action: "save", id, data }, { data: row });

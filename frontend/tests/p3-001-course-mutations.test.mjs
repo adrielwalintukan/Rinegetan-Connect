@@ -18,7 +18,8 @@ test("save rejects metadata, status, extra fields and parent reassignment", () =
   bad(save(course, { status: "published" })); bad(save(course, { role: "admin" }));
   bad({ entity: "course_lessons", action: "save", id, data: lesson });
   bad({ entity: "course_lessons", action: "save", data: { ...lesson, course_id: "bad" } });
-  const { course_id, ...update } = lesson;
+  const update = { ...lesson };
+  delete update.course_id;
   assert.deepEqual(parseCourseMutation({ entity: "course_lessons", action: "save", id, data: update }).data, update);
 });
 test("limits count Unicode code points like Postgres char_length", () => {

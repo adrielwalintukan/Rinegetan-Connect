@@ -78,6 +78,7 @@ function dashboard(role, initialTab) {
   const nullComponent = () => null;
   const { StaffDashboard } = loadTsx("src/components/staff/StaffDashboard.tsx", {
     "next/navigation": { useRouter: () => ({ refresh() {} }) },
+    "./CourseManager": { CourseManager: nullComponent },
     "./ContentFilterBar": { ContentFilterBar: nullComponent },
     "./ContentTable": { ContentTable: nullComponent },
     "./ContentMutationDialog": { ContentMutationDialog: nullComponent },
