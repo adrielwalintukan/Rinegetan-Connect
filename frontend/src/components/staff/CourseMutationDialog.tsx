@@ -54,8 +54,8 @@ export function CourseMutationDialog({ kind, courseId, courseTitle, initialData,
       const controls = Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), textarea:not(:disabled), [tabindex="0"]') ?? []);
       if (!controls.length) { event.preventDefault(); return; }
       const first = controls[0], last = controls[controls.length - 1];
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
-      if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === panel.current)) { event.preventDefault(); last?.focus(); }
+      if (!event.shiftKey && (document.activeElement === last || document.activeElement === panel.current)) { event.preventDefault(); first?.focus(); }
     }}>
       <div className="flex items-start justify-between gap-3"><h2 id="course-form-title" className="text-lg font-bold text-navy">{initialData ? "Edit" : "Tambah"} {kind === "course" ? "Course" : "Lesson"}</h2><button type="button" aria-label="Tutup form" className={button} disabled={isSaving} onClick={requestClose}>✕</button></div>
       {kind === "lesson" && <p className="mt-2 break-words text-sm text-slate-600">Course induk: {courseTitle ?? courseId}</p>}

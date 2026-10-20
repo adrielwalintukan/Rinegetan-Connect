@@ -54,9 +54,9 @@ export const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> =
         if (event.key !== "Tab") return;
         const controls = Array.from(panel.current?.querySelectorAll<HTMLButtonElement>("button:not(:disabled)") ?? []);
         if (!controls.length) { event.preventDefault(); return; }
-      const first = controls[0], last = controls[controls.length - 1];
-        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
-        if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+        const first = controls[0], last = controls[controls.length - 1];
+        if (event.shiftKey && (document.activeElement === first || document.activeElement === panel.current)) { event.preventDefault(); last?.focus(); }
+        if (!event.shiftKey && (document.activeElement === last || document.activeElement === panel.current)) { event.preventDefault(); first?.focus(); }
       }} className="relative w-full max-w-md rounded-2xl border border-red-100 bg-white p-6 shadow-2xl">
         <button
           type="button"

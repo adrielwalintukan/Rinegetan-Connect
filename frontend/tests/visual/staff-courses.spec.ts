@@ -48,6 +48,19 @@ async function targets(scope: Locator) {
     expect(box?.width).toBeGreaterThanOrEqual(44); expect(box?.height).toBeGreaterThanOrEqual(44);
   }
 }
+async function errorFocusWrap(page: Page, dialog: Locator, lastName: string, closeName: string) {
+  const panel=dialog.locator(':scope > div');
+  const last=dialog.getByRole('button',{name:lastName,exact:true});
+  const first=dialog.getByRole('button',{name:closeName,exact:true});
+  await expect(last).toBeEnabled();
+  await expect(panel).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await expect(last).toBeFocused();
+  expect(await dialog.evaluate(node=>node.contains(document.activeElement))).toBe(true);
+  await page.keyboard.press('Tab'); await expect(first).toBeFocused();
+  await page.keyboard.press('Shift+Tab'); await expect(last).toBeFocused();
+  await panel.focus(); await page.keyboard.press('Tab'); await expect(first).toBeFocused();
+}
 for (const role of ['admin','editor'] as const) test(`${role}: real draft, lesson ordering, publish, published edit and parent visibility`, async ({ page, local }) => {
   await open(page,local,role);
   const title=`Course alur ${local.suffix}`;
@@ -119,6 +132,7 @@ test('network failure retains form, dirty discard is explicit, and repeated subm
   await page.getByRole('button',{name:'Simpan materi',exact:true}).click();
   await expect(page.getByRole('dialog').getByRole('alert')).toContainText('Tidak dapat terhubung');
   await expect(page.getByLabel('Judul',{exact:true})).toHaveValue(`Gagal ${local.suffix}`);
+  await errorFocusWrap(page,page.getByRole('dialog'),'Simpan materi','Tutup form');
   await page.getByRole('button',{name:'Batal',exact:true}).click();
   await expect(page.getByText('Buang perubahan yang belum disimpan?')).toBeVisible();
   await expect(page.getByRole('button',{name:'Lanjutkan edit'})).toBeFocused();
@@ -157,6 +171,7 @@ test('admin delete confirmation enforces relation, target size, focus and final 
   const rejected=page.waitForResponse(res=>new URL(res.url()).pathname==='/api/staff/courses');
   await dialog.getByRole('button',{name:'Konfirmasi Hapus Permanen'}).click(); expect((await rejected).status()).toBe(409);
   await expect(dialog.getByRole('alert')).toContainText(/lesson|terkait/i);
+  await errorFocusWrap(page,dialog,'Konfirmasi Hapus Permanen','Tutup konfirmasi hapus');
   await page.keyboard.press('Escape'); await expect(dialog).toHaveCount(0);
   await expect(item.getByRole('button',{name:'Hapus course',exact:true})).toBeFocused();
   await item.getByRole('button',{name:'Kelola lesson'}).click();
