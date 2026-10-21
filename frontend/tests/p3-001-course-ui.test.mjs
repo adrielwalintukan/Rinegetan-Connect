@@ -27,10 +27,29 @@ test('lesson form retains parent, paragraph text, position and locked published 
 });
 test('protected page reads course data through session and surfaces safe query errors', async () => {
   const queries=[];
-  const db={from(table){ queries.push(table); const builder={select(){return builder;},order(){return builder;},limit(){return builder;},then(resolve){return Promise.resolve({data:[],error:table==='courses'?{message:'PRIVATE_SENTINEL'}:null}).then(resolve);}};return builder;}};
+  const db={from(table){ queries.push(table); const builder={select(){return builder;},order(){return builder;},range(){return builder;},limit(){return builder;},then(resolve){return Promise.resolve({data:[],error:table==='courses'?{message:'PRIVATE_SENTINEL'}:null}).then(resolve);}};return builder;}};
   const pageLoader=tsxLoader({ '@/lib/supabase/server':{createServerSupabaseClient:async()=>db}, '@/lib/staff/server':{requireActiveStaff:async()=>({role:'editor',user:{id:'staff-test',email:'staff@example.test'}})}, '@/components/staff/StaffDashboard':{StaffDashboard:()=>null}, '@/lib/public/queries':{getSiteSectionMedia:async()=>({})} });
   const result=await pageLoader('src/app/staff/(protected)/page.tsx').default({searchParams:Promise.resolve({tab:'courses'})});
   assert.ok(queries.includes('courses')); assert.ok(queries.includes('course_lessons')); assert.match(result.props.coursesError,/gagal|tidak dapat/i); assert.doesNotMatch(result.props.coursesError,/PRIVATE_SENTINEL/);
+});
+test('protected page reaches every course and lessons across parents beyond the API row cap', async () => {
+  const courses=Array.from({length:1002},(_,i)=>({...course,id:String(i).padStart(8,'0')}));
+  const lessons=Array.from({length:1502},(_,i)=>({...lesson,id:String(i).padStart(8,'0'),course_id:courses[i%1002].id,position:1+Math.floor(i/1002)}));
+  for(const failure of [null,'error','throw']) {
+    const orders=[];
+    const db={from(table){let start=0,end=999; const order=[]; const builder={select(){return builder;},order(key,options){order.push([key,options.ascending]);return builder;},range(from,to){assert.ok(to-from<1000);start=from;end=to;return builder;},then(resolve,reject){
+      const rows=table==='courses'?courses:table==='course_lessons'?lessons:[];
+      orders.push([table,order]);
+      if(table==='course_lessons'&&start>0&&failure) return (failure==='throw'?Promise.reject(new Error('PRIVATE_SENTINEL')):Promise.resolve({data:null,error:{message:'PRIVATE_SENTINEL'}})).then(resolve,reject);
+      const sorted=[...rows].sort((a,b)=>{for(const [key,ascending] of order){if(a[key]<b[key])return ascending?-1:1;if(a[key]>b[key])return ascending?1:-1;}return 0;});
+      return Promise.resolve({data:sorted.slice(start,end+1),error:null}).then(resolve,reject);
+    }};return builder;}};
+    const pageLoader=tsxLoader({'@/lib/supabase/server':{createServerSupabaseClient:async()=>db},'@/lib/staff/server':{requireActiveStaff:async()=>({role:'editor',user:{id:'staff-test'}})},'@/components/staff/StaffDashboard':{StaffDashboard:()=>null},'@/lib/public/queries':{getSiteSectionMedia:async()=>({})}});
+    const result=await pageLoader('src/app/staff/(protected)/page.tsx').default({});
+    if(failure){assert.match(result.props.coursesError,/gagal/i);assert.deepEqual(result.props.initialCourseLessons,[]);assert.doesNotMatch(result.props.coursesError,/PRIVATE_SENTINEL/);}
+    else {assert.equal(result.props.initialCourses.length,1002);assert.equal(result.props.initialCourseLessons.length,1502);assert.equal(new Set(result.props.initialCourseLessons.map(row=>row.id)).size,1502);assert.equal(result.props.coursesError,null);}
+    for(const [table,order] of orders.filter(([table])=>['courses','course_lessons'].includes(table))) assert.equal(order.at(-1)[0],'id',`${table} requires a unique tie-break`);
+  }
 });
 import { fixture as browserFixture, loopback } from './helpers/local-course-fixture.mjs';
 test('browser fixtures reject non-loopback targets before local commands or mutations', async () => {

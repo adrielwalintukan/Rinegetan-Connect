@@ -5,6 +5,7 @@ import { getSiteSectionMedia } from "@/lib/public/queries";
 import type { Course, CourseLesson } from "@/types/courses";
 import type { ContentItem } from "@/components/staff/ContentTable";
 import { loadAuditLogs } from "@/lib/staff/audit";
+import { loadCourseCollection } from "@/lib/courses/queries";
 import type { MediaAsset, MediaAlbum } from "@/types/media";
 import type { StaffMember } from "@/components/staff/StaffManager";
 
@@ -60,8 +61,8 @@ export default async function StaffHomePage({
       .select("*")
       .order("occurred_on", { ascending: false }),
     getSiteSectionMedia(),
-    client.from("courses").select("*").order("created_at", { ascending: false }).then(result => result, () => ({ data: null, error: true })),
-    client.from("course_lessons").select("*").order("position", { ascending: true }).then(result => result, () => ({ data: null, error: true })),
+    loadCourseCollection(client, "courses"),
+    loadCourseCollection(client, "course_lessons"),
   ]);
 
   const staffRes =

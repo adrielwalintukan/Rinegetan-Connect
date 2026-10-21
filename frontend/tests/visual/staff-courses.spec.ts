@@ -15,6 +15,79 @@ async function open(page: Page, local: LocalFixture, role: 'admin' | 'editor') {
   await expect(page.getByRole('button', { name:'Tambah Course',exact:true })).toBeVisible();
 }
 const card = (page: Page, title: string) => page.getByRole('listitem').filter({ has:page.getByRole('heading',{name:title,exact:true}) });
+test('delayed refresh blocks reopening until the acknowledged revision reaches the form', async ({page,local}) => {
+  await open(page,local,'editor');
+  const item=card(page,`Course browser ${local.suffix}`);
+  await item.getByRole('button',{name:'Edit course',exact:true}).click();
+  await page.getByRole('textbox',{name:'Ringkasan',exact:true}).fill('Revisi pertama tersimpan.');
+  let release!:()=>void;
+  const gate=new Promise<void>(resolve=>{release=resolve;});
+  let delivered!:()=>void; const fulfilled=new Promise<void>(resolve=>{delivered=resolve;});
+  let intercepted!:()=>void;
+  const started=new Promise<void>(resolve=>{intercepted=resolve;});
+  await page.route('**/staff?**',async route=>{
+    if(route.request().headers()['rsc']!=='1') return route.continue();
+    const response=await route.fetch(); intercepted(); await gate; await route.fulfill({response}); delivered();
+  });
+  try {
+    await submit(page); await started;
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    const edit=item.getByRole('button',{name:'Edit course',exact:true});
+    await expect(edit).toBeDisabled();
+    await edit.evaluate(button=>(button as HTMLButtonElement).click());
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    release(); await expect(edit).toBeEnabled();
+    await edit.click();
+    await expect(page.getByRole('textbox',{name:'Ringkasan',exact:true})).toHaveValue('Revisi pertama tersimpan.');
+    await page.getByLabel('Judul',{exact:true}).fill(`Revisi kedua ${local.suffix}`);
+    await submit(page);
+    await expect(card(page,`Revisi kedua ${local.suffix}`)).toContainText('Revisi pertama tersimpan.');
+  } finally { release(); await fulfilled; await page.unroute('**/staff?**'); }
+});
+test('Unicode text boundaries preserve supplementary characters and explain overflow without saving', async ({page,local}) => {
+  await open(page,local,'editor');
+  await card(page,`Course browser ${local.suffix}`).getByRole('button',{name:'Kelola lesson'}).click();
+  await page.getByRole('button',{name:'Tambah Lesson',exact:true}).click();
+  await page.getByLabel('Slug',{exact:true}).fill(`unicode-${local.suffix}`);
+  const fields=[['Judul',199,'Judul'],['Ringkasan',499,'Ringkasan'],['Isi lesson',49999,'Isi lesson']] as const;
+  for(const [name,count] of fields) {
+    const input=page.getByRole('textbox',{name,exact:true});
+    await input.fill('a'.repeat(count)); await input.press('End'); await page.keyboard.insertText('📖');
+    await expect(input).toHaveValue('a'.repeat(count)+'📖');
+  }
+  const saved=await submit(page);
+  expect(Array.from(saved.data.title)).toHaveLength(200); expect(Array.from(saved.data.summary)).toHaveLength(500); expect(Array.from(saved.data.body)).toHaveLength(50000);
+  await page.getByRole('button',{name:'Edit lesson',exact:true}).click();
+  let requests=0; const countRequest=(request: import('@playwright/test').Request)=>{if(new URL(request.url()).pathname==='/api/staff/courses') requests++;};
+  page.on('request',countRequest);
+  for(const [name,count,label] of fields) {
+    const input=page.getByRole('textbox',{name,exact:true});
+    await input.focus(); await input.press('Control+End'); await page.keyboard.insertText('b');
+    await expect(input).toHaveValue('a'.repeat(count)+'📖b');
+    await page.getByRole('button',{name:'Simpan materi',exact:true}).click();
+    await expect(page.getByRole('dialog').getByRole('alert')).toContainText(label);
+    await expect(page.getByRole('dialog').getByRole('alert')).toContainText(/maksimal|melebihi/i);
+    expect(requests).toBe(0);
+    await input.fill('a'.repeat(count)+'📖');
+  }
+  page.off('request',countRequest);
+});
+test('catalog pagination reaches courses and a small parent beyond a thousand global lessons', async ({page,local}) => {
+  local.execute(`begin; select set_config('request.jwt.claim.sub','${local.editor}',true);
+    insert into public.courses(title,slug) select 'Catalogue ${local.suffix} '||n,'catalogue-${local.suffix}-'||n from generate_series(1,1001) n;
+    insert into public.course_lessons(course_id,title,slug,position) select id,'Other parent lesson','other-parent',1 from public.courses where created_by='${local.editor}';
+    insert into public.course_lessons(course_id,title,slug,position) values('${local.course}','Reachable late lesson','late-lesson',1002); commit;`);
+  expect(local.execute(`select count(*) from public.courses where created_by='${local.editor}' and slug like 'catalogue-${local.suffix}-%';`)).toBe('1001');
+  expect(local.execute(`select count(*) from public.course_lessons where created_by='${local.editor}';`)).toBe('1002');
+  await open(page,local,'editor');
+  await page.getByPlaceholder('Cari judul atau slug...').fill(`Course browser ${local.suffix}`);
+  const parent=card(page,`Course browser ${local.suffix}`); await expect(parent).toBeVisible();
+  await parent.getByRole('button',{name:'Kelola lesson'}).click();
+  await expect(card(page,'1002. Reachable late lesson')).toBeVisible();
+  await page.getByRole('button',{name:'Kembali ke daftar course'}).click();
+  await page.getByPlaceholder('Cari judul atau slug...').fill(`Catalogue ${local.suffix} 1001`);
+  await expect(card(page,`Catalogue ${local.suffix} 1001`)).toBeVisible();
+});
 async function submit(page: Page, expectedStatus = 200) {
   const response = page.waitForResponse(res => new URL(res.url()).pathname === '/api/staff/courses' && res.request().method() === 'POST');
   await page.getByRole('button',{name:'Simpan materi',exact:true}).click();
@@ -157,6 +230,9 @@ test('missing record fails safely without losing the edit', async ({page,local})
   await expect(page.getByRole('textbox',{name:'Ringkasan',exact:true})).toHaveValue('Revisi record yang hilang.');
   await page.keyboard.press('Escape'); await page.getByRole('button',{name:'Buang perubahan'}).click();
   await page.reload(); await expect(item).toHaveCount(0);
+  // The row is already gone; cleanup must still remove audit for its known UUID.
+  local.cleanup();
+  expect(local.execute(`select count(*) from public.audit_logs where entity_id='${local.course}';`)).toBe('0');
 });
 test('admin delete confirmation enforces relation, target size, focus and final deletion', async ({page,local}) => {
   await page.setViewportSize({width:320,height:720}); await open(page,local,'admin');

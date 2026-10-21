@@ -58,12 +58,14 @@ Permohonan doa, informasi pengunjung, dan lead belajar bukan konten editorial. H
 Admin/Editor aktif memakai tab **Pelajari Alkitab** untuk membuat course, memilih induknya, lalu mengelola lesson. Materi baru selalu Draft; publikasi dilakukan setelah materi tersimpan.
 
 - Isi lesson berupa teks berparagraf maksimal 50.000 karakter. HTML/Markdown ditampilkan sebagai teks. Judul maksimal 200 karakter, slug maksimal 220 karakter, ringkasan maksimal 500 karakter.
+- Batas judul/ringkasan/isi menghitung Unicode code point, sehingga emoji suplementer tidak terpotong oleh form. Isian yang melebihi batas tetap ada dan ditolak dengan pesan batas field dalam Bahasa Indonesia.
 - **Menyimpan revisi Published mempertahankan status dan langsung memperbarui konten publik bila induknya Published.** Gunakan **Jadikan Draft** sebelum merevisi materi yang perlu disembunyikan. Tidak ada salinan revisi atau versioning pada P3-001.
 - Slug dapat diperbaiki sebelum publikasi pertama dan terkunci setelahnya, termasuk setelah materi diarsipkan atau dipulihkan.
 - Lesson hanya terbaca publik bila lesson dan course induknya sama-sama Published. Course Draft/Arsip langsung menyembunyikan seluruh lesson tanpa mengubah status anak. Menerbitkan ulang course kembali menampilkan lesson yang masih Published. Course kosong boleh diterbitkan.
 - Nomor urut lesson harus berupa integer positif dan unik dalam course. Nomor boleh bercelah; konflik nomor ditolak tanpa mengosongkan form. Tidak ada drag-and-drop/pengurutan massal.
 - Hanya Admin dapat menghapus permanen melalui konfirmasi. Course yang masih memiliki lesson ditolak dengan RESTRICT; tangani lesson lebih dahulu. Penghapusan tidak melakukan cascade materi. Database mencatat mutasi dan actor; isi lesson tidak disalin ke audit.
 - Kegagalan simpan mempertahankan form. Menutup form yang berubah memerlukan konfirmasi buang perubahan. Data halaman disegarkan setelah server mengonfirmasi sukses.
+- Sesudah simpan, tindakan mutasi menunggu penyegaran daftar selesai sebelum edit dapat dibuka kembali. Daftar course/lesson dimuat sampai lengkap melampaui batas 1.000 baris Data API; kegagalan pemuatan menampilkan pesan aman dan tombol muat ulang.
 
 Reader publik, progres/bookmark, dan perubahan CTA tetap P3-002. Migration P3-001 baru diterapkan lokal; penerapan production mengikuti proses rilis terpisah.
 

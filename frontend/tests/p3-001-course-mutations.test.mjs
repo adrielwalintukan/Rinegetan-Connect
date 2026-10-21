@@ -40,6 +40,19 @@ test("position must be a positive PostgreSQL integer", () => {
   for (const position of ["2", NaN, Infinity, 1.5, 0, -1, 2147483648]) bad({ entity: "course_lessons", action: "save", data: { ...lesson, position } });
   assert.equal(parseCourseMutation({ entity: "course_lessons", action: "save", data: { ...lesson, position: 2147483647 } }).data.position, 2147483647);
 });
+test('overflow names the field and code point limit, and trim follows ECMAScript whitespace', () => {
+  for(const [field,limit,label] of [['title',200,'Judul'],['summary',500,'Ringkasan'],['body',50000,'Isi lesson']]) {
+    const command=field==='body'?{entity:'course_lessons',action:'save',data:{...lesson,body:'a'.repeat(limit-1)+'📖b'}}:save({...course,[field]:'a'.repeat(limit-1)+'📖b'});
+    assert.throws(()=>parseCourseMutation(command),error=>error.status===400&&error.message.includes(label)&&/maksimal/i.test(error.message));
+  }
+  for(const code of [9,10,11,12,13,32,160,5760,8192,8193,8194,8195,8196,8197,8198,8199,8200,8201,8202,8232,8233,8239,8287,12288,65279]) {
+    const whitespace=String.fromCodePoint(code);
+    bad(save({...course,title:whitespace}));
+    assert.equal(parseCourseMutation(save({...course,title:whitespace+'Title'+whitespace,summary:whitespace+'Summary'+whitespace})).data.title,'Title');
+  }
+  const preserved='\u0085edge\u200b';
+  assert.equal(parseCourseMutation(save({...course,title:preserved,summary:'A\tB\u00a0C'})).data.title,preserved);
+});
 test("status/delete require ID and reject embedded save fields", () => {
   for (const action of ["status", "delete"]) {
     const mutation = { entity: "courses", action, id, ...(action === "status" ? { status: "published" } : {}) };

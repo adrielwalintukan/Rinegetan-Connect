@@ -307,7 +307,8 @@ select results_eq($$ select user_id from public.staff_roles where user_id in ('1
   '22222222-2222-2222-2222-222222222222'::uuid,
   '33333333-3333-3333-3333-333333333333'::uuid
 ]::uuid[], 'admin can read all staff roles');
-select results_eq($$ select id from public.audit_logs order by id $$, array[
+-- Preserve unrelated local audit history; assert Admin can read this test's fixture.
+select results_eq($$ select id from public.audit_logs where id = '55555555-5555-5555-5555-555555555555' order by id $$, array[
   '55555555-5555-5555-5555-555555555555'::uuid
 ]::uuid[], 'admin can read audit logs');
 

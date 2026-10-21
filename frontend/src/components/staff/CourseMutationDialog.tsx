@@ -5,6 +5,7 @@ import { Modal, MODAL_BACKDROP } from "@/components/ui/modal";
 import { clientErrorMessage } from "@/lib/api/errors";
 import type { Course, CourseLesson } from "@/types/courses";
 import type { CourseForm, LessonForm } from "@/lib/courses/mutations";
+import { courseTextLengthError } from "@/lib/courses/mutations";
 
 interface Props {
   kind: "course" | "lesson";
@@ -41,6 +42,8 @@ export function CourseMutationDialog({ kind, courseId, courseTitle, initialData,
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (isSaving || saving.current) return;
+    const overflow = courseTextLengthError(form.title, 200, "Judul") || courseTextLengthError(form.summary, 500, "Ringkasan") || (kind === "lesson" && courseTextLengthError(form.body, 50000, "Isi lesson"));
+    if (overflow) { setError(overflow); return; }
     saving.current = true; setError(null);
     try {
       const data: CourseForm = { title: form.title, slug: form.slug, summary: form.summary };
@@ -63,14 +66,14 @@ export function CourseMutationDialog({ kind, courseId, courseTitle, initialData,
       {!initialData && <p className="mt-2 text-sm text-slate-600">Materi baru disimpan sebagai Draft. Terbitkan setelah tersimpan.</p>}
       {error && <p role="alert" className="mt-3 break-words rounded-xl bg-red-50 p-3 text-sm text-red-800">{error}</p>}
       <form onSubmit={submit} className="mt-4 space-y-4">
-        <label className="block text-sm font-semibold text-slate-700">Judul<input name="title" value={form.title} onChange={change} required maxLength={200} className={field} disabled={isSaving} /></label>
+        <label className="block text-sm font-semibold text-slate-700">Judul<input name="title" value={form.title} onChange={change} required className={field} disabled={isSaving} /></label>
         <label className="block text-sm font-semibold text-slate-700">Slug<input name="slug" value={form.slug} onChange={change} required maxLength={220} pattern="[a-z0-9]+(-[a-z0-9]+)*" title="Gunakan huruf kecil, angka, dan tanda hubung" disabled={isSaving || Boolean(initialData?.published_at)} className={field} /></label>
         {initialData?.published_at && <p className="text-xs text-slate-600">Slug terkunci setelah publikasi pertama.</p>}
-        <label className="block text-sm font-semibold text-slate-700">Ringkasan<textarea name="summary" value={form.summary} onChange={change} rows={3} maxLength={500} className={field} disabled={isSaving} /></label>
+        <label className="block text-sm font-semibold text-slate-700">Ringkasan<textarea name="summary" value={form.summary} onChange={change} rows={3} className={field} disabled={isSaving} /></label>
         {kind === "lesson" && <>
           <label className="block text-sm font-semibold text-slate-700">Nomor urut<input name="position" type="number" min={1} step={1} required value={form.position} onChange={change} className={field} disabled={isSaving} /></label>
           <p className="text-xs text-slate-600">Nomor urut harus unik dalam course dan boleh bercelah. Nomor yang sudah digunakan akan ditolak.</p>
-          <label className="block text-sm font-semibold text-slate-700">Isi lesson<textarea name="body" value={form.body} onChange={change} maxLength={50000} rows={9} className={field} disabled={isSaving} /></label>
+          <label className="block text-sm font-semibold text-slate-700">Isi lesson<textarea name="body" value={form.body} onChange={change} rows={9} className={field} disabled={isSaving} /></label>
           <p className="text-xs text-slate-600">Teks berparagraf, maksimal 50.000 karakter. HTML dan Markdown ditampilkan sebagai teks.</p>
         </>}
         {discard ? <div role="alert" className="rounded-xl bg-amber-50 p-3"><p className="text-sm text-amber-900">Buang perubahan yang belum disimpan?</p><div className="mt-2 flex flex-wrap gap-2"><button type="button" ref={continueEditing} onClick={() => { setDiscard(false); panel.current?.querySelector<HTMLInputElement>("input:not(:disabled)")?.focus(); }} className={`${button} border border-slate-300`}>Lanjutkan edit</button><button type="button" onClick={onClose} className={`${button} bg-red-600 text-white`}>Buang perubahan</button></div></div> : <div className="flex flex-wrap justify-end gap-2"><button type="button" disabled={isSaving} onClick={requestClose} className={`${button} border border-slate-300`}>Batal</button><button type="submit" disabled={isSaving} className={`${button} bg-navy text-white`}>{isSaving ? "Menyimpan..." : "Simpan materi"}</button></div>}

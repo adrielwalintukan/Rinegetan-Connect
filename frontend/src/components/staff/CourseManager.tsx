@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ContentFilterBar } from "./ContentFilterBar";
 import { ContentStatusBadge } from "./ContentStatusBadge";
@@ -27,7 +27,9 @@ export function CourseManager({ courses, lessons, role, onNotification, error }:
   const [search, setSearch] = useState("");
   const [dialog, setDialog] = useState<{ kind: "course" | "lesson"; item?: Course | CourseLesson } | null>(null);
   const [deleting, setDeleting] = useState<Course | CourseLesson | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [refreshing, startRefresh] = useTransition();
+  const busy = saving || refreshing;
   const pending = useRef(false);
   const selected = courses.find(item => item.id === selectedCourseId);
   const items = selected ? lessons.filter(item => item.course_id === selected.id).sort((a, b) => a.position - b.position) : courses;
@@ -36,14 +38,14 @@ export function CourseManager({ courses, lessons, role, onNotification, error }:
   const entity = selected ? "course_lessons" : "courses";
   const mutate = async (command: CourseMutation) => {
     if (pending.current) throw new Error("Tunggu hingga penyimpanan selesai.");
-    pending.current = true; setBusy(true);
+    pending.current = true; setSaving(true);
     try {
       const res = await fetch("/api/staff/courses", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(command) });
       const json = await res.json().catch(() => ({}));
       if (!res.ok || json.success !== true || !json.data) throw new Error(typeof json.error === "string" ? json.error : "Gagal memperbarui materi. Silakan coba lagi.");
-      router.refresh(); onNotification("success", "Materi berhasil diperbarui.");
+      startRefresh(() => router.refresh()); onNotification("success", "Materi berhasil diperbarui.");
     } catch (err) { onNotification("error", clientErrorMessage(err, "Gagal memperbarui materi.")); throw err; }
-    finally { pending.current = false; setBusy(false); }
+    finally { pending.current = false; setSaving(false); }
   };
   const save = async (data: CourseForm | LessonForm) => {
     if (!dialog) return;

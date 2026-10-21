@@ -29,12 +29,22 @@ function identifier(value) {
   if (typeof value !== "string" || !uuid.test(value)) throw invalid();
   return value;
 }
-/** @param {unknown} value @param {number} max @param {boolean} [required] */
-function text(value, max, required = false) {
+/** Code point limits shared by browser and server; normalization matches persisted text.
+ * @param {string} value @param {number} max @param {string} label
+ * @returns {string | null}
+ */
+export function courseTextLengthError(value, max, label) {
+  return Array.from(value.replace(/\r\n?/g, "\n").trim()).length > max
+    ? `${label} maksimal ${max.toLocaleString("id-ID")} karakter. Kurangi isian sebelum menyimpan.` : null;
+}
+/** @param {unknown} value @param {number} max @param {boolean} [required] @param {string} [label] */
+function text(value, max, required = false, label = "Teks") {
   if (typeof value !== "string") throw invalid();
   const clean = value.replace(/\r\n?/g, "\n").trim();
   // Array.from counts Unicode code points, matching PostgreSQL char_length.
-  if ((required && !clean) || Array.from(clean).length > max || clean.includes("\0")) throw invalid();
+  const overflow = courseTextLengthError(clean, max, label);
+  if (overflow) throw new CourseMutationError(overflow, 400);
+  if ((required && !clean) || clean.includes("\0")) throw invalid();
   return clean;
 }
 
@@ -60,16 +70,16 @@ export function parseCourseMutation(value) {
   const fields = ["title", "slug", "summary"];
   if (entity === "course_lessons") fields.push("body", "position", ...(!id ? ["course_id"] : []));
   only(data, fields);
-  const title = text(data.title, 200, true);
+  const title = text(data.title, 200, true, "Judul");
   const slug = text(data.slug, 220, true);
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) throw invalid();
-  const summary = text(data.summary, 500);
+  const summary = text(data.summary, 500, false, "Ringkasan");
   /** @type {CourseForm | LessonForm} */
   let form = { title, slug, summary };
   if (entity === "course_lessons") {
     const position = data.position;
     if (typeof position !== "number" || !Number.isInteger(position) || position < 1 || position > 2147483647) throw invalid();
-    form = { ...form, body: text(data.body, 50000), position, ...(!id ? { course_id: identifier(data.course_id) } : {}) };
+    form = { ...form, body: text(data.body, 50000, false, "Isi lesson"), position, ...(!id ? { course_id: identifier(data.course_id) } : {}) };
   }
   return { entity, action: "save", ...(id ? { id } : {}), data: form };
 }

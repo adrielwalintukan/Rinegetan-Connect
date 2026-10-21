@@ -64,7 +64,7 @@ export async function fixture(origin) {
       return response.json();
     },
     cleanup() {
-      sql(`begin; create temp table p3_browser_entities on commit drop as select id from public.courses where id='${course}' or created_by in ('${admin}','${editor}') union select id from public.course_lessons where course_id='${course}' or created_by in ('${admin}','${editor}'); delete from public.course_lessons where course_id='${course}' or created_by in ('${admin}','${editor}'); delete from public.courses where id='${course}' or created_by in ('${admin}','${editor}'); delete from public.audit_logs where actor_id in ('${admin}','${editor}') or entity_id in (select id from p3_browser_entities) or changes->>'course_id'='${course}'; delete from auth.users where id in ('${admin}','${editor}'); commit;`);
+      sql(`begin; create temp table p3_browser_entities on commit drop as select id from public.courses where id='${course}' or created_by in ('${admin}','${editor}') union select id from public.course_lessons where course_id='${course}' or created_by in ('${admin}','${editor}'); delete from public.course_lessons where course_id='${course}' or created_by in ('${admin}','${editor}'); delete from public.courses where id='${course}' or created_by in ('${admin}','${editor}'); delete from public.audit_logs where actor_id in ('${admin}','${editor}') or entity_id='${course}' or entity_id in (select id from p3_browser_entities) or changes->>'course_id'='${course}'; delete from auth.users where id in ('${admin}','${editor}'); commit;`);
     }
   };
 }
