@@ -25,7 +25,7 @@ Lihat [Phase 2 Issue Backlog](PHASE-2-ISSUE-BACKLOG.md) untuk daftar issue yang 
 
 ## Phase 3 — Pelayanan Digital
 
-Status P3-001: implementasi dan verifikasi lokal lulus pada 2026-10-21; menunggu review akhir dan CI database kosong sebelum siap merge. Lihat [catatan hasil P3-001](records/P3-001-2026-10-19.md). P3-002 dan issue Phase 3 lainnya tetap backlog.
+Status P3-001: implementasi, verifikasi lokal, review akhir beserta perbaikan, dan CI database kosong lulus pada 2026-10-21. [PR #41](https://github.com/adrielwalintukan/Rinegetan-Connect/pull/41) siap ditinjau menuju `development`, belum merge atau diterapkan production. Lihat [catatan hasil P3-001](records/P3-001-2026-10-19.md). P3-002 dan issue Phase 3 lainnya tetap backlog.
 
 | ID | Issue | Acceptance ringkas | Dependensi |
 | --- | --- | --- | --- |

@@ -1,6 +1,6 @@
 # P3-001 — Model dan CMS Course/Lesson
 
-**Status:** Disetujui pemilik project pada 2026-10-18; implementasi dan review per tugas selesai secara lokal pada 2026-10-21. Review akhir branch dan CI database kosong masih menjadi gate integrasi.
+**Status:** Disetujui pemilik project pada 2026-10-18; implementasi, review per tugas, review akhir beserta perbaikannya, dan CI database kosong lulus pada 2026-10-21. PR #41 siap ditinjau menuju `development`; belum merge atau diterapkan production.
 **Dasar integrasi:** `development` pada `efed2c3`.
 **Keputusan pemilik:** melanjutkan pengembangan Phase 3, menunda backup/persiapan rilis, dan memakai teks berparagraf untuk isi lesson.
 
