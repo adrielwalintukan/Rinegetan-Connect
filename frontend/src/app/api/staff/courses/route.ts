@@ -1,7 +1,9 @@
+import { revalidatePath, revalidateTag } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireActiveStaff, StaffAccessError } from "@/lib/staff/server";
 import { parseCourseMutation, executeCourseMutation, CourseMutationError } from "@/lib/courses/mutations";
 import { publicErrorMessage } from "@/lib/api/errors";
+import { invalidateCourseReader } from "@/lib/courses/revalidation";
 
 export async function POST(request: Request): Promise<Response> {
   try {
@@ -15,6 +17,11 @@ export async function POST(request: Request): Promise<Response> {
     const client = await createServerSupabaseClient();
     const staff = await requireActiveStaff(client);
     const data = await executeCourseMutation(client, mutation, staff.role);
+    try {
+      invalidateCourseReader({ revalidateTag, revalidatePath });
+    } catch {
+      return Response.json({ success: true, data, warning: "Perubahan tersimpan, tetapi penyegaran tampilan publik belum berhasil. Silakan periksa kembali beberapa saat lagi." });
+    }
     return Response.json({ success: true, data });
   } catch (error) {
     if (error instanceof StaffAccessError) {

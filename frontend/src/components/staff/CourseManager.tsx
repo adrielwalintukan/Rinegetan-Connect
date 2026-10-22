@@ -19,6 +19,7 @@ interface Props {
   error?: string | null;
 }
 const button = "min-h-11 min-w-11 rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-50";
+const readerRefreshWarning = "Perubahan tersimpan, tetapi penyegaran tampilan publik belum berhasil. Silakan periksa kembali beberapa saat lagi.";
 
 export function CourseManager({ courses, lessons, role, onNotification, error }: Props) {
   const router = useRouter();
@@ -28,6 +29,7 @@ export function CourseManager({ courses, lessons, role, onNotification, error }:
   const [dialog, setDialog] = useState<{ kind: "course" | "lesson"; item?: Course | CourseLesson } | null>(null);
   const [deleting, setDeleting] = useState<Course | CourseLesson | null>(null);
   const [saving, setSaving] = useState(false);
+  const [readerRefreshPending, setReaderRefreshPending] = useState(false);
   const [refreshing, startRefresh] = useTransition();
   const busy = saving || refreshing;
   const pending = useRef(false);
@@ -43,6 +45,7 @@ export function CourseManager({ courses, lessons, role, onNotification, error }:
       const res = await fetch("/api/staff/courses", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(command) });
       const json = await res.json().catch(() => ({}));
       if (!res.ok || json.success !== true || !json.data) throw new Error(typeof json.error === "string" ? json.error : "Gagal memperbarui materi. Silakan coba lagi.");
+      setReaderRefreshPending(json.warning === readerRefreshWarning);
       startRefresh(() => router.refresh()); onNotification("success", "Materi berhasil diperbarui.");
     } catch (err) { onNotification("error", clientErrorMessage(err, "Gagal memperbarui materi.")); throw err; }
     finally { pending.current = false; setSaving(false); }
@@ -54,6 +57,7 @@ export function CourseManager({ courses, lessons, role, onNotification, error }:
   };
   if (error) return <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"><p>{error}</p><button className={`${button} mt-3`} onClick={() => router.refresh()}>Coba muat ulang</button></div>;
   return <section aria-label="Pengelola Course dan Lesson" className="min-w-0 space-y-4">
+    {readerRefreshPending && <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">{readerRefreshWarning}</p>}
     {selectedCourseId && !selected && <p role="alert" className="rounded-xl bg-amber-50 p-3 text-sm">Course tidak lagi tersedia. Daftar course telah diperbarui.</p>}
     {selected && <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4"><button type="button" onClick={() => { setSelectedCourseId(null); setFilter("all"); setSearch(""); }} className={button}>Kembali ke daftar course</button><h2 className="break-words text-xl font-bold text-navy">{selected.title}</h2><ContentStatusBadge status={selected.status} /><p className="break-words text-sm text-slate-600">{selected.summary}</p>{selected.status !== "published" && <p role="status" className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Course induk belum Published. Lesson tidak terbaca publik, termasuk lesson yang sudah Published.</p>}</div>}
     <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-bold text-navy">{selected ? "Daftar lesson" : "Daftar course"}</h2><button type="button" disabled={busy} onClick={() => setDialog({ kind: selected ? "lesson" : "course" })} className={`${button} bg-navy text-white`}>Tambah {selected ? "Lesson" : "Course"}</button></div>
