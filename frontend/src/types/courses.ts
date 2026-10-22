@@ -19,6 +19,14 @@ export interface CourseLesson extends Course {
   position: number;
 }
 
+export type PublicCourse = Pick<Course, "id" | "title" | "slug" | "summary" | "published_at" | "updated_at">;
+
+export type PublicLessonSummary = Pick<CourseLesson,
+  "id" | "course_id" | "title" | "slug" | "summary" | "position" | "published_at" | "updated_at"
+>;
+
+export type PublicLesson = PublicLessonSummary & { body: string };
+
 export interface CourseContent {
   courses: Course[];
   lessons: CourseLesson[];

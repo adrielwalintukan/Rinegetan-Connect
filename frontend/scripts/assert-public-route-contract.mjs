@@ -9,6 +9,9 @@ const expectedRoutes = [
   "/pelayanan",
   "/sekolah-sabat",
   "/kontak",
+  "/pelajari-alkitab",
+  "/pelajari-alkitab/[courseSlug]",
+  "/pelajari-alkitab/[courseSlug]/[lessonSlug]",
 ];
 
 const manifestPath = resolve(".next/server/app-paths-manifest.json");

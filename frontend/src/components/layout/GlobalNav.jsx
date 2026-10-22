@@ -64,10 +64,10 @@ export const GlobalNav = () => {
                         Saya Ingin Berkunjung
                     </Link>
                     <Link
-                        href="/pelayanan#alkitab"
+                        href="/pelajari-alkitab" prefetch={false}
                         onClick={closeMenu}
                         data-testid="nav-cta-pelajari-alkitab"
-                        className="group inline-flex items-center gap-1.5 rounded-full bg-navy px-5 py-2.5 text-[0.8125rem] font-semibold text-white transition-[background-color,transform] duration-300 hover:-translate-y-0.5 hover:bg-navy-600"
+                        className="group inline-flex min-h-11 items-center gap-1.5 rounded-full bg-navy px-5 py-2.5 text-[0.8125rem] font-semibold text-white transition-[background-color,transform] duration-300 hover:-translate-y-0.5 hover:bg-navy-600"
                     >
                         Pelajari Alkitab
                         <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -140,7 +140,7 @@ export const GlobalNav = () => {
                                 </span>
                             </div>
                             <Link
-                                href="/pelayanan#alkitab"
+                                href="/pelajari-alkitab" prefetch={false}
                                 onClick={closeMenu}
                                 data-testid="mobile-cta-pelajari-alkitab"
                                 className="btn-sabbath w-full"

@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
@@ -88,8 +90,8 @@ export const Hero = ({ sectionMedia = null }) => {
                             Jadwal Ibadah
                             <ArrowDown className="h-4 w-4" aria-hidden="true" />
                         </a>
-                        <a
-                            href="/pelayanan#alkitab"
+                        <Link
+                            prefetch={false} href="/pelajari-alkitab"
                             data-testid="hero-cta-pelajari-alkitab"
                             className="btn-secondary group"
                         >
@@ -98,7 +100,7 @@ export const Hero = ({ sectionMedia = null }) => {
                                 className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                                 aria-hidden="true"
                             />
-                        </a>
+                        </Link>
                     </motion.div>
 
                     <motion.div

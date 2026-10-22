@@ -15,6 +15,8 @@ const { POST } = await loadTypeScript("src/app/api/staff/courses/route.ts", {
   "@/lib/supabase/server": boundaryUrl,
   "@/lib/staff/server": guardUrl,
   "@/lib/courses/mutations": new URL("../src/lib/courses/mutations.mjs", import.meta.url).href,
+  "@/lib/courses/revalidation": new URL("../src/lib/courses/revalidation.mjs", import.meta.url).href,
+  "next/cache": dataUrl("export function revalidateTag() {} export function revalidatePath() {}"),
 });
 const command = (extra = {}) => ({ entity: "courses", action: "save", data: course, ...extra });
 async function request(value, result = { data: { id } }, auth = {}, raw = false) {
@@ -85,8 +87,8 @@ test("unexpected session-client failure is a safe 500", async () => {
   const response = await POST(new Request("http://localhost/api/staff/courses", { method: "POST", body: JSON.stringify(command()) }));
   assert.equal(response.status, 500); assert.ok(!(await response.text()).includes("PRIVATE_SENTINEL"));
 });
-test("route uses the session factory without admin client, audit writes or reader revalidation", () => {
+test("route uses the session factory without admin client or audit writes", () => {
   const source = readFileSync(new URL("../src/app/api/staff/courses/route.ts", import.meta.url), "utf8");
   assert.match(source, /createServerSupabaseClient/); assert.match(source, /requireActiveStaff/);
-  assert.doesNotMatch(source, /createAdmin|service_role|audit_logs|revalidatePath|triggerPublicRevalidation/);
+  assert.doesNotMatch(source, /createAdmin|service_role|audit_logs/);
 });
