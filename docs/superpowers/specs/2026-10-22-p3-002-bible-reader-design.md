@@ -1,6 +1,6 @@
 # P3-002 — Reader Pelajari Alkitab
 
-**Status:** Spesifikasi dan [rencana implementasi](../plans/2026-10-22-p3-002-bible-reader.md) disetujui pemilik pada 2026-10-22. Keempat tugas sudah diimplementasikan; bukti lokal tercatat pada [record P3-002](../../04-delivery/records/P3-002-2026-10-22.md). Review akhir dan CI tetap gerbang sebelum PR siap ditinjau; belum merge atau rilis production.
+**Status:** Spesifikasi dan [rencana implementasi](../plans/2026-10-22-p3-002-bible-reader.md) disetujui pemilik pada 2026-10-22. Implementasi, review per tugas dan review seluruh branch selesai; bukti lokal/CI tercatat pada [record P3-002](../../04-delivery/records/P3-002-2026-10-22.md). [PR #42](https://github.com/adrielwalintukan/Rinegetan-Connect/pull/42) menuju development; checks commit terakhir tetap gerbang integrasi. Belum merge atau rilis production.
 **Dasar integrasi:** `development`, commit `42a3d01`, hasil merge PR #41. CI hasil merge lulus.
 **Branch:** `feature/p3-002-bible-reader`, menuju `development` melalui PR.
 **Keputusan pemilik:** Progres memakai tombol **Tandai selesai**; membuka lesson tidak otomatis menyelesaikannya. Rancangan reader, penyimpanan lokal, cache/invalidation, dan batas scope disetujui untuk dituangkan menjadi spesifikasi.
