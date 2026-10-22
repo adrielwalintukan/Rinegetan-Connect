@@ -34,7 +34,7 @@ export default async function BibleLesson({ params }: Props) {
       <article className="min-w-0 max-w-3xl break-words lg:col-span-6 [overflow-wrap:anywhere]">
         <nav aria-label="Jejak halaman" className="flex flex-wrap gap-x-4 text-sm font-semibold text-navy">
           <Link prefetch={false} href="/pelajari-alkitab" className="inline-flex min-h-11 items-center underline underline-offset-4">Pelajari Alkitab</Link>
-          <Link prefetch={false} href={courseUrl} className="inline-flex min-h-11 items-center underline underline-offset-4">{course.title}</Link>
+          <Link prefetch={false} href={courseUrl} className="inline-flex min-h-11 min-w-11 items-center underline underline-offset-4">{course.title}</Link>
         </nav>
         <p className="label-eyebrow mt-6">Pelajaran {lesson.position}</p>
         <h1 className="mt-3 text-3xl font-bold text-navy sm:text-4xl">{lesson.title}</h1>

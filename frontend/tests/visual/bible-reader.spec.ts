@@ -122,6 +122,21 @@ test('controlled warning response follows one real CMS POST, closes saved modal 
   await expect(page.getByRole('dialog')).toHaveCount(0);await expect(page.getByText('Perubahan tersimpan, tetapi penyegaran tampilan publik belum berhasil. Silakan periksa kembali beberapa saat lagi.',{exact:true})).toBeVisible();await expect(item).toContainText('Satu revisi dengan warning browser.');expect(posts).toBe(1);
   expect(Number(local.execute(`select count(*) from public.audit_logs where entity_id='${local.course}' and actor_id='${local.editor}';`))).toBe(before+1);
 });
+test('short course title keeps catalogue and lesson breadcrumb targets at least 44px',async({page,local})=>{
+  const data=seed(local);
+  local.execute(`begin; select set_config('request.jwt.claim.sub','${local.editor}',true);update public.courses set title='Doa' where id='${local.course}';commit;`);
+  for(const width of [320,375,768,1024,1440]){
+    await page.setViewportSize({width,height:900});await page.goto('/pelajari-alkitab');
+    const catalogue=page.getByRole('main').getByRole('link',{name:'Doa',exact:true}).and(page.locator(`a[href="${data.url}"]`));
+    await expect(catalogue).toBeVisible();const entry=await catalogue.boundingBox();
+    expect.soft(entry!.width,`${width}px catalogue width`).toBeGreaterThanOrEqual(44);expect(entry!.height).toBeGreaterThanOrEqual(44);
+    await openLesson(page,data.url+'/lesson-dua');
+    const breadcrumb=page.getByRole('navigation',{name:'Jejak halaman'}).getByRole('link',{name:'Doa',exact:true});
+    const trail=await breadcrumb.boundingBox();
+    expect.soft(trail!.width,`${width}px breadcrumb width`).toBeGreaterThanOrEqual(44);expect(trail!.height).toBeGreaterThanOrEqual(44);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  }
+});
 for(const width of [320,375,768,1024,1440])test(`reader ${width}px: long text, touch targets, keyboard and CTA`,async({page,local},info)=>{
   const data=seed(local,true);await page.setViewportSize({width,height:900});await openLesson(page,data.url+'/lesson-tujuh');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);

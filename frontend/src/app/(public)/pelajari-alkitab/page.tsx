@@ -20,7 +20,7 @@ export default async function BibleCatalogue() {
         <p className="mt-5 max-w-2xl leading-relaxed text-slate-600">Baca pelajaran Alkitab yang tersedia, tanpa akun. Pilih materi dan belajar sesuai waktu Anda.</p>
         {courses.length === 0 ? <p className="mt-8 rounded-xl border border-navy/10 p-6">Belum ada materi yang tersedia. Silakan kunjungi kembali.</p> : <ul className="mt-8 grid gap-5 sm:grid-cols-2">
           {courses.map(course => <li key={course.id} className="card-surface min-w-0 p-6">
-            <h2 className="text-xl font-semibold text-navy"><Link prefetch={false} href={`/pelajari-alkitab/${course.slug}`} className="inline-flex min-h-11 items-center underline decoration-sabbath-500 underline-offset-4">{course.title}</Link></h2>
+            <h2 className="text-xl font-semibold text-navy"><Link prefetch={false} href={`/pelajari-alkitab/${course.slug}`} className="inline-flex min-h-11 min-w-11 items-center underline decoration-sabbath-500 underline-offset-4">{course.title}</Link></h2>
             {course.summary && <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-600">{course.summary}</p>}
           </li>)}
         </ul>}
