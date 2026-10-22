@@ -25,7 +25,9 @@ Lihat [Phase 2 Issue Backlog](PHASE-2-ISSUE-BACKLOG.md) untuk daftar issue yang 
 
 ## Phase 3 — Pelayanan Digital
 
-Status P3-001: implementasi, verifikasi lokal, review akhir beserta perbaikan, dan CI database kosong lulus pada 2026-10-21. [PR #41](https://github.com/adrielwalintukan/Rinegetan-Connect/pull/41) siap ditinjau menuju `development`, belum merge atau diterapkan production. Lihat [catatan hasil P3-001](records/P3-001-2026-10-19.md). P3-002 dan issue Phase 3 lainnya tetap backlog.
+Status P3-001: [PR #41](https://github.com/adrielwalintukan/Rinegetan-Connect/pull/41) sudah merge ke `development` pada 2026-10-22, commit `42a3d01`; CI hasil merge lulus. Belum diterapkan production. Lihat [catatan hasil P3-001](records/P3-001-2026-10-19.md).
+
+Status P3-002: rancangan percakapan disetujui pada 2026-10-22; [spesifikasi reader](../superpowers/specs/2026-10-22-p3-002-bible-reader-design.md) menunggu review tertulis sebelum rencana implementasi. Progres memakai tombol Tandai selesai, dengan bookmark dan lanjut belajar hanya pada browser lokal. P3-003 dan issue berikutnya tetap backlog.
 
 | ID | Issue | Acceptance ringkas | Dependensi |
 | --- | --- | --- | --- |
