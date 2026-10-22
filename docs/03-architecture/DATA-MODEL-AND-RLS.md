@@ -151,3 +151,11 @@ Mutasi staf tidak dilakukan melalui `insert`, `update`, atau `delete` Data API d
 | `deactivate_staff(uuid, text)` | Admin aktif | Menonaktifkan Editor dan audit `staff.deactivated` |
 
 RPC memakai `SECURITY DEFINER`, `SET search_path = ''`, nama schema lengkap, advisory lock, validasi `auth.uid()`, dan explicit `REVOKE PUBLIC`/`GRANT authenticated`. `SUPABASE_SECRET_KEY` hanya berada pada server admin client untuk Auth invitation dan tidak boleh masuk bundle browser, response, fixture, atau audit. Route invitation melakukan kompensasi `auth.admin.deleteUser` bila provisioning database gagal. UI sign-in, reset password, refresh-session, dan route guard penuh adalah scope P2-204.
+
+## Proyeksi reader dan progres lokal P3-002
+
+Reader memakai `PublicCourse`, `PublicLessonSummary` dan `PublicLesson`; proyeksi eksplisit tidak memuat `created_by`/`updated_by`. Daftar lesson tidak membawa body. Query parent Published dan `course_id`/slug membatasi relasi URL; sesi staf tidak diteruskan ke client anonim. Grants/RLS P3-001 tetap berlaku tanpa migration baru.
+
+Key browser `rinegetan:bible-learning:v1` memuat `{version:1,courses:{[courseId]:{completedLessonIds,bookmarkedLessonIds,lastLessonId}}}`. Semua nilai materi adalah UUID; tidak ada judul, slug, body, profil atau credential. Data dibaca setelah mount, dinormalisasi dengan allowlist, serta tidak dikirim ke database/audit. Buka hanya memperbarui ID terakhir; selesai dan bookmark memerlukan tombol manual. Hitungan dan tautan selalu diiris dengan daftar publik terbaru. ID tersembunyi boleh tetap tersimpan tanpa membocorkan konten atau menambah progres yang terlihat.
+
+Getter storage yang melempar, data rusak, versi salah, dan kuota tidak mematahkan reader. Kegagalan tulis menampilkan warning dan mempertahankan pilihan dalam memori untuk tindakan berikutnya pada halaman aktif. Muat ulang tanpa penyimpanan yang berhasil dapat kehilangan pilihan tersebut. Tidak ada sinkronisasi antar perangkat, cloud/member, salinan body atau schema database progres.
