@@ -1,6 +1,6 @@
 # P3-002 — Reader Pelajari Alkitab
 
-**Status:** Rancangan percakapan disetujui pemilik pada 2026-10-22; spesifikasi tertulis ini menunggu review sebelum rencana implementasi dibuat.
+**Status:** Rancangan percakapan dan spesifikasi tertulis disetujui pemilik pada 2026-10-22; [rencana implementasi](../plans/2026-10-22-p3-002-bible-reader.md) menunggu review sebelum implementasi dimulai.
 **Dasar integrasi:** `development`, commit `42a3d01`, hasil merge PR #41. CI hasil merge lulus.
 **Branch:** `feature/p3-002-bible-reader`, menuju `development` melalui PR.
 **Keputusan pemilik:** Progres memakai tombol **Tandai selesai**; membuka lesson tidak otomatis menyelesaikannya. Rancangan reader, penyimpanan lokal, cache/invalidation, dan batas scope disetujui untuk dituangkan menjadi spesifikasi.
