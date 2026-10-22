@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Bell,
+  BookOpen,
   Calendar,
   Clock,
   Building,
@@ -15,6 +16,8 @@ import {
   LayoutTemplate,
   Users,
 } from "lucide-react";
+import { CourseManager } from "./CourseManager";
+import type { Course, CourseLesson } from "@/types/courses";
 import { ContentFilterBar } from "./ContentFilterBar";
 import { ContentTable, type ContentItem } from "./ContentTable";
 import { ContentMutationDialog } from "./ContentMutationDialog";
@@ -44,9 +47,13 @@ interface StaffDashboardProps {
   currentUserId: string;
   initialStaff?: StaffMember[];
   initialTab?: TabType;
+  initialCourses?: Course[];
+  initialCourseLessons?: CourseLesson[];
+  coursesError?: string | null;
 }
 
 export type TabType =
+  | "courses"
   | "announcements"
   | "events"
   | "schedules"
@@ -71,10 +78,14 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   currentUserId,
   initialStaff = [],
   initialTab,
+  initialCourses = [],
+  initialCourseLessons = [],
+  coursesError,
 }) => {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     const validTabs: TabType[] = [
+      "courses",
       "announcements",
       "events",
       "schedules",
@@ -319,6 +330,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   };
 
   const tabs = [
+    { id: "courses" as TabType, label: "Pelajari Alkitab", icon: BookOpen },
     { id: "announcements" as TabType, label: "Pengumuman", icon: Bell },
     { id: "events" as TabType, label: "Kegiatan", icon: Calendar },
     { id: "schedules" as TabType, label: "Jadwal Rutin", icon: Clock },
@@ -389,7 +401,8 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
             <span>{notification.message}</span>
             <button
               onClick={() => setNotification(null)}
-              className="text-xs opacity-70 hover:opacity-100"
+              aria-label="Tutup pemberitahuan"
+              className="min-h-11 min-w-11 text-xs opacity-70 hover:opacity-100"
             >
               ✕
             </button>
@@ -425,7 +438,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
           </nav>
 
           {/* Create Button (only for content tabs) */}
-          {activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && (
+          {activeTab !== "courses" && activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && (
             <button
               type="button"
               onClick={() => {
@@ -442,7 +455,9 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
 
         {/* Tab Content Section */}
         <div className="mt-6">
-          {activeTab === "audit" ? (
+          {activeTab === "courses" ? (
+            <CourseManager courses={initialCourses} lessons={initialCourseLessons} role={role} onNotification={showNotification} error={coursesError} />
+          ) : activeTab === "audit" ? (
             role === "admin" ? <AuditLogViewer logs={initialAuditLogs} error={auditLogsError} /> : null
           ) : activeTab === "staff" ? (
             role === "admin" ? (
@@ -499,7 +514,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
       </main>
 
       {/* Dialogs */}
-      {activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && (
+      {activeTab !== "courses" && activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && (
         <ContentMutationDialog
           key={`${activeTab}_${editingItem?.id || "new"}`}
           isOpen={isMutationOpen}
@@ -515,7 +530,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
         />
       )}
 
-      {activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && (
+      {activeTab !== "courses" && activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && (
         <DeleteConfirmationDialog
           isOpen={isDeleteOpen}
           onClose={() => {

@@ -27,6 +27,7 @@ function loadTsx(path, boundaries = {}) {
   new Function("require", "module", "exports", output)((id) => {
     if (id in boundaries) return boundaries[id];
     if (id.startsWith("@/lib/staff/audit")) return require(resolve(root, "src/lib/staff/audit.mjs"));
+    if (id === "@/lib/courses/queries") return require(resolve(root, "src/lib/courses/queries.mjs"));
     return require(id);
   }, testModule, testModule.exports);
   return testModule.exports;
@@ -42,6 +43,7 @@ function database({ error = null, throws = false } = {}) {
       const builder = {
         select(columns) { query.columns = columns; return builder; },
         order(column, options) { query.order = [column, options]; return builder; },
+        range() { return builder; },
         limit(limit) {
           query.limit = limit;
           if (throws) return Promise.reject(new Error("internal database connection details"));
@@ -78,6 +80,7 @@ function dashboard(role, initialTab) {
   const nullComponent = () => null;
   const { StaffDashboard } = loadTsx("src/components/staff/StaffDashboard.tsx", {
     "next/navigation": { useRouter: () => ({ refresh() {} }) },
+    "./CourseManager": { CourseManager: nullComponent },
     "./ContentFilterBar": { ContentFilterBar: nullComponent },
     "./ContentTable": { ContentTable: nullComponent },
     "./ContentMutationDialog": { ContentMutationDialog: nullComponent },

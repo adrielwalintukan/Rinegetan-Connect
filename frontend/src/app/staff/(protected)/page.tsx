@@ -2,8 +2,10 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireActiveStaff } from "@/lib/staff/server";
 import { StaffDashboard, type TabType } from "@/components/staff/StaffDashboard";
 import { getSiteSectionMedia } from "@/lib/public/queries";
+import type { Course, CourseLesson } from "@/types/courses";
 import type { ContentItem } from "@/components/staff/ContentTable";
 import { loadAuditLogs } from "@/lib/staff/audit";
+import { loadCourseCollection } from "@/lib/courses/queries";
 import type { MediaAsset, MediaAlbum } from "@/types/media";
 import type { StaffMember } from "@/components/staff/StaffManager";
 
@@ -30,6 +32,8 @@ export default async function StaffHomePage({
     mediaAssetsRes,
     mediaAlbumsRes,
     sectionMedia,
+    coursesRes,
+    lessonsRes,
   ] = await Promise.all([
     client
       .from("announcements")
@@ -57,6 +61,8 @@ export default async function StaffHomePage({
       .select("*")
       .order("occurred_on", { ascending: false }),
     getSiteSectionMedia(),
+    loadCourseCollection(client, "courses"),
+    loadCourseCollection(client, "course_lessons"),
   ]);
 
   const staffRes =
@@ -93,6 +99,9 @@ export default async function StaffHomePage({
       currentUserId={staff.user.id}
       initialStaff={initialStaff}
       initialTab={initialTab as TabType | undefined}
+      initialCourses={(coursesRes.data as Course[]) || []}
+      initialCourseLessons={(lessonsRes.data as CourseLesson[]) || []}
+      coursesError={coursesRes.error || lessonsRes.error ? "Materi gagal dimuat. Silakan coba muat ulang." : null}
     />
   );
 }
