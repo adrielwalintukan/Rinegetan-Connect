@@ -85,7 +85,8 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Start Supabase local containers
         # Only the services the app and fixtures use: Postgres, Auth, PostgREST, Storage and the gateway.
-        run: npm run supabase -- start -x realtime,imgproxy,mailpit,studio,edge-runtime,logflare,vector,supavisor,postgres-meta
+        # stdout is discarded because it prints the local CLI key table; errors still reach stderr.
+        run: npm run supabase -- start -x realtime,imgproxy,mailpit,studio,edge-runtime,logflare,vector,supavisor,postgres-meta > /dev/null
       - name: Export local Supabase settings
         # Loopback URL and the local CLI anon key only; written to the job env without printing them.
         run: |
