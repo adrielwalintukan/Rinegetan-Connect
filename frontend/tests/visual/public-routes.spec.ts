@@ -33,7 +33,7 @@ for (const viewport of viewports) {
 
             expect(
                 await page.evaluate(() => document.documentElement.scrollWidth)
-            ).toBeLessThanOrEqual(0); // PROBE: deliberately failing, reverted in the next commit
+            ).toBeLessThanOrEqual(viewport.width);
         });
     }
 }
