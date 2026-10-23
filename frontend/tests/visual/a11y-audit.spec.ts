@@ -87,6 +87,35 @@ for (const route of routes) {
     });
 }
 
+test("reduced motion shows content without fades, delays or parallax", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 960 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/", { waitUntil: "load" });
+
+    // Hero intro uses delays up to 1s and 1s fades; with reduced motion it must be final right after hydration.
+    const hiddenOrMoving = () =>
+        page.evaluate(() =>
+            [...document.querySelectorAll<HTMLElement>("[style]")]
+                .filter((el) => el.getBoundingClientRect().top < window.innerHeight)
+                .filter((el) => {
+                    const style = getComputedStyle(el);
+                    return Number(style.opacity) < 1 || (style.transform !== "none" && el.closest('[data-testid="hero"]'));
+                })
+                .map((el) => `${el.tagName.toLowerCase()} "${(el.textContent || "").trim().slice(0, 30)}"`),
+        );
+    await page.waitForTimeout(200);
+    expect(await hiddenOrMoving()).toEqual([]);
+
+    // A below-the-fold reveal appears fully as soon as it is scrolled into view.
+    const reveal = page.locator('[data-testid="digital-ministry-section"] .min-w-0').first();
+    await reveal.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(100);
+    expect(await reveal.evaluate((el) => getComputedStyle(el).opacity)).toBe("1");
+
+    // Scroll-linked parallax stays still.
+    expect(await page.getByTestId("hero-image-frame").locator("img").evaluate((el) => getComputedStyle(el).transform)).toBe("none");
+});
+
 test("performance snapshot of public routes on mobile (recorded, no budget agreed yet)", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     const rows: Record<string, unknown>[] = [];

@@ -40,7 +40,7 @@
 
 - Navigasi keyboard termasuk menu mobile, dialog/lightbox, filter, dan tombol unduh.
 - Kontras AA, fokus terlihat, alt text, heading hierarchy, label form, dan error announcement.
-- prefers-reduced-motion mengurangi animasi, termasuk animasi framer-motion melalui `MotionConfig reducedMotion="user"`.
+- prefers-reduced-motion menghentikan animasi: framer-motion melalui `MotionGlobalConfig.skipAnimations`, parallax Hero melalui `motion-reduce`, animasi CSS melalui media query global. Diuji perilakunya di `npm run test:a11y`.
 - Audit axe WCAG 2.2 AA, satu `<h1>`, alt, fokus keyboard, dan snapshot performa: `npm run test:a11y` (default terhadap production; `AUDIT_BASE_URL` untuk target lain). Belum masuk CI.
 - Screenshot/regression check pada 320, 375, 768, 1024, dan 1440px.
 

@@ -18,8 +18,10 @@ const contrast = (a, b) => {
 };
 
 test("amber text tokens meet WCAG AA on the light surfaces they are used on", () => {
-  const config = read("tailwind.config.ts");
-  const shade = (n) => config.match(new RegExp(`${n}: "(#[0-9A-Fa-f]{6})"`))[1];
+  // Scope to the sabbath palette: the navy palette above it also defines 600/700.
+  const palette = read("tailwind.config.ts").match(/sabbath: \{([^}]*)\}/)[1];
+  const shade = (n) => palette.match(new RegExp(`\\b${n}: "(#[0-9A-Fa-f]{6})"`))[1];
+  assert.equal(shade(500), "#E5A93C", "parsed the sabbath palette");
   // Background, sabbath-50 and sabbath-100 surfaces.
   for (const surface of ["#FCFAF8", "#FDF8EE", "#FBF0DA"]) {
     assert.ok(contrast(shade(600), surface) >= 4.5, `sabbath-600 on ${surface}`);
@@ -35,13 +37,16 @@ test("darker text tokens do not recolour the official church symbol", () => {
 
 test("focus ring keeps 3:1 against light surfaces and navy", () => {
   const ring = read("src/app/globals.css").match(/:focus-visible \{\s+outline: 2px solid (#[0-9a-f]{6})/)[1];
-  for (const surface of ["#FCFAF8", "#FFFFFF", "#0A2540"]) {
+  for (const surface of ["#FCFAF8", "#FFFFFF", "#FBF0DA", "#0A2540"]) {
     assert.ok(contrast(ring, surface) >= 3, `focus ring on ${surface}`);
   }
 });
 
-test("framer-motion animations honour prefers-reduced-motion on public pages", () => {
-  assert.match(read("src/app/(public)/layout.tsx"), /<MotionConfig reducedMotion="user">/);
+test("reduced motion skips every framer-motion animation and the scroll parallax on public pages", () => {
+  const runtime = read("src/components/runtime/PublicClientRuntime.tsx");
+  assert.match(runtime, /matchMedia\("\(prefers-reduced-motion: reduce\)"\)\.matches\) \{\s+MotionGlobalConfig\.skipAnimations = true;/);
+  assert.match(read("src/app/(public)/layout.tsx"), /<PublicClientRuntime \/>/);
+  assert.match(read("src/components/sections/Hero.jsx"), /motion-reduce:!\[transform:none\]/);
 });
 
 test("every public page has exactly one h1 page title", () => {

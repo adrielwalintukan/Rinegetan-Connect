@@ -115,7 +115,8 @@ export const Hero = ({ sectionMedia = null }) => {
                             src={heroSrc}
                             alt={heroAlt}
                             style={heroPosition === "contain" ? undefined : { y: imgY }}
-                            className={
+                            // Scroll-linked parallax is not an animation, so skipAnimations cannot stop it; CSS can.
+                            className={`motion-reduce:![transform:none] ${
                                 heroPosition === "contain"
                                     ? "h-full w-full object-contain"
                                     : heroPosition === "bottom"
@@ -123,7 +124,7 @@ export const Hero = ({ sectionMedia = null }) => {
                                     : heroPosition === "top"
                                     ? "h-full w-full object-cover object-top will-change-transform"
                                     : "h-[110%] w-full object-cover object-center will-change-transform"
-                            }
+                            }`}
                             fetchPriority="high"
                         />
                         <figcaption className="absolute bottom-4 left-4 flex items-center gap-2 rounded-full bg-navy/80 px-4 py-2 text-xs font-medium text-white backdrop-blur-md">
