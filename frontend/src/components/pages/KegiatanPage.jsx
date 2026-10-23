@@ -21,7 +21,7 @@ export default function KegiatanPage({ initialEvents = null }) {
     return (
         <section data-testid="kegiatan-page" className="py-16 lg:py-24">
             <div className="container-site">
-                <ChapterHeading
+                <ChapterHeading as="h1"
                     number="01"
                     eyebrow="Kegiatan"
                     title={

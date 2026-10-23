@@ -29,7 +29,9 @@ Setiap halaman baru wajib tetap nyaman pada lebar 320px, 375px, 768px, 1024px, d
 | --- | --- | --- |
 | Navy | #0A2540 | brand primer, heading, tombol primer |
 | Navy 700 | #0F2E4E | hover dan surface gelap |
-| Sabbath Amber | #E5A93C | fokus, CTA Sabat, kolom ketujuh |
+| Sabbath Amber | #E5A93C | CTA Sabat, kolom ketujuh, aksen non-teks |
+| Sabbath 600 | #92661C | teks amber di latar terang (≥4,5:1) dan outline fokus (≥3:1 pada latar terang dan navy) |
+| Sabbath 700 | #785417 | teks amber kecil di latar amber muda (sabbath-50/100) |
 | Gold | #D4AF37 | aksen terbatas |
 | Life Emerald | #0D9488 | status positif/kehidupan, bukan CTA utama |
 | Background | #FAFAFC | latar utama |

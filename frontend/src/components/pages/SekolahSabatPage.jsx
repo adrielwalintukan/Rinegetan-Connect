@@ -30,7 +30,7 @@ export default function SekolahSabatPage({ initialSchedules = null, sectionMedia
     return (
         <section data-testid="sekolah-sabat-page" className="py-16 lg:py-24">
             <div className="container-site">
-                <ChapterHeading
+                <ChapterHeading as="h1"
                     number="01"
                     eyebrow="Sekolah Sabat"
                     title={

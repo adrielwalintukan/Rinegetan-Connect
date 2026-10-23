@@ -22,8 +22,9 @@
 
   ::selection { background-color: #f6e0b4; color: #0a2540; }
 
+  /* sabbath-600 keeps the amber focus ring at >=3:1 on both light surfaces and navy (WCAG 1.4.11). */
   :focus-visible {
-    outline: 2px solid #e5a93c;
+    outline: 2px solid #92661c;
     outline-offset: 3px;
     border-radius: 2px;
   }
@@ -31,7 +32,7 @@
 
 @layer components {
   .container-site { @apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10; }
-  .label-eyebrow { @apply font-mono text-[0.6875rem] font-medium uppercase tracking-[0.28em] text-slate-500; }
+  .label-eyebrow { @apply font-mono text-[0.6875rem] font-medium uppercase tracking-[0.28em] text-slate-600; }
   .btn-primary { @apply inline-flex items-center justify-center gap-2 rounded-full bg-navy px-7 py-3.5 text-sm font-semibold text-white transition duration-300 hover:-translate-y-0.5 hover:bg-navy-600; }
   .btn-secondary { @apply inline-flex items-center justify-center gap-2 rounded-full border border-navy/20 px-7 py-3.5 text-sm font-semibold text-navy transition duration-300 hover:-translate-y-0.5 hover:bg-white; }
   .btn-sabbath { @apply inline-flex items-center justify-center gap-2 rounded-full bg-sabbath-500 px-7 py-3.5 text-sm font-semibold text-navy-900 transition duration-300 hover:-translate-y-0.5 hover:bg-sabbath-400; }

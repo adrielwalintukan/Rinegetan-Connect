@@ -14,7 +14,8 @@
     "supabase": "supabase --workdir ..",
     "test:visual": "playwright test",
     "test:visual:update": "playwright test --update-snapshots",
-    "test:visual:install": "playwright install chromium"
+    "test:visual:install": "playwright install chromium",
+    "test:a11y": "playwright test -c tests/visual/a11y-audit.config.ts"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",
@@ -39,6 +40,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "10.4.20",
+    "axe-core": "4.13.0",
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
     "postcss": "8.5.10",

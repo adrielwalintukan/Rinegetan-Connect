@@ -42,7 +42,8 @@ export const SabbathColumn = ({ children, className, label = "Hari Ketujuh" }) =
         <span className="label-eyebrow !text-sabbath-700 lg:[writing-mode:vertical-rl] lg:rotate-180">
             {label}
         </span>
-        <span className="text-sabbath-600">
+        {/* The church symbol keeps its original amber; logos are exempt from text contrast. */}
+        <span className="text-[#C98F26]">
             <AdventistSymbol className="h-9 w-9 lg:h-12 lg:w-12" />
         </span>
         {children}

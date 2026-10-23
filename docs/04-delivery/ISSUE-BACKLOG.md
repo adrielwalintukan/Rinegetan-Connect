@@ -7,7 +7,7 @@ Backlog ini adalah indeks issue tingkat produk. Issue Phase 2 yang aktif memilik
 | ID | Issue | Acceptance ringkas | Status |
 | --- | --- | --- | --- |
 | P1-001 | Pertahankan kontrak desain dan URL Phase 1 saat refactor. | Token, Creation Grid, simbol resmi, tujuh URL, serta perilaku mobile memiliki test kontrak sebelum cutover. | Selesai (PR #4) |
-| P1-002 | Validasi aksesibilitas dan performa website publik. | Keyboard, fokus, landmark, heading, alternatif gambar, dan performance budget diperiksa pada rute utama. | Backlog |
+| P1-002 | Validasi aksesibilitas dan performa website publik. | Keyboard, fokus, landmark, heading, alternatif gambar, dan performance budget diperiksa pada rute utama. | Audit dan perbaikan a11y selesai; budget performa menunggu keputusan pemilik ([record](records/P1-002-2026-10-23.md)) |
 | P1-003 | Ganti placeholder operasional. | Alamat, nomor, sosial, jadwal, dan foto diganti hanya setelah pemilik konten mengesahkan data serta consent dicatat. | Backlog operasional |
 | P1-004 | Buat baseline analitik privasi. | Tidak ada tracker non-esensial sebelum kebijakan cookie/consent disepakati. | Backlog |
 

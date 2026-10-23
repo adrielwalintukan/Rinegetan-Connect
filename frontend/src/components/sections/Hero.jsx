@@ -144,12 +144,13 @@ export const Hero = ({ sectionMedia = null }) => {
                     <span className="font-mono text-[0.6875rem] font-medium uppercase tracking-[0.3em] text-sabbath-700 lg:[writing-mode:vertical-rl] lg:rotate-180">
                         Sabat · Jumat petang – Sabtu petang
                     </span>
-                    <div className="text-sabbath-600">
+                    {/* The church symbol keeps its original amber; logos are exempt from text contrast. */}
+                    <div className="text-[#C98F26]">
                         <AdventistSymbol className="h-12 w-12 lg:h-16 lg:w-16" />
                     </div>
                     <div className="hidden text-center lg:block">
                         <p className="font-serif text-lg italic text-navy">Sabtu</p>
-                        <p className="mt-1 font-mono text-xs text-slate-500">
+                        <p className="mt-1 font-mono text-xs text-slate-600">
                             {SABBATH.items[0].time}
                         </p>
                     </div>
