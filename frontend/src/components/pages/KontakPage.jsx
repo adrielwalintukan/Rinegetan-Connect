@@ -9,7 +9,7 @@ export default function KontakPage() {
     return (
         <section data-testid="kontak-page" className="py-16 lg:py-24">
             <div className="container-site">
-                <ChapterHeading
+                <ChapterHeading as="h1"
                     number="01"
                     eyebrow="Kontak"
                     title={

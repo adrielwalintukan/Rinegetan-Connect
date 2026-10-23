@@ -115,7 +115,8 @@ export const Hero = ({ sectionMedia = null }) => {
                             src={heroSrc}
                             alt={heroAlt}
                             style={heroPosition === "contain" ? undefined : { y: imgY }}
-                            className={
+                            // Scroll-linked parallax is not an animation, so skipAnimations cannot stop it; CSS can.
+                            className={`motion-reduce:![transform:none] ${
                                 heroPosition === "contain"
                                     ? "h-full w-full object-contain"
                                     : heroPosition === "bottom"
@@ -123,7 +124,7 @@ export const Hero = ({ sectionMedia = null }) => {
                                     : heroPosition === "top"
                                     ? "h-full w-full object-cover object-top will-change-transform"
                                     : "h-[110%] w-full object-cover object-center will-change-transform"
-                            }
+                            }`}
                             fetchPriority="high"
                         />
                         <figcaption className="absolute bottom-4 left-4 flex items-center gap-2 rounded-full bg-navy/80 px-4 py-2 text-xs font-medium text-white backdrop-blur-md">
@@ -144,12 +145,13 @@ export const Hero = ({ sectionMedia = null }) => {
                     <span className="font-mono text-[0.6875rem] font-medium uppercase tracking-[0.3em] text-sabbath-700 lg:[writing-mode:vertical-rl] lg:rotate-180">
                         Sabat · Jumat petang – Sabtu petang
                     </span>
-                    <div className="text-sabbath-600">
+                    {/* The church symbol keeps its original amber; logos are exempt from text contrast. */}
+                    <div className="text-[#C98F26]">
                         <AdventistSymbol className="h-12 w-12 lg:h-16 lg:w-16" />
                     </div>
                     <div className="hidden text-center lg:block">
                         <p className="font-serif text-lg italic text-navy">Sabtu</p>
-                        <p className="mt-1 font-mono text-xs text-slate-500">
+                        <p className="mt-1 font-mono text-xs text-slate-600">
                             {SABBATH.items[0].time}
                         </p>
                     </div>

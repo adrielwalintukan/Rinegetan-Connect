@@ -1,6 +1,6 @@
 import { Reveal } from "@/components/motion/Reveal";
 
-export const ChapterHeading = ({ number, eyebrow, title, description, align = "left" }) => (
+export const ChapterHeading = ({ number, eyebrow, title, description, align = "left", as: Heading = "h2" }) => (
     <Reveal
         className={
             align === "center"
@@ -14,9 +14,9 @@ export const ChapterHeading = ({ number, eyebrow, title, description, align = "l
             </span>
             <span className="label-eyebrow">{eyebrow}</span>
         </p>
-        <h2 className="mt-4 text-2xl font-semibold tracking-tight text-navy sm:text-3xl lg:text-4xl">
+        <Heading className="mt-4 text-2xl font-semibold tracking-tight text-navy sm:text-3xl lg:text-4xl">
             {title}
-        </h2>
+        </Heading>
         {description && (
             <p className="mt-4 text-base leading-relaxed text-slate-600">{description}</p>
         )}

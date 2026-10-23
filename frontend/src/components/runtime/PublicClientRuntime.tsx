@@ -2,7 +2,15 @@
 
 import { useEffect } from "react";
 import Lenis from "lenis";
+import { MotionGlobalConfig } from "framer-motion";
 import { Toaster } from "sonner";
+
+// Runs at module load, before any motion component mounts: with reduced motion every framer-motion
+// animation (opacity fades and delays included) jumps straight to its final state.
+// shortcut: read once per page load, so toggling the OS setting applies after a reload.
+if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  MotionGlobalConfig.skipAnimations = true;
+}
 
 export function PublicClientRuntime() {
   useEffect(() => {
