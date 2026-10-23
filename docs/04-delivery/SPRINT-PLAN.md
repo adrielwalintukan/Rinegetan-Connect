@@ -18,16 +18,16 @@ Cadence usulan adalah satu minggu fokus per sprint. Bila ada blocker konten, izi
 | S2.0 | Kontrak refactor: inventaris Phase 1, struktur repository, standar cabang/PR, dan CI awal. | Selesai |
 | S2.1 | Promosikan aplikasi Next.js + TypeScript, pertahankan URL/desain Phase 1, dan buat regression contract test. | Selesai |
 | S2.2 | Buat migration Supabase, bootstrap Admin, Auth Admin/Editor, RLS, dan audit dasar. | Selesai |
-| S2.3 | Sediakan CMS pengumuman, acara, departemen, jadwal beserta pengecualian, serta status Draft/Published/Archived. | Berjalan |
-| S2.4 | Sediakan Media Library dan galeri album: consent, derivative JPEG, visibility, dan unduhan aman. | Backlog |
-| S2.5 | Tambahkan quality gate, backup/restore drill, hardening deployment Vercel, dan pilot tertutup. | Backlog |
+| S2.3 | Sediakan CMS pengumuman, acara, departemen, jadwal beserta pengecualian, serta status Draft/Published/Archived. | Selesai |
+| S2.4 | Sediakan Media Library dan galeri album: consent, derivative JPEG, visibility, dan unduhan aman. | Selesai |
+| S2.5 | Tambahkan quality gate, backup/restore drill, hardening deployment Vercel, dan pilot tertutup. | Selesai (backup berikutnya deferred, lihat OPS-002) |
 
 ## Phase 3 — Pelayanan Digital
 
 | Sprint | Sasaran dan keluaran | Status |
 | --- | --- | --- |
-| S3.0 | Bentuk model Course/Lesson dan reader publik untuk Pelajari Alkitab; progres hanya di browser pengguna. | Backlog |
-| S3.1 | Buat CMS course/lesson dan impor pihak ketiga yang selalu masuk sebagai draft serta melewati pemeriksaan lisensi. | Backlog |
+| S3.0 | Bentuk model Course/Lesson dan reader publik untuk Pelajari Alkitab; progres hanya di browser pengguna. | Selesai (P3-001, P3-002; production 2026-10-23) |
+| S3.1 | Buat CMS course/lesson dan impor pihak ketiga yang selalu masuk sebagai draft serta melewati pemeriksaan lisensi. | Sebagian: CMS selesai (P3-001); impor backlog (P3-003) |
 | S3.2 | Buat form minat belajar, permohonan doa, dan kunjungan dengan consent, anti-spam, dan akses Admin-only. | Backlog |
 | S3.3 | Uji retensi 24 bulan, audit akses, ekspor terkontrol, dan prosedur respons data pastoral. | Backlog |
 
@@ -38,7 +38,7 @@ Cadence usulan adalah satu minggu fokus per sprint. Bila ada blocker konten, izi
 | S4.0 | Buat adapter Adventech di server, normalisasi/validasi data, attribution, dan cache terukur. | Backlog |
 | S4.1 | Rilis reader Bahasa Indonesia dengan kelas Kindergarten, Primary, PowerPoint, Cornerstone, Dewasa hanya saat sumber Indonesia tersedia; fallback Dewasa. | Backlog |
 | S4.2 | Tambahkan preview dan paket unduh lokal berorientasi manifest, pengecekan update, serta progres IndexedDB tanpa akun. | Backlog |
-| S4.3 | Aktifkan offline materi hanya setelah register menyimpan izin tertulis dari pemegang hak; tanpa izin, reader tetap online-only. | Release gate |
+| S4.3 | Aktifkan cache materi dan offline hanya setelah register menyimpan izin tertulis dari pemegang hak (P4-005); tanpa izin, reader tetap online-only. S4.0–S4.2 membangun mekanisme tanpa mengaktifkannya untuk publik. | Release gate |
 
 ## Phase 5 — PWA dan Notifikasi
 
@@ -57,4 +57,4 @@ Cadence usulan adalah satu minggu fokus per sprint. Bila ada blocker konten, izi
 - **Phase 4:** Sekolah Sabat Indonesia terintegrasi dan cache tervalidasi; offline hanya aktif setelah izin tertulis pemegang hak.
 - **Phase 5:** PWA installable, update/recovery aman, Web Push opt-in/category/unsubscribe siap; WhatsApp tetap opsi masa depan berbiaya.
 
-Dokumen [Phase 2 Sprint Plan](PHASE-2-SPRINT-PLAN.md) adalah rincian eksekusi aktif untuk S2.0–S2.5. Dokumentasi direview melalui PR awal; sprint menghasilkan issue kecil dengan bukti verifikasi, sedangkan PR kode Phase 2 menuju `development` dibuka setelah seluruh scope Phase 2 selesai sesuai keputusan saat ini.
+Dokumen [Phase 2 Sprint Plan](PHASE-2-SPRINT-PLAN.md) adalah rincian eksekusi historis untuk S2.0–S2.5 (Phase 2 selesai). Dokumentasi direview melalui PR awal; sprint menghasilkan issue kecil dengan bukti verifikasi, sedangkan PR kode Phase 2 menuju `development` dibuka setelah seluruh scope Phase 2 selesai sesuai keputusan saat ini.

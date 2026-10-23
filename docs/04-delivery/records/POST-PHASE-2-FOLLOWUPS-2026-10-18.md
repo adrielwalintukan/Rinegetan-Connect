@@ -56,3 +56,22 @@ Login staf serta smoke test dengan data nyata tetap dijalankan oleh pemilik; jan
 ## Konfirmasi pemilik yang masih diperlukan
 
 Pemilik menetapkan tujuan penyimpanan kedua, menunjuk pemegang key kedua, memastikan revoke key yang terekspos, dan menilai consent "Global Youth Day". Catat hasil dan tanggal tanpa nilai key, bukti consent berisi data pribadi, atau URL privat. Publikasi tag serta promote production mengikuti persetujuan eksplisit dan gate pada [runbook deployment](../DEPLOYMENT-RUNBOOK.md).
+
+## Pembaruan status — 2026-10-23
+
+Pembaruan ini menambahkan keputusan pemilik dan hasil rilis sesudah 18 Oktober. Tabel di atas dipertahankan sebagai riwayat.
+
+| # | Tindak lanjut | Status per 23 Oktober | Sumber |
+| --- | --- | --- | --- |
+| 1 | Salinan backup ke penyimpanan kedua | Deferred sampai akhir atas keputusan pemilik | OPS-003 (#63) |
+| 2 | Pemegang kunci `age` kedua | Deferred sampai akhir atas keputusan pemilik | OPS-004 (#64) |
+| 3 | Pencabutan key yang pernah terekspos | Selesai menurut konfirmasi pemilik 18 Oktober: secret key lama dihapus, secret key baru khusus Production, legacy API key dinonaktifkan. Agent tidak membaca atau mencoba nilai key. | PR #39 |
+| 4 | Leaked-password protection | Tidak berubah: tidak tersedia pada paket Free | — |
+| 5 | Region fungsi `sin1` | Diterapkan production 23 Oktober; rute dinamis teramati `sin1::sin1` | [OPS-001](OPS-001-2026-10-23.md) |
+| 6 | Cleanup Storage saat hard delete dan toggle unduhan album | Kode merge (PR #38) dan dirilis 23 Oktober; migration audit album diterapkan. Orphan historis kondisional: inventaris baca-saja dahulu, pembersihan hanya atas persetujuan | OPS-007 (#67) |
+| 7 | Consent media "Global Youth Day" | Sudah Draft sejak 18 Oktober; review bukti izin masih menunggu pemilik | OPS-006 (#66) |
+| 8 | Penomoran Sprint 5 | Tidak berubah: selaras dengan backlog | — |
+| 9 | Upgrade Supabase CLI | Opsional, tetap pin `2.117.0` | OPS-008 (#74) |
+| 10 | Tag rilis `v2.0.0` | Tag anotasi lokal ada; belum dipublikasikan ke remote | OPS-005 (#65) |
+
+Backup baru: dilewati untuk rilis 23 Oktober atas keputusan pemilik karena keempat migration aditif (pengecualian runbook, dicatat di OPS-001). Backup mutakhir dan cadence berikutnya deferred sampai akhir (OPS-002, #62). Backup terakhir tetap 15 Oktober.

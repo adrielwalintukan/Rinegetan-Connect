@@ -5,9 +5,9 @@
 | Fase | Nama | Status | Hasil utama |
 | --- | --- | --- | --- |
 | 1 | Website resmi | Selesai, perlu dipertahankan/didokumentasikan | Rute publik dan identitas visual |
-| 2 | CMS dan fondasi platform | Berikutnya | Refactor Next.js, Supabase, Admin/Editor, CMS, galeri |
-| 3 | Pelayanan digital | Sesudah fondasi stabil | Course Alkitab, form doa/pengunjung, lead privat |
-| 4 | Sekolah Sabat digital | Sesudah Phase 3 | Integrasi Adventech, cache, offline bersyarat |
+| 2 | CMS dan fondasi platform | Selesai; rilis production 2026-10-16 (PR #31) dan tindak lanjut 2026-10-23 (PR #39) | Refactor Next.js, Supabase, Admin/Editor, CMS, galeri |
+| 3 | Pelayanan digital | Berjalan: P3-001 dan P3-002 dirilis production 2026-10-23; P3-003–P3-006 backlog | Course Alkitab, form doa/pengunjung, lead privat |
+| 4 | Sekolah Sabat digital | Sesudah Phase 3 | Integrasi Adventech; cache materi dan offline hanya setelah izin tertulis (P4-005) |
 | 5 | PWA dan notifikasi | Terakhir | Installability, Web Push, preferensi |
 
 Tidak ada fase Community/Member. Pengalaman publik tetap tanpa akun; progres pembelajaran disimpan lokal pada perangkat pengguna.
@@ -39,7 +39,7 @@ Tidak ada fase Community/Member. Pengalaman publik tetap tanpa akun; progres pem
 
 - Cache dan UI Sekolah Sabat Indonesia menunjukkan kelas hanya bila konten tersedia.
 - Sumber/atribusi dan perilaku failure jelas.
-- Fitur offline tidak aktif sebelum bukti izin tertulis disetujui.
+- Cache materi dan fitur offline tidak aktif sebelum bukti izin tertulis disetujui (P4-005); urutan dependensi ada di [Issue Backlog](ISSUE-BACKLOG.md#phase-4--sekolah-sabat-digital).
 - Paket lokal dapat diperbarui manual tanpa menghapus progres lokal.
 
 ## Exit criteria Phase 5

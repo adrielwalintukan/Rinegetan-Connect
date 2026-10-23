@@ -67,7 +67,7 @@ Admin/Editor aktif memakai tab **Pelajari Alkitab** untuk membuat course, memili
 - Kegagalan simpan mempertahankan form. Menutup form yang berubah memerlukan konfirmasi buang perubahan. Data halaman disegarkan setelah server mengonfirmasi sukses.
 - Sesudah simpan, tindakan mutasi menunggu penyegaran daftar selesai sebelum edit dapat dibuka kembali. Daftar course/lesson dimuat sampai lengkap melampaui batas 1.000 baris Data API; kegagalan pemuatan menampilkan pesan aman dan tombol muat ulang.
 
-Reader publik P3-002 tersedia pada branch fitur; bukti dan status integrasi ada di [record P3-002](records/P3-002-2026-10-22.md). Migration P3-001 baru diterapkan lokal; penerapan production mengikuti proses rilis terpisah.
+Status 2026-10-23: CMS course/lesson (P3-001) dan reader publik (P3-002) sudah merge ke `development` dan dirilis ke production melalui PR #39; migration P3-001 diterapkan ke production. Bukti: [record P3-002](records/P3-002-2026-10-22.md) dan [record rilis OPS-001](records/OPS-001-2026-10-23.md).
 
 ## Impor course (backlog P3-003)
 
@@ -91,4 +91,4 @@ Pengunjung membuka **Pelajari Alkitab** dari CTA navigasi/Hero, card Alkitab, at
 - Untuk menarik materi, jadikan lesson atau induk Draft/Arsip melalui CMS. Request publik baru mengikuti invalidasi sesudah commit. Tab/riwayat yang telah menerima konten bukan salinan yang dapat ditarik kembali. Perubahan langsung di luar CMS mengikuti cache 60 detik.
 - Warning penyegaran publik sesudah simpan berarti mutasi sudah tersimpan. Periksa ulang tampilan publik beberapa saat lagi; jangan mengulangi simpan seolah database rollback.
 
-Impor, form minat/doa/kunjungan, retensi pastoral, offline/PWA, dan akun Member tetap backlog. Production belum diubah.
+Impor, form minat/doa/kunjungan, retensi pastoral, dan offline/PWA tetap backlog. Akun Member tidak direncanakan.
