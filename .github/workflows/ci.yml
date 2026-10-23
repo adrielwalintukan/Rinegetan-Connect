@@ -59,6 +59,74 @@ jobs:
       - name: Run pgTAP test suites
         run: supabase test db
 
+  # Suite selection and triggers agreed for QA-CI-E2E (#73); see docs/06-quality/TEST-STRATEGY.md.
+  browser-regression:
+    name: Browser regression (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      CONTAINER_RUNTIME: docker
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start Supabase local containers
+        # Only the services the app and fixtures use: Postgres, Auth, PostgREST, Storage and the gateway.
+        run: npm run supabase -- start -x realtime,imgproxy,mailpit,studio,edge-runtime,logflare,vector,supavisor,postgres-meta
+      - name: Export local Supabase settings
+        # Loopback URL and the local CLI anon key only; written to the job env without printing them.
+        run: |
+          npm run --silent supabase -- status -o json > "$RUNNER_TEMP/supabase-status.json"
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=$(jq -r .API_URL "$RUNNER_TEMP/supabase-status.json")"
+            echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$(jq -r .ANON_KEY "$RUNNER_TEMP/supabase-status.json")"
+            echo "SUPABASE_URL=$(jq -r .API_URL "$RUNNER_TEMP/supabase-status.json")"
+          } >> "$GITHUB_ENV"
+          rm "$RUNNER_TEMP/supabase-status.json"
+      - name: Build production bundle
+        id: build
+        run: npm run build
+      # Each suite runs even when an earlier one fails, so every result is visible on the PR.
+      - name: Public routes (overflow, mobile navigation, skip link)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        # The home screenshot baseline exists only for Windows, so it stays a local check.
+        run: npx playwright test tests/visual/public-routes.spec.ts --grep-invert "visual baseline"
+      - name: Accessibility audit (axe WCAG 2.2 AA, headings, focus, reduced motion)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        # The performance snapshot is only meaningful against production.
+        run: npm run test:a11y -- --grep-invert performance
+        env:
+          AUDIT_START_SERVER: "1"
+      - name: Bible reader flows (anonymous, local progress, withdrawal)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: npx playwright test -c tests/visual/bible-reader.config.ts
+      - name: Staff course CMS flows (Admin/Editor, forms, mobile, keyboard)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: npx playwright test -c tests/visual/staff-courses.config.ts
+      - name: Upload browser artifacts on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-regression-results
+          path: |
+            frontend/test-results
+            frontend/playwright-report
+          retention-days: 7
+          if-no-files-found: ignore
+
   backend-syntax:
     name: Backend syntax
     runs-on: ubuntu-latest
