@@ -36,7 +36,7 @@ Kelas tampil hanya bila sumber benar-benar menyediakan versi Bahasa Indonesia ya
 - Fetch hanya dari server; browser tidak mengakses upstream langsung.
 - Simpan source identifier/version, fetched_at, checksum/etag bila tersedia, dan status validasi.
 - Tetapkan TTL dan refresh on-demand/terjadwal sesuai batas penyedia serta kapasitas pilot.
-- Publik melihat pesan Update tersedia ketika manifest lokal lebih baru; pengguna memilih kapan mengunduh pembaruan.
+- Publik melihat pesan Update tersedia ketika manifest sumber di server lebih baru daripada versi paket lokal di browser; pengguna tetap memilih kapan mengunduh pembaruan secara manual.
 - Progres lokal memakai source/lesson ID stabil. Pembaruan konten tidak boleh menghapus progres bila lesson ID tetap ada.
 
 ## Offline
@@ -54,6 +54,8 @@ Sebelum gate lulus:
 - UI dapat menampilkan preview/tautan sesuai izin dan atribusi sumber yang berlaku.
 - Tombol offline/download harus nonaktif atau tidak dirilis.
 - Jangan mengasumsikan lisensi repository untuk kode otomatis memberi hak menggandakan isi pelajaran.
+
+Wording backlog P4-005 lebih ketat: tidak ada cache/offline materi sebelum izin tertulis. Batas itu yang berlaku sampai pemilik memutuskan apakah cache server untuk penayangan online memerlukan izin yang sama (keputusan terbuka, dicatat 2026-10-23). Urutan dependensi: adapter server → katalog/reader online → mekanisme paket lokal → gate izin; mekanisme boleh dibangun tanpa diaktifkan untuk publik.
 
 Setelah gate lulus, catat pemegang izin, cakupan bahasa/kelas, tanggal berlaku, batas perubahan/distribusi, dan orang penanggung jawab dalam register operasional gereja.
 

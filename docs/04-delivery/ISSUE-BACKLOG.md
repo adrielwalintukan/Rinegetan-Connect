@@ -7,7 +7,7 @@ Backlog ini adalah indeks issue tingkat produk. Issue Phase 2 yang aktif memilik
 | ID | Issue | Acceptance ringkas | Status |
 | --- | --- | --- | --- |
 | P1-001 | Pertahankan kontrak desain dan URL Phase 1 saat refactor. | Token, Creation Grid, simbol resmi, tujuh URL, serta perilaku mobile memiliki test kontrak sebelum cutover. | Selesai (PR #4) |
-| P1-002 | Validasi aksesibilitas dan performa website publik. | Keyboard, fokus, landmark, heading, alternatif gambar, dan performance budget diperiksa pada rute utama. | Audit dan perbaikan a11y selesai; budget performa menunggu keputusan pemilik ([record](records/P1-002-2026-10-23.md)) |
+| P1-002 | Validasi aksesibilitas dan performa website publik. | Keyboard, fokus, landmark, heading, alternatif gambar, dan performance budget diperiksa pada rute utama. | Selesai (PR #79, commit `186ea61`); budget performa menunggu keputusan pemilik ([record](records/P1-002-2026-10-23.md)) |
 | P1-003 | Ganti placeholder operasional. | Alamat, nomor, sosial, jadwal, dan foto diganti hanya setelah pemilik konten mengesahkan data serta consent dicatat. | Backlog operasional |
 | P1-004 | Buat baseline analitik privasi. | Tidak ada tracker non-esensial sebelum kebijakan cookie/consent disepakati. | Backlog |
 
@@ -25,9 +25,14 @@ Lihat [Phase 2 Issue Backlog](PHASE-2-ISSUE-BACKLOG.md) untuk daftar issue yang 
 
 ## Phase 3 — Pelayanan Digital
 
-Status P3-001: [PR #41](https://github.com/adrielwalintukan/Rinegetan-Connect/pull/41) sudah merge ke `development` pada 2026-10-22, commit `42a3d01`; CI hasil merge lulus. Belum diterapkan production. Lihat [catatan hasil P3-001](records/P3-001-2026-10-19.md).
+Status per 2026-10-23:
 
-Status P3-002: implementasi reader, progres manual/bookmark lokal, CTA dan invalidasi CMS pada branch fitur; [record verifikasi](records/P3-002-2026-10-22.md) mencatat gate aktual dan batasnya. Review akhir branch, PR menuju development dan CI latest head adalah gerbang integrasi terpisah. Belum merge/promote atau mengubah production. P3-003 dan issue berikutnya tetap backlog.
+| ID | Integrasi `development` | Production | Bukti |
+| --- | --- | --- | --- |
+| P3-001 | [PR #41](https://github.com/adrielwalintukan/Rinegetan-Connect/pull/41) merge 2026-10-22, commit `42a3d01`; CI hasil merge lulus | Dirilis 2026-10-23 melalui PR #39 (`main` `5b88773`); tiga migration P3-001 diterapkan | [P3-001](records/P3-001-2026-10-19.md), [OPS-001](records/OPS-001-2026-10-23.md) |
+| P3-002 | [PR #42](https://github.com/adrielwalintukan/Rinegetan-Connect/pull/42) merge 2026-10-23 WITA, commit `14bf46a`; CI hasil merge lulus | Dirilis 2026-10-23 melalui PR #39 (`main` `5b88773`) | [P3-002](records/P3-002-2026-10-22.md), [OPS-001](records/OPS-001-2026-10-23.md) |
+
+P3-003 dan issue berikutnya tetap backlog. P3-003 masih menunggu keputusan sumber, format impor, dan lisensi materi.
 
 | ID | Issue | Acceptance ringkas | Dependensi |
 | --- | --- | --- | --- |
@@ -39,6 +44,8 @@ Status P3-002: implementasi reader, progres manual/bookmark lokal, CTA dan inval
 | P3-006 | Retensi dan respons pastoral. | Data sensitif memiliki 24 bulan default retention, audit akses, ekspor terbatas, serta runbook penghapusan. | P3-004, P3-005 |
 
 ## Phase 4 — Sekolah Sabat Digital
+
+Urutan dependensi: P4-001 (adapter server) → P4-002/P4-003 (katalog dan reader online) → P4-004 (mekanisme paket lokal) → P4-005 (gate izin). Batas izin yang disepakati tetap berlaku: tidak ada cache/offline materi sebelum izin tertulis pemegang hak dicatat dan disetujui. Mekanisme teknis P4-001–P4-004 boleh dibangun, tetapi cache materi dan unduhan/offline tidak diaktifkan untuk publik sebelum P4-005 lulus. Keputusan pemilik yang masih terbuka: apakah cache server untuk penayangan online (acceptance P4-001) memerlukan izin tertulis yang sama dengan paket offline; sampai diputuskan, berlaku batas yang lebih ketat ini. Lihat [gate lisensi Adventech](../05-integrations/SABBATH-SCHOOL-ADVENTECH.md#gate-lisensi-wajib).
 
 | ID | Issue | Acceptance ringkas | Dependensi |
 | --- | --- | --- | --- |
