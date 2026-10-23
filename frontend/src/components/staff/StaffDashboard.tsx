@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Bell,
+  BookOpen,
   Calendar,
   Clock,
   Building,
@@ -14,6 +16,8 @@ import {
   LayoutTemplate,
   Users,
 } from "lucide-react";
+import { CourseManager } from "./CourseManager";
+import type { Course, CourseLesson } from "@/types/courses";
 import { ContentFilterBar } from "./ContentFilterBar";
 import { ContentTable, type ContentItem } from "./ContentTable";
 import { ContentMutationDialog } from "./ContentMutationDialog";
@@ -36,15 +40,20 @@ interface StaffDashboardProps {
   initialSchedules: ContentItem[];
   initialDepartments: ContentItem[];
   initialAuditLogs: AuditEntry[];
+  auditLogsError?: string | null;
   initialMediaAssets?: MediaAsset[];
   initialMediaAlbums?: MediaAlbum[];
   initialSectionMedia?: SiteSectionMediaMap;
   currentUserId: string;
   initialStaff?: StaffMember[];
   initialTab?: TabType;
+  initialCourses?: Course[];
+  initialCourseLessons?: CourseLesson[];
+  coursesError?: string | null;
 }
 
 export type TabType =
+  | "courses"
   | "announcements"
   | "events"
   | "schedules"
@@ -62,23 +71,28 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   initialSchedules,
   initialDepartments,
   initialAuditLogs,
+  auditLogsError,
   initialMediaAssets = [],
   initialMediaAlbums = [],
   initialSectionMedia = {},
   currentUserId,
   initialStaff = [],
   initialTab,
+  initialCourses = [],
+  initialCourseLessons = [],
+  coursesError,
 }) => {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     const validTabs: TabType[] = [
+      "courses",
       "announcements",
       "events",
       "schedules",
       "departments",
       "media",
       "banners",
-      "audit",
-      ...(role === "admin" ? (["staff"] as const) : []),
+      ...(role === "admin" ? (["audit", "staff"] as const) : []),
     ];
     if (initialTab && validTabs.includes(initialTab)) return initialTab;
     if (typeof window !== "undefined") {
@@ -93,7 +107,8 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   });
 
   const handleTabChange = (tabId: TabType) => {
-    if (tabId === "staff" && role !== "admin") return;
+    if ((tabId === "staff" || tabId === "audit") && role !== "admin") return;
+    if (tabId === "audit") router.refresh();
     setActiveTab(tabId);
     setCurrentFilter("all");
     setSearchQuery("");
@@ -129,7 +144,6 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   const [events, setEvents] = useState<ContentItem[]>(initialEvents);
   const [schedules, setSchedules] = useState<ContentItem[]>(initialSchedules);
   const [departments, setDepartments] = useState<ContentItem[]>(initialDepartments);
-  const [auditLogs, setAuditLogs] = useState<AuditEntry[]>(initialAuditLogs);
   const [sectionMedia, setSectionMedia] = useState<SiteSectionMediaMap>(initialSectionMedia);
 
   // Dialog states
@@ -230,19 +244,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
         prev.map((item) => (item.id === id ? { ...item, status: newStatus } : item))
       );
 
-      // Add local audit entry
-      setAuditLogs((prev) => [
-        {
-          id: String(Date.now()),
-          actor_id: userEmail,
-          action: `${activeTab}.status_changed`,
-          entity_type: activeTab,
-          entity_id: id,
-          changes: { new_status: newStatus },
-          created_at: new Date().toISOString(),
-        },
-        ...prev,
-      ]);
+      router.refresh();
 
       showNotification("success", `Status berhasil diubah menjadi ${newStatus}`);
     } catch (err) {
@@ -284,6 +286,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
       }
 
       setEditingItem(null);
+      router.refresh();
     } catch (err) {
       showNotification("error", clientErrorMessage(err, "Gagal menyimpan"));
       throw err;
@@ -314,18 +317,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
 
       updateCurrentItems((prev) => prev.filter((item) => item.id !== deletingItem.id));
 
-      setAuditLogs((prev) => [
-        {
-          id: String(Date.now()),
-          actor_id: userEmail,
-          action: `${activeTab}.deleted`,
-          entity_type: activeTab,
-          entity_id: deletingItem.id,
-          changes: { reason, title: deletingItem.title || deletingItem.name },
-          created_at: new Date().toISOString(),
-        },
-        ...prev,
-      ]);
+      router.refresh();
 
       showNotification("success", "Konten berhasil dihapus permanen");
       setDeletingItem(null);
@@ -338,14 +330,17 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   };
 
   const tabs = [
+    { id: "courses" as TabType, label: "Pelajari Alkitab", icon: BookOpen },
     { id: "announcements" as TabType, label: "Pengumuman", icon: Bell },
     { id: "events" as TabType, label: "Kegiatan", icon: Calendar },
     { id: "schedules" as TabType, label: "Jadwal Rutin", icon: Clock },
     { id: "departments" as TabType, label: "Departemen", icon: Building },
     { id: "media" as TabType, label: "Media & Galeri", icon: ImageIcon },
     { id: "banners" as TabType, label: "Banner Halaman", icon: LayoutTemplate },
-    { id: "audit" as TabType, label: "Log Audit", icon: History },
-    ...(role === "admin" ? [{ id: "staff" as TabType, label: "Kelola Staf", icon: Users }] : []),
+    ...(role === "admin" ? [
+      { id: "audit" as TabType, label: "Log Audit", icon: History },
+      { id: "staff" as TabType, label: "Kelola Staf", icon: Users },
+    ] : []),
   ];
 
   return (
@@ -406,7 +401,8 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
             <span>{notification.message}</span>
             <button
               onClick={() => setNotification(null)}
-              className="text-xs opacity-70 hover:opacity-100"
+              aria-label="Tutup pemberitahuan"
+              className="min-h-11 min-w-11 text-xs opacity-70 hover:opacity-100"
             >
               ✕
             </button>
@@ -442,7 +438,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
           </nav>
 
           {/* Create Button (only for content tabs) */}
-          {activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && (
+          {activeTab !== "courses" && activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && (
             <button
               type="button"
               onClick={() => {
@@ -459,8 +455,10 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
 
         {/* Tab Content Section */}
         <div className="mt-6">
-          {activeTab === "audit" ? (
-            <AuditLogViewer logs={auditLogs} />
+          {activeTab === "courses" ? (
+            <CourseManager courses={initialCourses} lessons={initialCourseLessons} role={role} onNotification={showNotification} error={coursesError} />
+          ) : activeTab === "audit" ? (
+            role === "admin" ? <AuditLogViewer logs={initialAuditLogs} error={auditLogsError} /> : null
           ) : activeTab === "staff" ? (
             role === "admin" ? (
               <StaffManager
@@ -516,7 +514,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
       </main>
 
       {/* Dialogs */}
-      {activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && (
+      {activeTab !== "courses" && activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && (
         <ContentMutationDialog
           key={`${activeTab}_${editingItem?.id || "new"}`}
           isOpen={isMutationOpen}
@@ -532,7 +530,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
         />
       )}
 
-      {activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && (
+      {activeTab !== "courses" && activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && (
         <DeleteConfirmationDialog
           isOpen={isDeleteOpen}
           onClose={() => {

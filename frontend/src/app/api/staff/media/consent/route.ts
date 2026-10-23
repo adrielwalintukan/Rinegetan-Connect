@@ -30,20 +30,11 @@ export async function POST(request: Request) {
       return Response.json({ error: "consent_failed", message: publicErrorMessage(error) }, { status: 500 });
     }
 
-    // Without approved consent a photo never shows publicly; keep the portal status truthful.
-    let saved = updated;
-    if (consentStatus !== "approved" && asset.status === "published") {
-      const { data: unpublished } = await client
-        .from("media_assets")
-        .update({ status: "draft" })
-        .eq("id", id)
-        .select()
-        .single();
-      saved = unpublished ?? updated;
-    }
-
-    triggerPublicRevalidation("media_assets");
-    return Response.json({ success: true, data: saved });
+    await Promise.all([
+      triggerPublicRevalidation("media_assets"),
+      triggerPublicRevalidation("site_section_media"),
+    ]);
+    return Response.json({ success: true, data: updated });
   } catch (error) {
     if (error instanceof StaffAccessError) {
       return Response.json(

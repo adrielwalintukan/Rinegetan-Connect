@@ -53,9 +53,25 @@ Permohonan doa, informasi pengunjung, dan lead belajar bukan konten editorial. H
 - ekspor hanya jika perlu, dengan alasan dan catatan audit;
 - review/hapus mengikuti periode retensi yang ditetapkan Admin.
 
-## Course Alkitab dan impor
+## Course Alkitab dan lesson
 
-Editor dapat membuat course dan lesson sebagai Draft. Impor dari pihak ketiga:
+Admin/Editor aktif memakai tab **Pelajari Alkitab** untuk membuat course, memilih induknya, lalu mengelola lesson. Materi baru selalu Draft; publikasi dilakukan setelah materi tersimpan.
+
+- Isi lesson berupa teks berparagraf maksimal 50.000 karakter. HTML/Markdown ditampilkan sebagai teks. Judul maksimal 200 karakter, slug maksimal 220 karakter, ringkasan maksimal 500 karakter.
+- Batas judul/ringkasan/isi menghitung Unicode code point, sehingga emoji suplementer tidak terpotong oleh form. Isian yang melebihi batas tetap ada dan ditolak dengan pesan batas field dalam Bahasa Indonesia.
+- **Menyimpan revisi Published mempertahankan status dan langsung memperbarui konten publik bila induknya Published.** Gunakan **Jadikan Draft** sebelum merevisi materi yang perlu disembunyikan. Tidak ada salinan revisi atau versioning pada P3-001.
+- Slug dapat diperbaiki sebelum publikasi pertama dan terkunci setelahnya, termasuk setelah materi diarsipkan atau dipulihkan.
+- Lesson hanya terbaca publik bila lesson dan course induknya sama-sama Published. Course Draft/Arsip langsung menyembunyikan seluruh lesson tanpa mengubah status anak. Menerbitkan ulang course kembali menampilkan lesson yang masih Published. Course kosong boleh diterbitkan.
+- Nomor urut lesson harus berupa integer positif dan unik dalam course. Nomor boleh bercelah; konflik nomor ditolak tanpa mengosongkan form. Tidak ada drag-and-drop/pengurutan massal.
+- Hanya Admin dapat menghapus permanen melalui konfirmasi. Course yang masih memiliki lesson ditolak dengan RESTRICT; tangani lesson lebih dahulu. Penghapusan tidak melakukan cascade materi. Database mencatat mutasi dan actor; isi lesson tidak disalin ke audit.
+- Kegagalan simpan mempertahankan form. Menutup form yang berubah memerlukan konfirmasi buang perubahan. Data halaman disegarkan setelah server mengonfirmasi sukses.
+- Sesudah simpan, tindakan mutasi menunggu penyegaran daftar selesai sebelum edit dapat dibuka kembali. Daftar course/lesson dimuat sampai lengkap melampaui batas 1.000 baris Data API; kegagalan pemuatan menampilkan pesan aman dan tombol muat ulang.
+
+Reader publik P3-002 tersedia pada branch fitur; bukti dan status integrasi ada di [record P3-002](records/P3-002-2026-10-22.md). Migration P3-001 baru diterapkan lokal; penerapan production mengikuti proses rilis terpisah.
+
+## Impor course (backlog P3-003)
+
+Impor dari pihak ketiga belum tersedia. Saat diimplementasikan:
 
 1. Masuk ke staging/import record, bukan langsung ke course Published.
 2. Validasi skema, URL/asset, bahasa, duplikasi, dan lisensi.
@@ -63,3 +79,16 @@ Editor dapat membuat course dan lesson sebagai Draft. Impor dari pihak ketiga:
 4. Publikasi memakai lifecycle biasa.
 
 Tidak ada auto-publish atau auto-sync sumber pihak ketiga.
+
+
+## Penggunaan reader P3-002
+
+Pengunjung membuka **Pelajari Alkitab** dari CTA navigasi/Hero, card Alkitab, atau note `/pelayanan#alkitab` yang tetap tersedia. Pilih course dan lesson; course Published tanpa lesson memiliki pesan kosong. Materi tidak tersedia/ditarik memberi halaman tidak ditemukan. Kegagalan layanan memberi tombol **Coba lagi**, bukan katalog kosong palsu.
+
+- Membuka lesson menyimpan posisi terakhir, tanpa otomatis selesai. **Tandai selesai** / **Batalkan selesai** dan **Simpan bookmark** / **Batalkan bookmark** bekerja hanya pada browser/perangkat ini. Membersihkan data situs dapat menghapusnya.
+- **Lanjut belajar** memakai lesson terakhir yang masih publik; fallback adalah lesson publik pertama yang belum selesai, lalu lesson pertama. Materi tersembunyi tidak menghasilkan tautan atau hitungan tambahan. Revisi dengan ID sama mempertahankan progres.
+- Bila storage tidak tersedia/penuh, materi tetap dapat dibaca dan warning menjelaskan perubahan tidak persisten. Pilihan di halaman aktif dipertahankan dalam memori, tetapi dapat hilang setelah reload/navigasi. Tidak ada kiriman progres ke staf/server.
+- Untuk menarik materi, jadikan lesson atau induk Draft/Arsip melalui CMS. Request publik baru mengikuti invalidasi sesudah commit. Tab/riwayat yang telah menerima konten bukan salinan yang dapat ditarik kembali. Perubahan langsung di luar CMS mengikuti cache 60 detik.
+- Warning penyegaran publik sesudah simpan berarti mutasi sudah tersimpan. Periksa ulang tampilan publik beberapa saat lagi; jangan mengulangi simpan seolah database rollback.
+
+Impor, form minat/doa/kunjungan, retensi pastoral, offline/PWA, dan akun Member tetap backlog. Production belum diubah.

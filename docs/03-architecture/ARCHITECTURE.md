@@ -83,3 +83,13 @@ Tetapkan satu kontrak tipe untuk status konten, kategori, role, dan payload form
 ## Batas fase
 
 Phase 2 tidak menjalankan form pastoral, pelajaran Sekolah Sabat dari API, PWA, push, maupun WhatsApp. Batas ini mencegah fondasi CMS menjadi terlalu lebar sebelum keamanan, migrasi, dan operasi konten stabil.
+
+## Reader Alkitab P3-002
+
+Tiga rute `/pelajari-alkitab`, `/pelajari-alkitab/[courseSlug]`, dan `/pelajari-alkitab/[courseSlug]/[lessonSlug]` memakai Server Components. `connection()` menunda query dan metadata sampai ada request. Build tidak menyamarkan kegagalan database reader menjadi katalog kosong. Fetch anonim terpisah dari sesi staf memakai Data Cache eksplisit `force-cache`, revalidate 60 detik dan tag `public-courses`; tidak memakai `force-dynamic` yang membatalkan cache data.
+
+Query memakai proyeksi publik tanpa actor, pagination 500 baris sampai lengkap, filter Published dan parent course sebelum lesson. RLS tetap menegakkan akses. Body hanya dibaca untuk lesson yang dibuka; navigasi memakai metadata berurutan, termasuk posisi bercelah. Error query menuju boundary aman, berbeda dari kosong dan tidak ditemukan.
+
+Sesudah mutasi CMS committed, invalidator mengakhiri tag segera dan menginvalidasi katalog serta pola course/lesson. Kegagalan invalidasi mengembalikan sukses simpan dengan warning, tanpa mengulang mutasi. Perubahan langsung melalui Data API/SQL tidak memanggil hook CMS dan mengikuti kebijakan revalidasi 60 detik untuk cache; setiap query baru tetap tunduk RLS. Halaman yang sudah diterima/tab/riwayat browser tidak dapat ditarik kembali. Link reader menonaktifkan prefetch agar lesson yang belum dibuka tidak diambil lebih awal.
+
+Client Components hanya menyimpan ID progres lokal setelah mount. HTML awal berisi daftar lesson tanpa snapshot personal. Tidak ada mutasi progres ke server, konten offline, endpoint publik baru, schema, atau dependency baru.

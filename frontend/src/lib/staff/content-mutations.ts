@@ -4,9 +4,7 @@ import type { ContentStatus } from "@/types/content";
 import {
   SUPPORTED_ENTITIES,
   validateStatusTransition,
-  validateDeletePayload,
   assertCanMutateStatus,
-  assertCanDeletePermanently,
   sanitizeSavePayload,
 } from "./content-mutations.mjs";
 import { UserFacingError } from "@/lib/api/errors";
@@ -67,38 +65,7 @@ export async function executeStatusChange(
   return data;
 }
 
-export async function executePermanentDelete(
-  client: SupabaseClient,
-  params: DeleteMutationParams
-) {
-  assertCanDeletePermanently(params.role);
-
-  if (!SUPPORTED_ENTITIES.includes(params.entityType)) {
-    throw new UserFacingError(`Entitas tidak valid: ${params.entityType}`);
-  }
-
-  const validation = validateDeletePayload(params.reason);
-  if (!validation.valid) {
-    throw new UserFacingError(validation.message || "Alasan penghapusan tidak valid");
-  }
-
-  try {
-    await client.rpc("set_audit_reason", { p_reason: validation.reason });
-  } catch {
-    // optional audit reason setting
-  }
-
-  const { error } = await client
-    .from(params.entityType)
-    .delete()
-    .eq("id", params.id);
-
-  if (error) {
-    throw error;
-  }
-
-  return { success: true, deletedId: params.id };
-}
+export { executePermanentDelete } from "./content-deletion.mjs";
 
 export async function executeSaveContent(
   client: SupabaseClient,

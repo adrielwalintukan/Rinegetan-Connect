@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ChapterHeading } from "@/components/sections/ChapterHeading";
 import { DepartmentsSection } from "@/components/sections/DepartmentsSection";
 import { DigitalMinistrySection } from "@/components/sections/DigitalMinistrySection";
@@ -36,6 +37,7 @@ export default function PelayananPage({ initialDepartments = null }) {
                             Kami menyediakan pelajaran Alkitab pribadi maupun kelompok kecil —
                             gratis, tanpa tekanan, sesuai waktu Anda. Sampaikan kepada pengurus
                             jemaat ketika Anda hadir pada Sabtu pagi.
+                            <Link prefetch={false} href="/pelajari-alkitab" className="mt-3 flex min-h-11 items-center font-semibold underline underline-offset-4">Buka pelajaran Alkitab</Link>
                         </p>
                     </Reveal>
                 </div>

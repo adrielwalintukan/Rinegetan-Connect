@@ -2,8 +2,10 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireActiveStaff } from "@/lib/staff/server";
 import { StaffDashboard, type TabType } from "@/components/staff/StaffDashboard";
 import { getSiteSectionMedia } from "@/lib/public/queries";
+import type { Course, CourseLesson } from "@/types/courses";
 import type { ContentItem } from "@/components/staff/ContentTable";
-import type { AuditEntry } from "@/components/staff/AuditLogViewer";
+import { loadAuditLogs } from "@/lib/staff/audit";
+import { loadCourseCollection } from "@/lib/courses/queries";
 import type { MediaAsset, MediaAlbum } from "@/types/media";
 import type { StaffMember } from "@/components/staff/StaffManager";
 
@@ -18,7 +20,7 @@ export default async function StaffHomePage({
   const client = await createServerSupabaseClient();
   const staff = await requireActiveStaff(client);
   const rawTab = typeof resolvedParams?.tab === "string" ? resolvedParams.tab : undefined;
-  const initialTab = rawTab === "staff" && staff.role !== "admin" ? "announcements" : rawTab;
+  const initialTab = (rawTab === "staff" || rawTab === "audit") && staff.role !== "admin" ? "announcements" : rawTab;
 
   // Fetch initial content securely server-side
   const [
@@ -30,6 +32,8 @@ export default async function StaffHomePage({
     mediaAssetsRes,
     mediaAlbumsRes,
     sectionMedia,
+    coursesRes,
+    lessonsRes,
   ] = await Promise.all([
     client
       .from("announcements")
@@ -47,11 +51,7 @@ export default async function StaffHomePage({
       .from("departments")
       .select("*")
       .order("name", { ascending: true }),
-    client
-      .from("audit_logs")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(50),
+    loadAuditLogs(client, staff.role),
     client
       .from("media_assets")
       .select("*")
@@ -61,6 +61,8 @@ export default async function StaffHomePage({
       .select("*")
       .order("occurred_on", { ascending: false }),
     getSiteSectionMedia(),
+    loadCourseCollection(client, "courses"),
+    loadCourseCollection(client, "course_lessons"),
   ]);
 
   const staffRes =
@@ -89,13 +91,17 @@ export default async function StaffHomePage({
       initialEvents={(eventsRes.data as ContentItem[]) || []}
       initialSchedules={(schedulesRes.data as ContentItem[]) || []}
       initialDepartments={(departmentsRes.data as ContentItem[]) || []}
-      initialAuditLogs={(auditLogsRes.data as AuditEntry[]) || []}
+      initialAuditLogs={auditLogsRes.data}
+      auditLogsError={auditLogsRes.error}
       initialMediaAssets={(mediaAssetsRes.data as MediaAsset[]) || []}
       initialMediaAlbums={(mediaAlbumsRes.data as MediaAlbum[]) || []}
       initialSectionMedia={sectionMedia}
       currentUserId={staff.user.id}
       initialStaff={initialStaff}
       initialTab={initialTab as TabType | undefined}
+      initialCourses={(coursesRes.data as Course[]) || []}
+      initialCourseLessons={(lessonsRes.data as CourseLesson[]) || []}
+      coursesError={coursesRes.error || lessonsRes.error ? "Materi gagal dimuat. Silakan coba muat ulang." : null}
     />
   );
 }

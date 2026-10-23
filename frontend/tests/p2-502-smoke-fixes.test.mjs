@@ -44,7 +44,7 @@ test("upload stores the chosen consent with a consent record and returns data th
   assert.match(route, /formData\.get\("consent_status"\)/);
   // Chosen consent is applied only after its consent_records evidence is written (shared helper).
   assert.match(route, /recordConsent\(/);
-  const helper = read("src/lib/media/consent.ts");
+  const helper = read("src/lib/media/consent.mjs");
   assert.ok(
     helper.indexOf('from("consent_records")') < helper.indexOf('from("media_assets")'),
     "consent must be recorded before the asset is marked",
@@ -118,13 +118,8 @@ test("admins can invite and deactivate editors from the portal", () => {
   assert.match(manager, /JSON\.stringify\(\{ userId: member\.id, reason: reason\.trim\(\) \}\)/);
   assert.match(manager, /member\.id !== currentUserId/, "admin cannot manage self from the UI");
 
-  const dashboard = read("src/components/staff/StaffDashboard.tsx");
-  assert.match(dashboard, /role === "admin" \? \[\{ id: "staff"/, "staff tab is admin-only");
-  assert.match(dashboard, /tabId === "staff" && role !== "admin"/, "staff tab cannot be switched to by editors");
+  // Admin/Editor tab and data access are exercised by staff-audit-regression.test.mjs.
 
-  const page = read("src/app/staff/(protected)/page.tsx");
-  assert.match(page, /staff\.role === "admin"/, "staff list is only queried for admins");
-  assert.match(page, /rawTab === "staff" && staff\.role !== "admin"/, "staff tab deep link fallback to announcements for editor");
 });
 
 test("map points at the real church pin, not the kelurahan boundary or a made-up street", async () => {
@@ -192,7 +187,7 @@ test("staff can record consent later, and only approved photos can be published"
   const route = read("src/app/api/staff/media/consent/route.ts");
   assert.match(route, /requireActiveStaff/);
   assert.match(route, /recordConsent\(/);
-  assert.match(route, /status: "draft"/, "withdrawn consent takes a published photo back to draft");
+  assert.match(read("src/lib/media/consent.mjs"), /status: "draft"/, "withdrawn consent takes a published photo back to draft atomically");
   const manager = read("src/components/staff/MediaManager.tsx");
   assert.match(manager, /const canPublish = asset\.consent_status === "approved";/);
   assert.match(manager, /fetch\("\/api\/staff\/media\/consent"/);
