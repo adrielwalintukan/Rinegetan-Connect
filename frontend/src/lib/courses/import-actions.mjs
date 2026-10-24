@@ -1,5 +1,4 @@
-// frontend/src/lib/courses/import-actions.mjs
-import { CourseImportError } from "./imports.mjs";
+import { CourseImportError, MAX_IMPORT_BYTES } from "./imports.mjs";
 import { publicErrorMessage } from "../api/errors.mjs";
 
 export const IMPORT_LIST_COLUMNS = "id, status, course_title, course_slug, lesson_count, source_name, source_url, rights_holder, license_name, license_url, license_notes, created_by, created_at, reviewed_by, reviewed_at, review_note, course_id";
@@ -55,14 +54,50 @@ export async function createCourseImport(client, payload, role) {
   return data;
 }
 
-/** Metadata only (no payload), pending first then newest, at most 50 rows.
+/** Metadata only (no payload): pending first, then the rest, each newest first, at most 50 rows.
  * @param {import('@supabase/supabase-js').SupabaseClient} client */
 export async function loadCourseImports(client) {
+  const LIMIT = 50;
   try {
-    const { data, error } = await client.from("course_imports").select(IMPORT_LIST_COLUMNS)
-      .order("status", { ascending: false }).order("created_at", { ascending: false }).limit(50);
-    return error || !data ? { data: null, error: true } : { data, error: false };
+    const base = () => client.from("course_imports").select(IMPORT_LIST_COLUMNS);
+    const pending = await base().eq("status", "pending").order("created_at", { ascending: false }).limit(LIMIT);
+    if (pending.error || !pending.data) return { data: null, error: true };
+    if (pending.data.length >= LIMIT) return { data: pending.data, error: false };
+    const rest = await base().neq("status", "pending").order("created_at", { ascending: false }).limit(LIMIT - pending.data.length);
+    return rest.error || !rest.data ? { data: null, error: true } : { data: [...pending.data, ...rest.data], error: false };
   } catch { return { data: null, error: true }; }
+}
+
+/** Read the request body with a hard byte cap so oversized uploads are never buffered.
+ * @param {Request} request @returns {Promise<string>} */
+export async function readImportBody(request) {
+  const tooBig = () => new CourseImportError("Berkas impor melebihi batas 2 MB.", 413);
+  const declared = Number(request.headers.get("content-length"));
+  if (declared > MAX_IMPORT_BYTES) throw tooBig();
+  const bytes = new Uint8Array(MAX_IMPORT_BYTES);
+  let total = 0;
+  if (request.body) {
+    const reader = request.body.getReader();
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (total + value.length > MAX_IMPORT_BYTES) { await reader.cancel(); throw tooBig(); }
+      bytes.set(value, total); total += value.length;
+    }
+  }
+  try { return new TextDecoder("utf-8", { fatal: true }).decode(bytes.subarray(0, total)); }
+  catch { throw new CourseImportError("Berkas impor bukan JSON yang valid.", 400); }
+}
+
+/** 401/403 response for a StaffAccessError (matched by name; the class lives in TS), else null.
+ * @param {unknown} error @returns {Response | null} */
+export function staffAccessResponse(error) {
+  if (!(error instanceof Error) || error.name !== "StaffAccessError") return null;
+  const unauthenticated = /** @type {{ code?: string }} */ (error).code === "not_authenticated";
+  return Response.json(
+    { error: unauthenticated ? "Sesi berakhir. Silakan masuk kembali." : "Hanya staf aktif yang dapat mengelola materi." },
+    { status: unauthenticated ? 401 : 403 },
+  );
 }
 
 /** @param {import('@supabase/supabase-js').SupabaseClient} client @param {string} id */
@@ -95,6 +130,6 @@ export async function decideCourseImport(client, id, decision, role) {
   }
   const { data, error } = await client.from("course_imports").update({ status: "rejected", review_note: decision.note })
     .eq("id", id).eq("status", "pending").select("id").single();
-  if (error || !data) throw importFailure(error || { code: "PGRST116" });
+  if (error || !data) throw importFailure(error?.code === "PGRST116" || !data ? { message: "course_import_not_pending" } : error);
   return { id: data.id };
 }

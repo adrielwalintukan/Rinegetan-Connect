@@ -19,6 +19,7 @@ const modules = {
   "@/lib/api/errors": new URL("../src/lib/api/errors.mjs", import.meta.url).href,
 };
 const upload = await loadTypeScript("src/app/api/staff/course-imports/route.ts", modules);
+const actions = await import(modules["@/lib/courses/import-actions"]);
 const item = await loadTypeScript("src/app/api/staff/course-imports/[id]/route.ts", modules);
 
 // Only the Supabase network boundary is replaced.
@@ -102,4 +103,78 @@ test("generic database errors map to 400 on approve without leaking text", async
     const { response, json } = await call(item.POST, { body: { action: "approve" }, params: { id }, result: { error: { code, message: "PRIVATE_SENTINEL" } } });
     assert.equal(response.status, 400); assert.ok(!JSON.stringify(json).includes("PRIVATE_SENTINEL"));
   }
+});
+
+function listClient(rows, failAt) {
+  const queries = [];
+  return { queries, from() {
+    const q = { filters: [], order: null, max: null };
+    queries.push(q);
+    const b = {
+      select(c) { q.columns = c; return b; },
+      eq(k, v) { q.filters.push(["eq", k, v]); return b; }, neq(k, v) { q.filters.push(["neq", k, v]); return b; },
+      order(k, o) { q.order = [k, o]; return b; }, limit(n) { q.max = n; return b; },
+      then(resolve) {
+        if (failAt === queries.indexOf(q)) return resolve({ data: null, error: { message: "boom" } });
+        let out = rows.filter((r) => q.filters.every(([op, k, v]) => (op === "eq" ? r[k] === v : r[k] !== v)));
+        out = [...out].sort((a, b2) => b2.created_at.localeCompare(a.created_at)).slice(0, q.max);
+        resolve({ data: out, error: null });
+      },
+    };
+    return b;
+  } };
+}
+const mk = (n, status, day) => ({ id: `${status}-${n}`, status, created_at: `2026-01-${String(day).padStart(2, "0")}T00:00:00Z` });
+
+test("list puts pending first then newest, metadata only", async () => {
+  const rows = [mk(1, "approved", 5), mk(2, "pending", 1), mk(3, "rejected", 9), mk(4, "pending", 3)];
+  const client = listClient(rows);
+  const { data, error } = await actions.loadCourseImports(client);
+  assert.equal(error, false);
+  assert.deepEqual(data.map((r) => r.id), ["pending-4", "pending-2", "rejected-3", "approved-1"]);
+  assert.ok(client.queries.every((q) => q.columns === actions.IMPORT_LIST_COLUMNS && !q.columns.includes("payload")));
+});
+test("list is capped at 50 and keeps old pending rows", async () => {
+  const rows = [mk(0, "pending", 1), ...Array.from({ length: 80 }, (_, i) => mk(i + 1, "approved", 2 + (i % 27)))];
+  const { data } = await actions.loadCourseImports(listClient(rows));
+  assert.equal(data.length, 50); assert.equal(data[0].id, "pending-0");
+  const many = Array.from({ length: 60 }, (_, i) => mk(i, "pending", 1 + (i % 28)));
+  assert.equal((await actions.loadCourseImports(listClient(many))).data.length, 50);
+});
+test("list returns error contract when a query errors or throws", async () => {
+  for (const failAt of [0, 1]) assert.deepEqual(await actions.loadCourseImports(listClient([mk(1, "approved", 1)], failAt)), { data: null, error: true });
+  assert.deepEqual(await actions.loadCourseImports({ from() { throw new Error("x"); } }), { data: null, error: true });
+});
+
+const MAX = 2 * 1024 * 1024;
+function streamRequest(chunks, headers = {}) {
+  let i = 0;
+  const body = new ReadableStream({ pull(c) { if (i < chunks.length) c.enqueue(chunks[i++]); else c.close(); } });
+  return new Request("http://localhost/x", { method: "POST", body, headers, duplex: "half" });
+}
+test("upload rejects by Content-Length without reading the body or calling the client", async () => {
+  const client = clientFor(); globalThis[Symbol.for("p3-import-client")] = client;
+  const request = new Request("http://localhost/x", { method: "POST", body: "{}", headers: { "content-length": String(MAX + 1) } });
+  const response = await upload.POST(request);
+  assert.equal(response.status, 413); assert.deepEqual(client.calls, []); assert.equal(request.bodyUsed, false);
+  assert.equal((await response.json()).error, "Berkas impor melebihi batas 2 MB.");
+});
+test("capped reader stops streamed bodies over the limit and allows exactly the limit", async () => {
+  const chunk = new Uint8Array(MAX / 4).fill(120);
+  await assert.rejects(actions.readImportBody(streamRequest([chunk, chunk, chunk, chunk, new Uint8Array(1)])), (e) => e.status === 413);
+  let pulled = 0;
+  const endless = new Request("http://localhost/x", { method: "POST", duplex: "half", body: new ReadableStream({ pull(c) { pulled++; c.enqueue(chunk); } }) });
+  await assert.rejects(actions.readImportBody(endless), (e) => e.status === 413); assert.ok(pulled < 10);
+  assert.equal((await actions.readImportBody(streamRequest([chunk, chunk, chunk, chunk]))).length, MAX);
+  const res = await upload.POST(streamRequest([chunk, chunk, chunk, chunk]));
+  assert.equal(res.status, 400); // not a size rejection: it is not valid JSON
+});
+test("invalid UTF-8 upload is 400 invalid JSON", async () => {
+  globalThis[Symbol.for("p3-import-client")] = clientFor();
+  const response = await upload.POST(streamRequest([new Uint8Array([0xff, 0xfe, 0x7b])]));
+  assert.equal(response.status, 400); assert.equal((await response.json()).error, "Berkas impor bukan JSON yang valid.");
+});
+test("rejecting a non-pending import is 409 like approve", async () => {
+  const { response, json } = await call(item.POST, { body: { action: "reject", note: "Tidak sesuai" }, params: { id }, result: { data: null } });
+  assert.equal(response.status, 409); assert.equal(json.error, "Impor ini sudah diputuskan sebelumnya. Muat ulang halaman.");
 });

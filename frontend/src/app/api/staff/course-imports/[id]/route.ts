@@ -1,17 +1,13 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { requireActiveStaff, StaffAccessError } from "@/lib/staff/server";
+import { requireActiveStaff } from "@/lib/staff/server";
 import { CourseImportError } from "@/lib/courses/imports";
-import { decideCourseImport, importFailure, importId, loadCourseImportPayload, parseCourseImportDecision } from "@/lib/courses/import-actions";
+import { decideCourseImport, importFailure, importId, loadCourseImportPayload, parseCourseImportDecision, staffAccessResponse } from "@/lib/courses/import-actions";
 import { publicErrorMessage } from "@/lib/api/errors";
 
 type Context = { params: Promise<{ id: string }> };
 function failure(error: unknown): Response {
-  if (error instanceof StaffAccessError) {
-    return Response.json(
-      { error: error.code === "not_authenticated" ? "Sesi berakhir. Silakan masuk kembali." : "Hanya staf aktif yang dapat mengelola materi." },
-      { status: error.code === "not_authenticated" ? 401 : 403 },
-    );
-  }
+  const denied = staffAccessResponse(error);
+  if (denied) return denied;
   const mapped = importFailure(error);
   return Response.json({ error: publicErrorMessage(mapped) }, { status: mapped instanceof CourseImportError ? mapped.status : 500 });
 }
