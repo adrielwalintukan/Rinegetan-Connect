@@ -9,8 +9,10 @@ const button = "min-h-11 min-w-11 rounded-xl px-4 py-2 text-sm font-semibold foc
 const field = "mt-1 min-h-11 w-full rounded-xl border border-slate-300 bg-white p-3 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-navy disabled:bg-slate-100";
 
 /** Focus the first control on open, trap Tab inside, restore focus on close — same contract as CourseMutationDialog. */
-function useDialogFocus(isOpen: boolean) {
+function useDialogFocus(isOpen: boolean, busy: boolean) {
   const panel = useRef<HTMLDivElement>(null);
+  // The focused submit button becomes disabled while busy; keep focus inside the trap.
+  useEffect(() => { if (busy) panel.current?.focus(); }, [busy]);
   useEffect(() => {
     if (!isOpen) return;
     const previous = document.activeElement as HTMLElement | null;
@@ -29,10 +31,10 @@ function useDialogFocus(isOpen: boolean) {
 }
 
 export function CourseImportUploadDialog({ isOpen, onClose, onUploaded }: { isOpen: boolean; onClose: () => void; onUploaded: () => void }) {
-  const { panel, onKeyDown } = useDialogFocus(isOpen);
-  const [file, setFile] = useState<File | null>(null);
+    const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const { panel, onKeyDown } = useDialogFocus(isOpen, busy);
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (busy) return;
@@ -40,7 +42,7 @@ export function CourseImportUploadDialog({ isOpen, onClose, onUploaded }: { isOp
     if (file.size > MAX_IMPORT_BYTES) { setError("Berkas impor melebihi batas 2 MB."); return; }
     setBusy(true); setError(null);
     try {
-      const res = await fetch("/api/staff/course-imports", { method: "POST", headers: { "Content-Type": "application/json" }, body: await file.text() });
+      const res = await fetch("/api/staff/course-imports", { method: "POST", headers: { "Content-Type": "application/json" }, body: file });
       const json = await res.json().catch(() => ({}));
       if (!res.ok || json.success !== true) throw new Error(typeof json.error === "string" ? json.error : "Gagal mengunggah berkas impor.");
       onUploaded();
@@ -66,10 +68,10 @@ export function CourseImportUploadDialog({ isOpen, onClose, onUploaded }: { isOp
 export function CourseImportDecisionDialog({ mode, isOpen, title, onClose, onConfirm }: {
   mode: "approve" | "reject"; isOpen: boolean; title: string; onClose: () => void; onConfirm: (note?: string) => Promise<void>;
 }) {
-  const { panel, onKeyDown } = useDialogFocus(isOpen);
-  const [note, setNote] = useState("");
+    const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const { panel, onKeyDown } = useDialogFocus(isOpen, busy);
   const confirm = async (event: React.FormEvent) => {
     event.preventDefault();
     if (busy) return;

@@ -60,6 +60,7 @@ function url(value, path) {
  */
 export function parseCourseImport(raw) {
   if (typeof raw !== "string") throw new CourseImportError("Berkas impor bukan JSON yang valid.");
+  if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1);
   if (new TextEncoder().encode(raw).length > MAX_IMPORT_BYTES) {
     throw new CourseImportError("Berkas impor melebihi batas 2 MB.", 413);
   }

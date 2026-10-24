@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { clientErrorMessage } from "@/lib/api/errors";
 import { CourseImportUploadDialog, CourseImportDecisionDialog } from "./CourseImportDialogs";
@@ -21,6 +21,10 @@ export function CourseImportPanel({ imports, role, error, onNotification }: Prop
   const router = useRouter();
   const [uploading, setUploading] = useState(false);
   const [decision, setDecision] = useState<{ mode: "approve" | "reject"; item: CourseImport } | null>(null);
+  const heading = useRef<HTMLHeadingElement>(null);
+  const decided = useRef(false);
+  // Runs after the dialog unmounts (its focus-restore targets a button router.refresh removes).
+  useEffect(() => { if (!decision && decided.current) { decided.current = false; heading.current?.focus(); } }, [decision]);
   const [previews, setPreviews] = useState<Record<string, CourseImportPayload | "loading" | "error">>({});
   const togglePreview = async (item: CourseImport) => {
     if (previews[item.id] && previews[item.id] !== "error") {
@@ -44,17 +48,18 @@ export function CourseImportPanel({ imports, role, error, onNotification }: Prop
     const json = await res.json().catch(() => ({}));
     if (!res.ok || json.success !== true) throw new Error(typeof json.error === "string" ? json.error : "Gagal menyimpan keputusan impor.");
     onNotification("success", decision.mode === "approve" ? "Lisensi disetujui. Course dibuat sebagai Draft." : "Impor ditolak.");
-    setDecision(null); router.refresh();
+    decided.current = true; setDecision(null); router.refresh();
   };
   return <section aria-labelledby="course-import-heading" className="min-w-0 space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <h2 id="course-import-heading" className="text-lg font-bold text-navy">Impor course</h2>
+      <h2 id="course-import-heading" ref={heading} tabIndex={-1} className="text-lg font-bold text-navy">Impor course</h2>
       <button type="button" className={`${button} bg-navy text-white`} onClick={() => setUploading(true)}>Impor JSON</button>
     </div>
     <p className="text-sm text-slate-600">Impor menunggu persetujuan lisensi Admin. Setelah disetujui, course dan lesson dibuat sebagai Draft.</p>
     {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p>}
     {imports.length === 0 ? <p className="text-sm text-slate-600">Belum ada impor.</p> : <ul className="space-y-3">{imports.map(item => {
       const preview = previews[item.id];
+      const isShown = typeof preview === "object";
       const [label, tone] = STATUS[item.status];
       return <li key={item.id} className="min-w-0 space-y-2 rounded-xl border border-slate-200 p-3">
         <div className="flex flex-wrap items-start justify-between gap-2"><h3 className="min-w-0 break-words font-bold text-navy">{item.course_title}</h3><span className={`rounded-full px-3 py-1 text-xs font-semibold ${tone}`}>{label}</span></div>
@@ -68,13 +73,13 @@ export function CourseImportPanel({ imports, role, error, onNotification }: Prop
         {item.status === "rejected" && item.review_note && <p className="whitespace-pre-wrap break-words rounded-xl bg-red-50 p-3 text-sm text-red-800">Alasan penolakan: {item.review_note}</p>}
         {item.status === "approved" && item.created_by && item.created_by === item.reviewed_by && <p className="rounded-xl bg-slate-50 p-2 text-xs text-slate-700">Diunggah dan disetujui oleh orang yang sama.</p>}
         <div className="flex flex-wrap gap-2">
-          <button type="button" aria-expanded={Boolean(preview && preview !== "error")} className={button} disabled={preview === "loading"} onClick={() => void togglePreview(item)}>{preview && preview !== "error" && preview !== "loading" ? "Tutup preview" : "Lihat preview"}</button>
+          <button type="button" aria-expanded={isShown} aria-controls={`course-import-preview-${item.id}`} className={button} disabled={preview === "loading"} onClick={() => void togglePreview(item)}>{isShown ? "Tutup preview" : "Lihat preview"}</button>
           {role === "admin" && item.status === "pending" && <>
             <button type="button" className={`${button} bg-navy text-white`} onClick={() => setDecision({ mode: "approve", item })}>Setujui</button>
             <button type="button" className={`${button} text-red-700`} onClick={() => setDecision({ mode: "reject", item })}>Tolak</button>
           </>}
         </div>
-        {preview && preview !== "loading" && preview !== "error" && <div className="space-y-3 border-t border-slate-200 pt-3">
+        {typeof preview === "object" && <div id={`course-import-preview-${item.id}`} className="space-y-3 border-t border-slate-200 pt-3">
           {preview.course.summary && <p className="whitespace-pre-line break-words text-sm text-slate-600">{preview.course.summary}</p>}
           <ol className="space-y-3">{preview.lessons.map(lesson => <li key={lesson.slug} className="min-w-0">
             <h4 className="break-words font-semibold text-navy">{lesson.position}. {lesson.title}</h4>

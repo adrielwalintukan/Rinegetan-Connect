@@ -101,3 +101,6 @@ test("malformed URLs and text are rejected with the field path", () => {
 test("non-string raw is a 400, not 413", () => {
   assert.throws(() => parseCourseImport(undefined), (e) => e instanceof CourseImportError && e.status === 400 && /JSON/.test(e.message));
 });
+test("a leading UTF-8 BOM is ignored", () => {
+  assert.equal(parseCourseImport("\uFEFF" + raw(validImport())).course.slug, "seri-contoh");
+});

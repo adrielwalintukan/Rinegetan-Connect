@@ -22,3 +22,20 @@ test("staff page loads import metadata, never payloads, for the course tab", () 
   assert.match(read("components/staff/CourseManager.tsx"), /<CourseImportPanel/);
   assert.ok(!read("lib/courses/import-actions.mjs").match(/IMPORT_LIST_COLUMNS = "[^"]*payload/));
 });
+test("dialogs focus their panel while busy, send the File as-is, and preview aria is accurate", () => {
+  const dialogs = read("components/staff/CourseImportDialogs.tsx");
+  assert.match(dialogs, /useDialogFocus\(isOpen, busy\)/g);
+  assert.equal(dialogs.match(/useDialogFocus\(isOpen, busy\)/g)?.length, 2);
+  assert.match(dialogs, /if \(busy\) panel\.current\?\.focus\(\)/);
+  assert.match(dialogs, /body: file\b/);
+  assert.ok(!dialogs.includes("file.text()"));
+  const panel = read("components/staff/CourseImportPanel.tsx");
+  assert.match(panel, /aria-expanded=\{isShown\}/);
+  assert.match(panel, /aria-controls=\{`course-import-preview-\$\{item\.id\}`\}/);
+  assert.match(panel, /id=\{`course-import-preview-\$\{item\.id\}`\}/);
+});
+test("after a decision, focus moves to the import heading", () => {
+  const panel = read("components/staff/CourseImportPanel.tsx");
+  assert.match(panel, /id="course-import-heading" ref=\{heading\} tabIndex=\{-1\}/);
+  assert.match(panel, /heading\.current\?\.focus\(\)/);
+});
