@@ -47,8 +47,8 @@ select set_config('request.jwt.claim.sub', '81000000-0000-4000-8000-00000000000e
 insert into public.course_imports (id, status, payload, course_title, course_slug, lesson_count, source_name, rights_holder, license_name, created_by, reviewed_by, reviewed_at, review_note, course_id)
   select '83000000-0000-4000-8000-000000000001', 'approved', p, 'Seri Impor', 'seri-impor', 2, 'Sumber', 'Pemegang', 'Izin',
     '81000000-0000-4000-8000-00000000000a', '81000000-0000-4000-8000-00000000000a', now(), 'palsu', '82000000-0000-4000-8000-000000000001' from import_payload;
-select results_eq($$ select status, created_by, reviewed_by, review_note, course_id from public.course_imports where id = '83000000-0000-4000-8000-000000000001' $$,
-  $$ values ('pending'::text, '81000000-0000-4000-8000-00000000000e'::uuid, null::uuid, null::text, null::uuid) $$, 'insert forced to pending with session creator');
+select results_eq($$ select status, created_by, reviewed_by, reviewed_at, review_note, course_id from public.course_imports where id = '83000000-0000-4000-8000-000000000001' $$,
+  $$ values ('pending'::text, '81000000-0000-4000-8000-00000000000e'::uuid, null::uuid, null::timestamptz, null::text, null::uuid) $$, 'insert forced to pending with session creator');
 select throws_ok($$ insert into public.course_imports (payload, course_title, course_slug, lesson_count, source_name, rights_holder, license_name)
   select p, 'Seri Impor', 'seri-impor', 2, 'Sumber', 'Pemegang', 'Izin' from import_payload $$, '23505', null, 'pending slug is unique');
 select throws_ok($$ insert into public.course_imports (payload, course_title, course_slug, lesson_count, source_name, rights_holder, license_name)
@@ -60,6 +60,9 @@ select throws_ok($$ insert into public.course_imports (payload, course_title, co
 select throws_ok($$ insert into public.course_imports (payload, course_title, course_slug, lesson_count, source_name, rights_holder, license_name)
   select jsonb_set(jsonb_set(jsonb_set(p, '{course,slug}', '"besar"'), '{course,title}', '"Besar"'), '{license,notes}', to_jsonb(repeat('a', 2100000))), 'Besar', 'besar', 2, 'Sumber', 'Pemegang', 'Izin' from import_payload $$,
   '23514', null, 'payload over 2 MB is rejected');
+select throws_ok($$ insert into public.course_imports (payload, course_title, course_slug, lesson_count, source_name, rights_holder, license_name)
+  select jsonb_set(jsonb_set(p, '{course,slug}', '"beda-lisensi"'), '{course,title}', '"Beda Lisensi"'), 'Beda Lisensi', 'beda-lisensi', 2, 'Sumber', 'Pemegang', 'Lain' from import_payload $$,
+  '23514', null, 'license_name must match payload');
 select results_eq($$ update public.course_imports set status = 'rejected', review_note = 'x' returning id $$, array[]::uuid[], 'Editor cannot reject');
 select throws_ok($$ select public.approve_course_import('83000000-0000-4000-8000-000000000001') $$, '42501', 'course_import_admin_only', 'Editor cannot approve');
 select throws_ok($$ delete from public.course_imports $$, '42501', null, 'nobody can delete imports');
@@ -73,6 +76,8 @@ select set_config('request.jwt.claim.sub', '81000000-0000-4000-8000-00000000000a
 select throws_ok($$ update public.course_imports set status = 'approved' where id = '83000000-0000-4000-8000-000000000001' $$, '42501', null, 'Admin cannot approve by direct update');
 select throws_ok($$ update public.course_imports set status = 'rejected', review_note = 'x', license_name = 'Ubah' where id = '83000000-0000-4000-8000-000000000001' $$, '23514', 'course_import_immutable', 'license data is immutable');
 select throws_ok($$ update public.course_imports set status = 'rejected' where id = '83000000-0000-4000-8000-000000000001' $$, '42501', null, 'reject requires a note');
+
+select throws_ok($$ select public.approve_course_import('83000000-0000-4000-8000-0000000000ff') $$, 'P0002', 'course_import_not_found', 'unknown import is not found');
 
 -- Approve creates Draft course + lessons from allowed fields only
 select lives_ok($$ select public.approve_course_import('83000000-0000-4000-8000-000000000001') $$, 'Admin approves');
@@ -105,6 +110,43 @@ delete from public.course_lessons where course_id = (select course_id from publi
 delete from public.courses where slug = 'seri-impor';
 select results_eq($$ select status, course_id from public.course_imports where id = '83000000-0000-4000-8000-000000000001' $$,
   $$ values ('approved'::text, null::uuid) $$, 'deleting the course clears course_id only');
+
+-- Decided rows cannot go back to pending, even bypassing RLS
+select throws_ok($$ update public.course_imports set status = 'pending', reviewed_by = null, reviewed_at = null, course_id = null where id = '83000000-0000-4000-8000-000000000001' $$,
+  '23514', 'course_import_transition_invalid', 'approved import cannot return to pending');
+select throws_ok($$ update public.course_imports set status = 'pending', reviewed_by = null, reviewed_at = null, review_note = null where id = '83000000-0000-4000-8000-000000000002' $$,
+  '23514', 'course_import_transition_invalid', 'rejected import cannot return to pending');
+
+-- FK cleanup when users are deleted
+insert into auth.users (id, email) values
+ ('81000000-0000-4000-8000-00000000000b', 'p3003-admin-gone@example.invalid'),
+ ('81000000-0000-4000-8000-00000000000d', 'p3003-editor-gone@example.invalid');
+insert into public.profiles (id, display_name, is_active) values
+ ('81000000-0000-4000-8000-00000000000b', 'Synthetic Admin Gone', true),
+ ('81000000-0000-4000-8000-00000000000d', 'Synthetic Editor Gone', true);
+insert into public.staff_roles (user_id, role) values
+ ('81000000-0000-4000-8000-00000000000b', 'admin'),
+ ('81000000-0000-4000-8000-00000000000d', 'editor');
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '81000000-0000-4000-8000-00000000000b', true);
+insert into public.course_imports (id, payload, course_title, course_slug, lesson_count, source_name, rights_holder, license_name)
+  select '83000000-0000-4000-8000-000000000003', jsonb_set(jsonb_set(p, '{course,slug}', '"hapus-admin"'), '{course,title}', '"Hapus Admin"'), 'Hapus Admin', 'hapus-admin', 2, 'Sumber', 'Pemegang', 'Izin' from import_payload;
+update public.course_imports set status = 'rejected', review_note = 'Tidak berlisensi' where id = '83000000-0000-4000-8000-000000000003';
+select set_config('request.jwt.claim.sub', '81000000-0000-4000-8000-00000000000d', true);
+insert into public.course_imports (id, payload, course_title, course_slug, lesson_count, source_name, rights_holder, license_name)
+  select '83000000-0000-4000-8000-000000000004', jsonb_set(jsonb_set(p, '{course,slug}', '"hapus-editor"'), '{course,title}', '"Hapus Editor"'), 'Hapus Editor', 'hapus-editor', 2, 'Sumber', 'Pemegang', 'Izin' from import_payload;
+reset role;
+select results_eq($$ select created_by, reviewed_by from public.course_imports where id = '83000000-0000-4000-8000-000000000003' $$,
+  $$ values ('81000000-0000-4000-8000-00000000000b'::uuid, '81000000-0000-4000-8000-00000000000b'::uuid) $$, 'same Admin created and reviewed');
+create temporary table import_audit_before as
+  select count(*)::int as n from public.audit_logs where entity_type = 'course_imports';
+select lives_ok($$ delete from auth.users where id = '81000000-0000-4000-8000-00000000000b' $$, 'deleting creator-reviewer user succeeds');
+select lives_ok($$ delete from auth.users where id = '81000000-0000-4000-8000-00000000000d' $$, 'deleting pending creator succeeds');
+select results_eq($$ select id, status, created_by, reviewed_by from public.course_imports
+  where id in ('83000000-0000-4000-8000-000000000003', '83000000-0000-4000-8000-000000000004') order by id $$,
+  $$ values ('83000000-0000-4000-8000-000000000003'::uuid, 'rejected'::text, null::uuid, null::uuid),
+            ('83000000-0000-4000-8000-000000000004'::uuid, 'pending'::text, null::uuid, null::uuid) $$, 'user deletion clears references only');
+select is((select count(*)::int from public.audit_logs where entity_type = 'course_imports'), (select n from import_audit_before), 'user cleanup adds no import audit');
 
 select * from finish();
 rollback;

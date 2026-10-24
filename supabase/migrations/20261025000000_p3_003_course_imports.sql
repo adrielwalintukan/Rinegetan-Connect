@@ -30,6 +30,15 @@ create table public.course_imports (
   constraint course_imports_course_match check (
     payload->'course'->>'slug' = course_slug and payload->'course'->>'title' = course_title
   ),
+  -- Denormalized license columns must be exactly what the Admin sees in the payload.
+  constraint course_imports_source_license_match check (
+    source_name = payload->'source'->>'name'
+    and rights_holder = payload->'source'->>'rights_holder'
+    and license_name = payload->'license'->>'name'
+    and source_url is not distinct from nullif(payload->'source'->>'url', '')
+    and license_url is not distinct from nullif(payload->'license'->>'url', '')
+    and coalesce(license_notes, '') = coalesce(payload->'license'->>'notes', '')
+  ),
   constraint course_imports_review_state check (
     (status = 'pending' and reviewed_by is null and reviewed_at is null and review_note is null and course_id is null)
     or (status = 'rejected' and reviewed_at is not null and review_note is not null and course_id is null)
