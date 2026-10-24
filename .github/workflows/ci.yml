@@ -53,7 +53,7 @@ jobs:
       - name: Set up Supabase CLI
         uses: supabase/setup-cli@v3
         with:
-          version: 2.117.0
+          version: 2.122.0
       - name: Start Supabase local containers
         run: supabase start
       - name: Run pgTAP test suites

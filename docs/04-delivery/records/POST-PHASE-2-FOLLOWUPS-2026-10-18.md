@@ -132,3 +132,23 @@ rollback;
 ```
 
 </details>
+
+## Pembaruan 25 Oktober 2026 — upgrade Supabase CLI ke 2.122.0 (OPS-008, #74)
+
+Butir 9 selesai. Pemilik memutuskan upgrade dari pin `2.117.0` ke `2.122.0`, rilis stable terbaru saat diperiksa 25 Oktober (dirilis 23 Oktober).
+
+**Alasan:** perbaikan stabilitas `supabase start`/`stop` di Podman (2.121–2.122), runtime lokal yang dipakai proyek ini, dan retry otomatis untuk pull image yang terkena rate limit (2.118), yang mengurangi risiko rate limit CI di [Strategi Pengujian](../../06-quality/TEST-STRATEGY.md#regresi-browser-di-ci). Tidak ada perubahan perilaku yang memengaruhi production; CLI hanya dipakai lokal dan di CI.
+
+**Perubahan:** devDependency `supabase` (package.json dan lockfile, hanya paket CLI), `supabase/setup-cli` di CI, tes kontrak `frontend/tests/supabase-foundation.test.mjs`, dan Strategi Pengujian dipin ke `2.122.0`. Rencana/spesifikasi lama di `docs/superpowers/` tetap mencatat `2.117.0` sebagai riwayat. Migration lama tidak diubah.
+
+| Verifikasi lokal (Podman, Windows) | Hasil |
+| --- | --- |
+| `supabase --version` | `2.122.0` |
+| Bootstrap database kosong (`stop --no-backup`, lalu `start` dengan layanan yang sama seperti CI) | Exit 0; 16 migration diterapkan |
+| `status -o json` | `API_URL` dan `ANON_KEY` yang dibaca CI tetap ada. Ada field tambahan (`linked_*`, `PUBLISHABLE_KEY`, `SECRET_KEY`); CI hanya mengambil dua kunci tadi lalu menghapus file. |
+| pgTAP (`supabase test db`) | 441 tes dalam 11 file lulus |
+| CI PR | Kelima job dijalankan dengan versi baru (lihat PR) |
+
+**Perubahan perilaku yang dicatat:** sejak 2.118 mesin stack lokal ditulis ulang (startup paralel, log layanan disimpan, perintah eksperimental `supabase stack`). Sejak 2.119 info koneksi dicetak saat start; CI tetap membuang stdout `start`.
+
+**Rollback:** kembalikan pin ke `2.117.0` di keempat tempat (package/lockfile lewat `npm install -D -E supabase@2.117.0`, CI, tes kontrak, Strategi Pengujian). Bila stack lokal gagal setelah ganti versi, `supabase stop --no-backup` lalu `start` membuat ulang database lokal dari migration. Production tidak disentuh.
