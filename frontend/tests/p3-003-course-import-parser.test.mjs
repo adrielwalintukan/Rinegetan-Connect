@@ -74,3 +74,30 @@ test("source, license and URL rules", () => {
   ];
   for (const [mutate, pattern] of cases) { const d = validImport(); mutate(d); rejects(d, pattern); }
 });
+test("boundary values are accepted", () => {
+  const d = validImport();
+  d.course.title = "📖".repeat(200);
+  d.course.summary = "a".repeat(500);
+  d.license.notes = "a".repeat(1000);
+  d.lessons[0].body = "a".repeat(50000);
+  d.lessons[1].position = 2147483647;
+  assert.equal(parseCourseImport(raw(d)).course.title.length, 400);
+  const many = validImport();
+  many.lessons = Array.from({ length: 100 }, (_, i) => ({ position: i + 1, title: `L${i}`, slug: `l-${i}`, summary: "", body: "Isi." }));
+  assert.equal(parseCourseImport(raw(many)).lessons.length, 100);
+});
+test("413 counts bytes, not characters", () => {
+  const s = "é".repeat(MAX_IMPORT_BYTES / 2 + 1);
+  assert.ok(s.length < MAX_IMPORT_BYTES);
+  rejects(s, /2 MB/, 413);
+});
+test("malformed URLs and text are rejected with the field path", () => {
+  for (const bad of ["  https://a.b/x  ", "https://a.\nb/", "https://a.b/\u0000", "https:x", "https://a.b/\ud800", "https://a.b/\u007f", "https://a.b/ x"]) {
+    const d = validImport(); d.source.url = bad; rejects(d, /source\.url/);
+  }
+  const d = validImport(); d.lessons[0].title = "x\ud800"; rejects(d, /lessons\[0\]\.title.*tidak diizinkan/);
+  const p = validImport(); p.lessons[0].position = 0; rejects(p, /2\.147\.483\.647/);
+});
+test("non-string raw is a 400, not 413", () => {
+  assert.throws(() => parseCourseImport(undefined), (e) => e instanceof CourseImportError && e.status === 400 && /JSON/.test(e.message));
+});

@@ -31,7 +31,7 @@ function text(value, path, max, required) {
   if (value === undefined && !required) return "";
   if (typeof value !== "string") throw fail(path, "harus berupa teks");
   const clean = value.replace(/\r\n?/g, "\n").trim();
-  if (clean.includes("\0")) throw fail(path, "berisi karakter yang tidak diizinkan");
+  if (clean.includes("\0") || !clean.isWellFormed()) throw fail(path, "berisi karakter yang tidak diizinkan");
   if (required && !clean) throw fail(path, "wajib diisi");
   if (courseTextLengthError(clean, max, path)) throw fail(path, `maksimal ${max.toLocaleString("id-ID")} karakter`);
   return clean;
@@ -46,6 +46,8 @@ function slug(value, path) {
 function url(value, path) {
   if (value === undefined || value === null || value === "") return null;
   if (typeof value !== "string" || value.length > 2048) throw fail(path, "harus URL https maksimal 2.048 karakter");
+  // Store the exact string we validated: https:// prefix, no whitespace/control chars, no lone surrogates.
+  if (!value.startsWith("https://") || /[\u0000- \u007f\s]/.test(value) || !value.isWellFormed()) throw fail(path, "bukan URL https yang valid (tanpa spasi atau karakter kontrol)");
   let parsed;
   try { parsed = new URL(value); } catch { throw fail(path, "bukan URL yang valid"); }
   if (parsed.protocol !== "https:" || parsed.username || parsed.password) throw fail(path, "harus URL https tanpa nama pengguna atau kata sandi");
@@ -57,7 +59,8 @@ function url(value, path) {
  * @returns {import('../../types/courses').CourseImportPayload}
  */
 export function parseCourseImport(raw) {
-  if (typeof raw !== "string" || new TextEncoder().encode(raw).length > MAX_IMPORT_BYTES) {
+  if (typeof raw !== "string") throw new CourseImportError("Berkas impor bukan JSON yang valid.");
+  if (new TextEncoder().encode(raw).length > MAX_IMPORT_BYTES) {
     throw new CourseImportError("Berkas impor melebihi batas 2 MB.", 413);
   }
   let input;
@@ -77,7 +80,7 @@ export function parseCourseImport(raw) {
     const lesson = object(value, path, ["position", "title", "slug", "summary", "body"]);
     const position = lesson.position;
     if (typeof position !== "number" || !Number.isInteger(position) || position < 1 || position > 2147483647) {
-      throw fail(`${path}.position`, "harus bilangan bulat 1 atau lebih");
+      throw fail(`${path}.position`, "harus bilangan bulat 1–2.147.483.647");
     }
     const lessonSlug = slug(lesson.slug, `${path}.slug`);
     if (slugs.has(lessonSlug)) throw fail(`${path}.slug`, "sudah dipakai lesson lain dalam berkas");
