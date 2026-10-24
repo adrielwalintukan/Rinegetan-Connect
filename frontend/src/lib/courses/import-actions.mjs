@@ -74,7 +74,7 @@ export async function readImportBody(request) {
   const tooBig = () => new CourseImportError("Berkas impor melebihi batas 2 MB.", 413);
   const declared = Number(request.headers.get("content-length"));
   if (declared > MAX_IMPORT_BYTES) throw tooBig();
-  const bytes = new Uint8Array(MAX_IMPORT_BYTES);
+  const chunks = [];
   let total = 0;
   if (request.body) {
     const reader = request.body.getReader();
@@ -82,10 +82,13 @@ export async function readImportBody(request) {
       const { done, value } = await reader.read();
       if (done) break;
       if (total + value.length > MAX_IMPORT_BYTES) { await reader.cancel(); throw tooBig(); }
-      bytes.set(value, total); total += value.length;
+      chunks.push(value); total += value.length;
     }
   }
-  try { return new TextDecoder("utf-8", { fatal: true }).decode(bytes.subarray(0, total)); }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+  try { return new TextDecoder("utf-8", { fatal: true }).decode(bytes); }
   catch { throw new CourseImportError("Berkas impor bukan JSON yang valid.", 400); }
 }
 
@@ -130,6 +133,7 @@ export async function decideCourseImport(client, id, decision, role) {
   }
   const { data, error } = await client.from("course_imports").update({ status: "rejected", review_note: decision.note })
     .eq("id", id).eq("status", "pending").select("id").single();
-  if (error || !data) throw importFailure(error?.code === "PGRST116" || !data ? { message: "course_import_not_pending" } : error);
+  const noRow = error ? error.code === "PGRST116" : !data;
+  if (error || !data) throw importFailure(noRow ? { message: "course_import_not_pending" } : error);
   return { id: data.id };
 }

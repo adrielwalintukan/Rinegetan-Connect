@@ -178,3 +178,9 @@ test("rejecting a non-pending import is 409 like approve", async () => {
   const { response, json } = await call(item.POST, { body: { action: "reject", note: "Tidak sesuai" }, params: { id }, result: { data: null } });
   assert.equal(response.status, 409); assert.equal(json.error, "Impor ini sudah diputuskan sebelumnya. Muat ulang halaman.");
 });
+for (const [code, status] of [["42501", 403], ["22P02", 400], ["XX000", 500]]) {
+  test(`reject keeps normal error mapping for ${code} and never leaks DB text`, async () => {
+    const { response, json } = await call(item.POST, { body: { action: "reject", note: "Tidak sesuai" }, params: { id }, result: { error: { code, message: "PRIVATE_SENTINEL" } } });
+    assert.equal(response.status, status); assert.ok(!JSON.stringify(json).includes("PRIVATE_SENTINEL"));
+  });
+}
