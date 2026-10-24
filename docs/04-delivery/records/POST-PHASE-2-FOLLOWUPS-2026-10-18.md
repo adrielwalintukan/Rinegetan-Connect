@@ -88,3 +88,47 @@ Butir 10 selesai. Pemilik menyetujui publikasi secara eksplisit pada 24 Oktober 
 | Remote sesudah push | `refs/tags/v2.0.0` = objek tag `7aac1aaf646ff76a67faa20a029c8cb9ae9c5f25` (sama dengan lokal); `refs/tags/v2.0.0^{}` = `0615e638e902a310c9d7d5d61fc7876f51bb0ffb`. |
 
 GitHub Release tidak dibuat; di luar scope OPS-005.
+
+## Pembaruan 25 Oktober 2026 — inventaris orphan Storage (OPS-007, #67)
+
+Butir 6 (orphan historis) selesai tanpa cleanup: tidak ada orphan.
+
+Pemilik menjalankan query baca-saja di SQL Editor production (`begin read only` … `rollback`). Agent tidak mengakses production dan tidak memakai kredensial. Query hanya mengeluarkan jumlah, tanpa path atau metadata. Referensi yang dicocokkan adalah `media_assets.storage_path` terhadap objek bucket `media`, satu-satunya referensi Storage menurut migration dan kode. Objek berumur kurang dari 1 jam dihitung terpisah agar unggahan yang sedang berjalan tidak dianggap orphan. Query diuji lebih dulu pada Supabase lokal dengan data sintetis (satu objek terreferensi, satu orphan lama, satu orphan baru, satu baris tanpa objek); hasilnya sesuai, termasuk dalam transaksi `read only`.
+
+| Ukuran | Hasil production |
+| --- | --- |
+| Bucket | 1 (`media`) |
+| Objek di luar bucket `media` | 0 |
+| Objek bucket `media` | 5 |
+| Baris `media_assets` | 5 |
+| Objek orphan (≥ 1 jam) | 0 (0 byte) |
+| Objek tanpa baris (< 1 jam) | 0 |
+| Baris tanpa objek | 0 |
+
+Tidak ada penghapusan, sehingga tidak ada dampak rollback. Bila cleanup diperlukan di masa depan, rollback kode tidak memulihkan file yang telah dihapus; target tetap harus ditinjau dan disetujui pemilik lebih dahulu.
+
+<details>
+<summary>Query inventaris</summary>
+
+```sql
+begin read only;
+select
+  (select count(*) from storage.buckets) as total_bucket,
+  (select count(*) from storage.objects where bucket_id <> 'media') as objek_di_luar_bucket_media,
+  (select count(*) from storage.objects where bucket_id = 'media') as objek_media,
+  (select count(*) from public.media_assets) as baris_media_assets,
+  (select count(*) from storage.objects o
+     where o.bucket_id = 'media' and o.created_at < now() - interval '1 hour'
+       and not exists (select 1 from public.media_assets ma where ma.storage_path = o.name)) as objek_orphan,
+  (select coalesce(sum((o.metadata->>'size')::bigint), 0) from storage.objects o
+     where o.bucket_id = 'media' and o.created_at < now() - interval '1 hour'
+       and not exists (select 1 from public.media_assets ma where ma.storage_path = o.name)) as byte_orphan,
+  (select count(*) from storage.objects o
+     where o.bucket_id = 'media' and o.created_at >= now() - interval '1 hour'
+       and not exists (select 1 from public.media_assets ma where ma.storage_path = o.name)) as objek_tanpa_baris_lt_1_jam,
+  (select count(*) from public.media_assets ma
+     where not exists (select 1 from storage.objects o where o.bucket_id = 'media' and o.name = ma.storage_path)) as baris_tanpa_objek;
+rollback;
+```
+
+</details>
