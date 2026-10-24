@@ -37,14 +37,16 @@ chore/bootstrap-phase-2
 6. Merge ke development dengan riwayat yang mudah dibaca.
 7. Saat kumpulan fitur siap dirilis, buka satu pull request development → main. Jalankan checklist rilis dan buat tag/release bila disetujui.
 
-## CI awal
+## CI
 
-Workflow Continuous Integration menjalankan:
+Workflow Continuous Integration berjalan pada pull request dan push ke `development` serta `main`, dengan empat job:
 
-- install deterministik dan production build frontend;
-- instalasi dependency serta pemeriksaan sintaks backend.
+- **Frontend Quality Gate & Build:** install deterministik, typecheck, lint, production build, dan Node unit/contract/security test.
+- **Database pgTAP & RLS Tests:** Supabase lokal, migration dari database kosong, dan suite pgTAP.
+- **Browser regression (Playwright):** alur publik, aksesibilitas, reader, dan CMS staf di Chromium terhadap build production dengan Supabase lokal dan data sintetis. Rincian di [Strategi Pengujian](../06-quality/TEST-STRATEGY.md#regresi-browser-di-ci).
+- **Backend syntax:** instalasi dependency dan pemeriksaan sintaks backend.
 
-Ketika refactor Next.js dan Supabase dimulai, workflow ini diperluas dengan typecheck, unit test, E2E, migration/RLS test, dan pemeriksaan lint. Status CI harus menjadi required check melalui GitHub ruleset setelah repository sudah terhubung.
+Status CI harus menjadi required check melalui GitHub ruleset (dilacak di OPS-GIT, #69).
 
 ## Perlindungan GitHub yang perlu diaktifkan
 

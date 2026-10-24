@@ -6,6 +6,8 @@ import { resolve } from 'node:path';
 const frontend = resolve(process.cwd(), existsSync(resolve(process.cwd(), 'supabase/config.toml')) ? 'frontend' : '.');
 const root = resolve(frontend, '..');
 const container = 'supabase_db_Rinegetan-Connect';
+// Podman locally on Windows; CI sets CONTAINER_RUNTIME=docker on Linux runners.
+const runtime = process.env.CONTAINER_RUNTIME || 'podman';
 let localSettings;
 export function loopback(value) {
   const url = new URL(value);
@@ -23,13 +25,13 @@ export function settings() {
   const status = JSON.parse(run(process.execPath, [resolve(frontend,'node_modules/supabase/dist/supabase.js'),'--workdir',root,'status','-o','json']));
   loopback(status.API_URL); loopback(status.DB_URL);
   if (new URL(status.API_URL).port !== '54321' || new URL(status.DB_URL).port !== '54322' || !status.JWT_SECRET || !status.ANON_KEY) throw new Error('Unexpected local test settings.');
-  const state = run('podman',['inspect','--format','{{.Name}}|{{.State.Status}}',container]).trim();
+  const state = run(runtime,['inspect','--format','{{.Name}}|{{.State.Status}}',container]).trim();
   if (state.replace(/^\//,'') !== `${container}|running`) throw new Error('Local project database is not running.');
   localSettings = Object.freeze(status);
   return localSettings;
 }
 function sql(statement) {
-  return run('podman',['exec','-i',container,'psql','-U','postgres','-d','postgres','-v','ON_ERROR_STOP=1','-At'],statement).trim();
+  return run(runtime,['exec','-i',container,'psql','-U','postgres','-d','postgres','-v','ON_ERROR_STOP=1','-At'],statement).trim();
 }
 export async function fixture(origin) {
   loopback(origin);

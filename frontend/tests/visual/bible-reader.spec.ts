@@ -114,7 +114,10 @@ test('fresh browser requests and metadata obey real CMS revision, withdrawal, re
 test('controlled warning response follows one real CMS POST, closes saved modal and shows warning without a second mutation',async({page,local})=>{
   seed(local);await local.login(page.context(),'editor');await page.goto('/staff?tab=courses');
   const item=page.getByRole('listitem').filter({has:page.getByRole('heading',{name:`Course browser ${local.suffix}`,exact:true})});
-  await item.getByRole('button',{name:'Edit course',exact:true}).click();await page.getByRole('textbox',{name:'Ringkasan',exact:true}).fill('Satu revisi dengan warning browser.');
+  await item.getByRole('button',{name:'Edit course',exact:true}).click();
+  // Focus moves to Judul one tick after the dialog opens; wait so typing lands in Ringkasan.
+  await expect(page.getByRole('dialog').getByLabel('Judul',{exact:true})).toBeFocused();
+  await page.getByRole('textbox',{name:'Ringkasan',exact:true}).fill('Satu revisi dengan warning browser.');
   const before=Number(local.execute(`select count(*) from public.audit_logs where entity_id='${local.course}' and actor_id='${local.editor}';`));
   let posts=0;
   await page.route('**/api/staff/courses',async route=>{posts++;const response=await route.fetch();expect(response.status()).toBe(200);const body=await response.json();await route.fulfill({response,json:{...body,warning:'Perubahan tersimpan, tetapi penyegaran tampilan publik belum berhasil. Silakan periksa kembali beberapa saat lagi.'}});},{times:1});

@@ -14,11 +14,16 @@ async function open(page: Page, local: LocalFixture, role: 'admin' | 'editor') {
   loopback(page.url());
   await expect(page.getByRole('button', { name:'Tambah Course',exact:true })).toBeVisible();
 }
+// The dialog moves focus to Judul one tick after opening; typing before that can land in Judul instead of the target field.
+async function openForm(button: Locator) {
+  await button.click();
+  await expect(button.page().getByRole('dialog').getByLabel('Judul',{exact:true})).toBeFocused();
+}
 const card = (page: Page, title: string) => page.getByRole('listitem').filter({ has:page.getByRole('heading',{name:title,exact:true}) });
 test('delayed refresh blocks reopening until the acknowledged revision reaches the form', async ({page,local}) => {
   await open(page,local,'editor');
   const item=card(page,`Course browser ${local.suffix}`);
-  await item.getByRole('button',{name:'Edit course',exact:true}).click();
+  await openForm(item.getByRole('button',{name:'Edit course',exact:true}));
   await page.getByRole('textbox',{name:'Ringkasan',exact:true}).fill('Revisi pertama tersimpan.');
   let release!:()=>void;
   const gate=new Promise<void>(resolve=>{release=resolve;});
@@ -37,7 +42,7 @@ test('delayed refresh blocks reopening until the acknowledged revision reaches t
     await edit.evaluate(button=>(button as HTMLButtonElement).click());
     await expect(page.getByRole('dialog')).toHaveCount(0);
     release(); await expect(edit).toBeEnabled();
-    await edit.click();
+    await openForm(edit);
     await expect(page.getByRole('textbox',{name:'Ringkasan',exact:true})).toHaveValue('Revisi pertama tersimpan.');
     await page.getByLabel('Judul',{exact:true}).fill(`Revisi kedua ${local.suffix}`);
     await submit(page);
@@ -47,7 +52,7 @@ test('delayed refresh blocks reopening until the acknowledged revision reaches t
 test('Unicode text boundaries preserve supplementary characters and explain overflow without saving', async ({page,local}) => {
   await open(page,local,'editor');
   await card(page,`Course browser ${local.suffix}`).getByRole('button',{name:'Kelola lesson'}).click();
-  await page.getByRole('button',{name:'Tambah Lesson',exact:true}).click();
+  await openForm(page.getByRole('button',{name:'Tambah Lesson',exact:true}));
   await page.getByLabel('Slug',{exact:true}).fill(`unicode-${local.suffix}`);
   const fields=[['Judul',199,'Judul'],['Ringkasan',499,'Ringkasan'],['Isi lesson',49999,'Isi lesson']] as const;
   for(const [name,count] of fields) {
@@ -57,7 +62,7 @@ test('Unicode text boundaries preserve supplementary characters and explain over
   }
   const saved=await submit(page);
   expect(Array.from(saved.data.title)).toHaveLength(200); expect(Array.from(saved.data.summary)).toHaveLength(500); expect(Array.from(saved.data.body)).toHaveLength(50000);
-  await page.getByRole('button',{name:'Edit lesson',exact:true}).click();
+  await openForm(page.getByRole('button',{name:'Edit lesson',exact:true}));
   let requests=0; const countRequest=(request: import('@playwright/test').Request)=>{if(new URL(request.url()).pathname==='/api/staff/courses') requests++;};
   page.on('request',countRequest);
   for(const [name,count,label] of fields) {
@@ -137,7 +142,7 @@ async function errorFocusWrap(page: Page, dialog: Locator, lastName: string, clo
 for (const role of ['admin','editor'] as const) test(`${role}: real draft, lesson ordering, publish, published edit and parent visibility`, async ({ page, local }) => {
   await open(page,local,role);
   const title=`Course alur ${local.suffix}`;
-  await page.getByRole('button',{name:'Tambah Course',exact:true}).click();
+  await openForm(page.getByRole('button',{name:'Tambah Course',exact:true}));
   await expect(page.getByLabel('Judul',{exact:true})).toBeFocused();
   await fillCourse(page,title,`alur-${local.suffix}`);
   const created = await submit(page);
@@ -149,7 +154,7 @@ for (const role of ['admin','editor'] as const) test(`${role}: real draft, lesso
   await parent.getByRole('button',{name:'Kelola lesson'}).click();
   await expect(page.getByRole('status')).toContainText('Course induk belum Published');
   const lessonTitle=`Lesson alur ${local.suffix}`;
-  await page.getByRole('button',{name:'Tambah Lesson',exact:true}).click();
+  await openForm(page.getByRole('button',{name:'Tambah Lesson',exact:true}));
   await fillCourse(page,lessonTitle,`lesson-${local.suffix}`);
   await page.getByLabel('Nomor urut',{exact:true}).fill('3');
   await page.getByRole('textbox',{name:'Isi lesson',exact:true}).fill('Paragraf pertama.\n\n<script>window.p3Injected=true</script>');
@@ -157,7 +162,7 @@ for (const role of ['admin','editor'] as const) test(`${role}: real draft, lesso
   let lesson=card(page,`3. ${lessonTitle}`); await expect(lesson).toBeVisible();
   await status(page,lesson,'Terbitkan');
   await expect.poll(() => local.publicRows(courseId)).toEqual([]);
-  await lesson.getByRole('button',{name:'Edit lesson',exact:true}).click();
+  await openForm(lesson.getByRole('button',{name:'Edit lesson',exact:true}));
   await expect(page.getByText('Perubahan langsung berlaku',{exact:false})).toBeVisible();
   await expect(page.getByLabel('Slug',{exact:true})).toBeDisabled();
   await page.getByLabel('Nomor urut',{exact:true}).fill('5');
@@ -165,7 +170,7 @@ for (const role of ['admin','editor'] as const) test(`${role}: real draft, lesso
   const revised=await submit(page); expect(revised.data.status).toBe('published'); expect(revised.data.position).toBe(5);
   lesson=card(page,`5. ${lessonTitle}`); await expect(lesson).toBeVisible();
   expect(await page.evaluate(() => (window as unknown as {p3Injected?:boolean}).p3Injected)).toBeUndefined();
-  await page.getByRole('button',{name:'Tambah Lesson',exact:true}).click();
+  await openForm(page.getByRole('button',{name:'Tambah Lesson',exact:true}));
   await fillCourse(page,'Konflik urutan',`konflik-${local.suffix}`);
   await page.getByLabel('Nomor urut',{exact:true}).fill('5');
   await page.getByRole('textbox',{name:'Isi lesson',exact:true}).fill('Isi konflik tetap tersimpan.');
@@ -180,7 +185,7 @@ for (const role of ['admin','editor'] as const) test(`${role}: real draft, lesso
   await page.getByRole('button',{name:'Kembali ke daftar course'}).click();
   await status(page,parent,'Terbitkan');
   await expect.poll(async () => (await local.publicRows(courseId)).length).toBe(1);
-  await parent.getByRole('button',{name:'Edit course',exact:true}).click();
+  await openForm(parent.getByRole('button',{name:'Edit course',exact:true}));
   await expect(page.getByLabel('Slug',{exact:true})).toBeDisabled();
   await page.getByRole('textbox',{name:'Ringkasan',exact:true}).fill('Revisi course Published langsung berlaku.');
   const parentRevision=await submit(page); expect(parentRevision.data.status).toBe('published');
@@ -199,7 +204,7 @@ for (const role of ['admin','editor'] as const) test(`${role}: real draft, lesso
 });
 test('network failure retains form, dirty discard is explicit, and repeated submit is blocked', async ({page,local}) => {
   await open(page,local,'editor');
-  await page.getByRole('button',{name:'Tambah Course',exact:true}).click();
+  await openForm(page.getByRole('button',{name:'Tambah Course',exact:true}));
   await fillCourse(page,`Gagal ${local.suffix}`,`gagal-${local.suffix}`);
   await page.route('**/api/staff/courses',route=>route.abort('failed'),{times:1});
   await page.getByRole('button',{name:'Simpan materi',exact:true}).click();
@@ -222,7 +227,7 @@ test('network failure retains form, dirty discard is explicit, and repeated subm
 });
 test('missing record fails safely without losing the edit', async ({page,local}) => {
   await open(page,local,'admin'); const item=card(page,`Course browser ${local.suffix}`);
-  await item.getByRole('button',{name:'Edit course',exact:true}).click();
+  await openForm(item.getByRole('button',{name:'Edit course',exact:true}));
   await page.getByRole('textbox',{name:'Ringkasan',exact:true}).fill('Revisi record yang hilang.');
   local.execute(`delete from public.courses where id='${local.course}';`);
   await submit(page,404);
@@ -266,7 +271,7 @@ for (const width of [320,375,768,1024,1440]) test(`responsive ${width}px: long t
   local.execute(`update public.courses set title='${longTitle}',slug='${'a'.repeat(220)}',summary='${'Ringkasan'.repeat(55)}' where id='${local.course}';`);
   await page.setViewportSize({width,height:900}); await open(page,local,'admin');
   await noOverflow(page); await targets(page.getByRole('region',{name:'Pengelola Course dan Lesson'}));
-  const item=card(page,longTitle); await item.getByRole('button',{name:'Edit course',exact:true}).click();
+  const item=card(page,longTitle); await openForm(item.getByRole('button',{name:'Edit course',exact:true}));
   await expect(page.getByLabel('Judul',{exact:true})).toBeFocused();
   await targets(page.getByRole('dialog')); await noOverflow(page);
   await page.getByRole('button',{name:'Simpan materi',exact:true}).focus(); await page.keyboard.press('Tab');
