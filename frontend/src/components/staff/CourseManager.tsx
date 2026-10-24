@@ -6,9 +6,10 @@ import { ContentFilterBar } from "./ContentFilterBar";
 import { ContentStatusBadge } from "./ContentStatusBadge";
 import { SelectDropdown } from "@/components/ui/SelectDropdown";
 import { CourseMutationDialog } from "./CourseMutationDialog";
+import { CourseImportPanel } from "./CourseImportPanel";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 import { clientErrorMessage } from "@/lib/api/errors";
-import type { Course, CourseLesson } from "@/types/courses";
+import type { Course, CourseImport, CourseLesson } from "@/types/courses";
 import type { CourseForm, LessonForm, CourseMutation } from "@/lib/courses/mutations";
 
 interface Props {
@@ -17,11 +18,13 @@ interface Props {
   role: "admin" | "editor";
   onNotification: (type: "success" | "error", message: string) => void;
   error?: string | null;
+  imports?: CourseImport[];
+  importsError?: string | null;
 }
 const button = "min-h-11 min-w-11 rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-50";
 const readerRefreshWarning = "Perubahan tersimpan, tetapi penyegaran tampilan publik belum berhasil. Silakan periksa kembali beberapa saat lagi.";
 
-export function CourseManager({ courses, lessons, role, onNotification, error }: Props) {
+export function CourseManager({ courses, lessons, role, onNotification, error, imports, importsError }: Props) {
   const router = useRouter();
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [filter, setFilter] = useState("all");
@@ -60,6 +63,7 @@ export function CourseManager({ courses, lessons, role, onNotification, error }:
     {readerRefreshPending && <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">{readerRefreshWarning}</p>}
     {selectedCourseId && !selected && <p role="alert" className="rounded-xl bg-amber-50 p-3 text-sm">Course tidak lagi tersedia. Daftar course telah diperbarui.</p>}
     {selected && <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4"><button type="button" onClick={() => { setSelectedCourseId(null); setFilter("all"); setSearch(""); }} className={button}>Kembali ke daftar course</button><h2 className="break-words text-xl font-bold text-navy">{selected.title}</h2><ContentStatusBadge status={selected.status} /><p className="break-words text-sm text-slate-600">{selected.summary}</p>{selected.status !== "published" && <p role="status" className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Course induk belum Published. Lesson tidak terbaca publik, termasuk lesson yang sudah Published.</p>}</div>}
+    {!selected && <CourseImportPanel imports={imports ?? []} role={role} error={importsError} onNotification={onNotification} />}
     <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-bold text-navy">{selected ? "Daftar lesson" : "Daftar course"}</h2><button type="button" disabled={busy} onClick={() => setDialog({ kind: selected ? "lesson" : "course" })} className={`${button} bg-navy text-white`}>Tambah {selected ? "Lesson" : "Course"}</button></div>
     {!selected && <p className="text-sm text-slate-600">Menerbitkan course akan menampilkan semua lesson Published di dalamnya. Menarik course ke Draft atau Arsip langsung menyembunyikan seluruh lesson.</p>}
     <div className="[&_button]:min-h-11 [&_input]:min-h-11"><ContentFilterBar currentFilter={filter} onFilterChange={setFilter} searchQuery={search} onSearchChange={setSearch} counts={counts} /></div>

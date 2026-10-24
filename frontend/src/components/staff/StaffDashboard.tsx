@@ -17,7 +17,7 @@ import {
   Users,
 } from "lucide-react";
 import { CourseManager } from "./CourseManager";
-import type { Course, CourseLesson } from "@/types/courses";
+import type { Course, CourseImport, CourseLesson } from "@/types/courses";
 import { ContentFilterBar } from "./ContentFilterBar";
 import { ContentTable, type ContentItem } from "./ContentTable";
 import { ContentMutationDialog } from "./ContentMutationDialog";
@@ -49,6 +49,8 @@ interface StaffDashboardProps {
   initialTab?: TabType;
   initialCourses?: Course[];
   initialCourseLessons?: CourseLesson[];
+  initialCourseImports?: CourseImport[];
+  courseImportsError?: string | null;
   coursesError?: string | null;
 }
 
@@ -80,6 +82,8 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   initialTab,
   initialCourses = [],
   initialCourseLessons = [],
+  initialCourseImports = [],
+  courseImportsError,
   coursesError,
 }) => {
   const router = useRouter();
@@ -456,7 +460,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
         {/* Tab Content Section */}
         <div className="mt-6">
           {activeTab === "courses" ? (
-            <CourseManager courses={initialCourses} lessons={initialCourseLessons} role={role} onNotification={showNotification} error={coursesError} />
+            <CourseManager courses={initialCourses} lessons={initialCourseLessons} role={role} onNotification={showNotification} error={coursesError} imports={initialCourseImports} importsError={courseImportsError} />
           ) : activeTab === "audit" ? (
             role === "admin" ? <AuditLogViewer logs={initialAuditLogs} error={auditLogsError} /> : null
           ) : activeTab === "staff" ? (
