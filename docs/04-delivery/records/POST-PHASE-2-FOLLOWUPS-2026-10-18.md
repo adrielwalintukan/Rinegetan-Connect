@@ -75,3 +75,16 @@ Pembaruan ini menambahkan keputusan pemilik dan hasil rilis sesudah 18 Oktober. 
 | 10 | Tag rilis `v2.0.0` | Tag anotasi lokal ada; belum dipublikasikan ke remote | OPS-005 (#65) |
 
 Backup baru: dilewati untuk rilis 23 Oktober atas keputusan pemilik karena keempat migration aditif (pengecualian runbook, dicatat di OPS-001). Backup mutakhir dan cadence berikutnya deferred sampai akhir (OPS-002, #62). Backup terakhir tetap 15 Oktober.
+
+## Pembaruan 24 Oktober 2026 — publikasi tag `v2.0.0` (OPS-005, #65)
+
+Butir 10 selesai. Pemilik menyetujui publikasi secara eksplisit pada 24 Oktober sebelum push.
+
+| Pemeriksaan | Hasil |
+| --- | --- |
+| Tag lokal sebelum push | Tipe `tag` (anotasi), pesan `release: Phase 2 CMS dan fondasi platform`, menunjuk `0615e638e902a310c9d7d5d61fc7876f51bb0ffb` (ada di `main`). |
+| Remote sebelum push | Belum ada tag; tidak ada konflik target. |
+| Publikasi | `git push origin refs/tags/v2.0.0` tanpa force: `[new tag] v2.0.0`. |
+| Remote sesudah push | `refs/tags/v2.0.0` = objek tag `7aac1aaf646ff76a67faa20a029c8cb9ae9c5f25` (sama dengan lokal); `refs/tags/v2.0.0^{}` = `0615e638e902a310c9d7d5d61fc7876f51bb0ffb`. |
+
+GitHub Release tidak dibuat; di luar scope OPS-005.
