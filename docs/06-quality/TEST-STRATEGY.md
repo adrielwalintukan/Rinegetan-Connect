@@ -63,7 +63,7 @@ Dikecualikan di CI: screenshot baseline `home-desktop` (baseline hanya ada untuk
 
 Batas: hanya Chromium; Safari/Firefox dan perangkat fisik belum tercakup. Bagian halaman publik yang bergantung data (kegiatan, pengumuman, foto) dirender sebagai empty state karena database CI kosong. Unggah media dan unduhan ZIP belum memiliki suite browser.
 
-Risiko flakiness yang dipantau: pull image Supabase dari `public.ecr.aws` tanpa autentikasi sering mendapat `toomanyrequests` (teramati 23 Oktober pada job browser 1–2 kali dan job pgTAP 11–33 kali per run). Supabase CLI me-retry tiap image dan semua run tetap lulus. Bila kegagalan job karena rate limit berulang, opsi berikutnya adalah pull terautentikasi atau cache image; keduanya memerlukan keputusan pemilik karena melibatkan secret registry.
+Risiko flakiness yang dipantau: pull image Supabase dari `public.ecr.aws` tanpa autentikasi sering mendapat `toomanyrequests` (teramati 23–24 Oktober: job browser 1–18 kali dan job pgTAP 11–33 kali per run). Supabase CLI me-retry tiap image dan semua run tetap lulus. Bila kegagalan job karena rate limit berulang, opsi berikutnya adalah pull terautentikasi atau cache image; keduanya memerlukan keputusan pemilik karena melibatkan secret registry.
 
 ## Kriteria merge
 
