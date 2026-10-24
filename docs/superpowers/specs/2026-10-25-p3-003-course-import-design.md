@@ -88,36 +88,40 @@ Migration baru, aditif; migration lama tidak diubah.
 | course_id | FK `courses` `on delete set null`; terisi saat `approved` |
 
 - Partial unique index pada `course_slug` untuk `status = 'pending'`.
-- Trigger `before insert/update`: mengisi metadata dari `auth.uid()`/`now()`; menolak perubahan payload, data sumber/lisensi, atau transisi selain `pending → approved/rejected`.
+- Database tidak mempercayai input meski API dilewati (insert langsung lewat PostgREST):
+  - Check: `octet_length(payload::text) <= 2097152`; `payload->'lessons'` berupa array 1–100 dan sama dengan `lesson_count`; `payload->'course'->>'slug' = course_slug`.
+  - Trigger `before insert`: memaksa `status = 'pending'`, `created_by = auth.uid()`, `created_at = now()`, mengosongkan `reviewed_*`, `review_note`, `course_id`; menolak bila `course_slug` sudah dipakai di `courses`.
+  - Trigger `before update`: menolak perubahan payload, data sumber/lisensi, metadata pembuat, atau transisi selain `pending → approved/rejected`; mengisi `reviewed_by`/`reviewed_at` dari sesi.
 - Trigger audit `after insert/update` ke `audit_logs` (`course_import.created/approved/rejected`, tanpa payload).
 
 ### Persetujuan: `public.approve_course_import(p_import_id uuid) returns uuid`
 
-`security invoker`, `search_path = ''`, `execute` hanya untuk `authenticated`. Menolak bila bukan Admin aktif atau impor bukan `pending` (dikunci `for update`). Dalam satu transaksi: insert course Draft, insert semua lesson Draft dari payload, set impor `approved` beserta `course_id`. Pelanggaran unik slug membatalkan seluruh transaksi. Karena memakai hak pengguna, RLS dan trigger lifecycle/audit P3-001 tetap berlaku.
+`security definer`, `search_path = ''`, `execute` hanya untuk `authenticated` (dicabut dari `public`/`anon`), mengikuti pola fungsi privat yang ada. Baris pertama menolak bila `private.is_admin()` salah. Baris impor dikunci `for update` dan harus `pending` (mencegah persetujuan ganda bersamaan). Dalam satu transaksi: insert course Draft, insert semua lesson Draft, set impor `approved` beserta `course_id`. Hanya `title`, `slug`, `summary`, `body`, `position` yang disalin dari payload; status selalu `draft`, field lain diabaikan. Constraint `courses`/`course_lessons` tetap memvalidasi teks dan slug; pelanggaran unik slug membatalkan seluruh transaksi. Fungsi melewati RLS `courses` karena pemeriksaan Admin eksplisit; `auth.uid()` tetap dari sesi sehingga trigger lifecycle/audit P3-001 mencatat Admin yang menyetujui.
 
-Penolakan memakai update biasa (`status = 'rejected'`, `review_note`) yang diizinkan RLS hanya untuk Admin.
+Approve hanya lewat fungsi ini. Update langsung oleh Admin hanya untuk penolakan (`status = 'rejected'`, `review_note` terisi, `course_id` kosong).
 
 ### Grant dan RLS
 
 - `anon`: tidak ada grant.
 - `authenticated`: `select`, `insert`, `update`; tidak ada `delete` (jejak sumber/lisensi dipertahankan).
-- Policy: select dan insert untuk `is_editor_or_admin()`; update hanya `is_admin()`.
+- Policy: select dan insert untuk `is_editor_or_admin()`; update `using is_admin()` dengan `with check (status = 'rejected' and course_id is null and review_note is not null)`.
 
 ## API dan UI
 
 - `POST /api/staff/course-imports` — Editor/Admin; validasi lalu insert `pending`. Kesalahan validasi 400, slug bentrok 409.
 - `POST /api/staff/course-imports/[id]` dengan aksi `approve` atau `reject` (alasan) — Admin. Setelah approve, revalidasi daftar course staf.
-- Data impor dibaca melalui query staf yang sudah ada di dashboard (client sesi, RLS).
+- Daftar impor memuat metadata saja (tanpa payload), maksimal 50 terbaru dengan `pending` di atas, lewat client sesi (RLS). Payload untuk preview diambil per `id` saat staf membuka **Lihat preview**.
 - Tab Course di portal staf:
   - Tombol **Impor JSON** (Editor/Admin) membuka dialog unggah memakai pola modal yang ada; berkas dibaca di browser dan dikirim sebagai JSON; kesalahan tampil per field.
-  - Daftar **Impor** (status pending di atas) dengan preview course dan lesson sebagai teks berparagraf (seperti reader), sumber, pemegang hak, dan lisensi.
+  - Daftar **Impor** (status pending di atas) dengan sumber, pemegang hak, dan lisensi; **Lihat preview** menampilkan course dan lesson sebagai teks berparagraf seperti reader (dirender React sebagai teks, bukan HTML).
+  - Bila pengunggah dan penyetuju orang yang sama, tampil label "Diunggah dan disetujui oleh orang yang sama"; Admin tetap boleh menyetujui impornya sendiri.
   - Admin: **Setujui** (konfirmasi) dan **Tolak** (alasan wajib). Editor melihat status tanpa tombol keputusan.
   - Setelah disetujui, course Draft muncul di daftar course dan dikelola lewat CMS P3-001.
 - Mengikuti kontrak UI: Bahasa Indonesia, 320–1440 px tanpa overflow, target sentuh ≥ 44 px, keyboard/fokus, reduced motion.
 
 ## Pengujian
 
-- **pgTAP:** grant/RLS per peran (anon ditolak, Editor tidak dapat approve/reject, tidak ada delete); payload dan data lisensi immutable; transisi status; approve membuat course + lesson Draft dan menautkan `course_id`; slug bentrok membatalkan seluruh approve; audit tercatat tanpa payload.
+- **pgTAP:** grant/RLS per peran (anon ditolak, Editor tidak dapat approve/reject, tidak ada delete); insert langsung dengan status/metadata palsu dipaksa `pending`; payload melebihi batas/jumlah lesson tidak cocok ditolak; slug yang sudah dipakai course ditolak saat insert; payload dan data lisensi immutable; Admin tidak dapat update langsung ke `approved`; approve membuat course + lesson Draft dari field yang diizinkan saja dan menautkan `course_id`; approve kedua pada impor yang sama ditolak; slug bentrok membatalkan seluruh approve; audit tercatat tanpa payload.
 - **Unit (Node):** parser untuk berkas valid dan setiap aturan yang dilanggar (ukuran, kunci asing, format, bahasa, URL, teks, posisi/slug ganda, sumber/lisensi kosong, jumlah lesson).
 - **Kontrak/route:** rute baru menolak staf tidak aktif dan peran yang salah.
 - **Playwright (suite staff-courses, CI):** Editor mengimpor dan melihat preview; Editor tidak melihat tombol keputusan; Admin menolak dengan alasan; Admin menyetujui lalu course Draft tampil; anonim tidak melihat course sebelum terbit; 320 px dan keyboard.
@@ -132,3 +136,24 @@ Auto-publish, auto-sync atau pengambilan dari URL sumber, impor ZIP/CSV/Markdown
 - `docs/03-architecture/DATA-MODEL-AND-RLS.md` — `course_imports`.
 - `docs/04-delivery/ISSUE-BACKLOG.md`, `ROADMAP.md`, `SPRINT-PLAN.md` — status P3-003.
 - Record delivery P3-003 dengan bukti verifikasi.
+
+## Stress Test Results: impor course P3-003 (2026-10-25)
+
+### Resolved Decisions
+- Database menegakkan aturan impor walau API dilewati: insert dipaksa `pending`, batas ukuran/jumlah lesson, slug course diperiksa, hanya field yang diizinkan disalin saat approve.
+- Approve hanya lewat fungsi `security definer` dengan cek Admin eksplisit; RLS update Admin hanya untuk penolakan.
+- Daftar impor memuat metadata saja (maks 50); payload preview dimuat saat dibuka.
+- Admin boleh menyetujui impornya sendiri; audit mencatat pengunggah dan penyetuju, UI memberi label.
+- Payload dan metadata disimpan permanen.
+
+### Changes Made
+- Fungsi approve berubah dari `security invoker` menjadi `security definer` dengan cek Admin.
+- Ditambah check constraint payload, trigger insert, policy update terbatas, pemuatan preview per `id`, label persetujuan diri, dan kasus pgTAP terkait.
+- Reflexion: pengecekan slug `courses` saat insert, kunci `for update` untuk persetujuan bersamaan, preview dirender sebagai teks.
+
+### Deferred / Parking Lot
+- Pembersihan payload impor lama; tinjau ulang bila penyimpanan database mendekati kuota paket.
+
+### Confidence Assessment
+- Overall: High
+- Areas of concern: fungsi `security definer` melewati RLS `courses`; dijaga cek Admin eksplisit dan diuji pgTAP.
