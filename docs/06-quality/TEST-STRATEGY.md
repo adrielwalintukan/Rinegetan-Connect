@@ -49,7 +49,7 @@
 Job `Browser regression (Playwright)` pada workflow CI. Pemilihan suite dan trigger disetujui pemilik pada 2026-10-23 (QA-CI-E2E, #73).
 
 - **Trigger:** sama dengan job CI lain, yaitu pull request dan push ke `development` serta `main`.
-- **Lingkungan:** Ubuntu runner, Chromium saja, Supabase CLI lokal versi yang dipin (`2.117.0`) dengan migration dari repository. Service yang tidak dipakai (realtime, imgproxy, mailpit, studio, edge-runtime, logflare, vector, supavisor, postgres-meta) tidak dinyalakan. Production build Next.js memakai URL loopback dan anon key bawaan CLI lokal. Tidak ada akses production.
+- **Lingkungan:** Ubuntu runner, Chromium saja, Supabase CLI lokal versi yang dipin (`2.122.0`) dengan migration dari repository. Service yang tidak dipakai (realtime, imgproxy, mailpit, studio, edge-runtime, logflare, vector, supavisor, postgres-meta) tidak dinyalakan. Production build Next.js memakai URL loopback dan anon key bawaan CLI lokal. Tidak ada akses production.
 - **Data:** fixture sintetis (`frontend/tests/helpers/local-course-fixture.mjs`) membuat Admin/Editor dan course milik test dengan email `example.invalid`, lalu menghapusnya. Login staf memakai JWT lokal yang ditandatangani secret CLI lokal, bukan password. Fixture memakai `CONTAINER_RUNTIME` (`docker` di CI, default `podman` lokal).
 
 | Suite | Cakupan |

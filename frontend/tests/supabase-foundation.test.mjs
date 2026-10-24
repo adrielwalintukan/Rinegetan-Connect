@@ -14,7 +14,7 @@ test("Supabase dependencies are pinned to the approved versions", () => {
 
   assert.equal(packageJson.dependencies["@supabase/supabase-js"], "2.116.0");
   assert.equal(packageJson.dependencies["@supabase/ssr"], "0.12.7");
-  assert.equal(packageJson.devDependencies.supabase, "2.117.0");
+  assert.equal(packageJson.devDependencies.supabase, "2.122.0");
   assert.equal(packageJson.scripts.supabase, "supabase --workdir ..");
 });
 
