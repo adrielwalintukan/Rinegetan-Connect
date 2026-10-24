@@ -128,6 +128,22 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
+  # Rulesets cannot restrict a PR's source branch, so main requires this check instead (OPS-GIT #69).
+  release-source:
+    name: Release source branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require development of this repository as the source of pull requests into main
+        if: ${{ github.event_name == 'pull_request' && github.base_ref == 'main' }}
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          if [ "$HEAD_REF" != development ] || [ "$HEAD_REPO" != "$GITHUB_REPOSITORY" ]; then
+            echo "::error::Pull request ke main hanya boleh dari branch development repository ini."
+            exit 1
+          fi
+
   backend-syntax:
     name: Backend syntax
     runs-on: ubuntu-latest

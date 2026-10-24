@@ -39,20 +39,26 @@ chore/bootstrap-phase-2
 
 ## CI
 
-Workflow Continuous Integration berjalan pada pull request dan push ke `development` serta `main`, dengan empat job:
+Workflow Continuous Integration berjalan pada pull request dan push ke `development` serta `main`, dengan lima job:
 
 - **Frontend Quality Gate & Build:** install deterministik, typecheck, lint, production build, dan Node unit/contract/security test.
 - **Database pgTAP & RLS Tests:** Supabase lokal, migration dari database kosong, dan suite pgTAP.
 - **Browser regression (Playwright):** alur publik, aksesibilitas, reader, dan CMS staf di Chromium terhadap build production dengan Supabase lokal dan data sintetis. Rincian di [Strategi Pengujian](../06-quality/TEST-STRATEGY.md#regresi-browser-di-ci).
 - **Backend syntax:** instalasi dependency dan pemeriksaan sintaks backend.
+- **Release source branch:** pada pull request ke `main`, gagal bila branch asal bukan `development` milik repository ini; pada event lain langkahnya dilewati dan job tetap lulus.
 
-Status CI harus menjadi required check melalui GitHub ruleset (dilacak di OPS-GIT, #69).
+Nama job di atas adalah nama check yang dipakai ruleset; ubah ruleset bila nama job berubah.
 
-## Perlindungan GitHub yang perlu diaktifkan
+## Perlindungan GitHub
 
-Pada repository GitHub:
+Diterapkan melalui OPS-GIT (#69) dengan repository rulesets; bukti di [catatan OPS-GIT](records/OPS-GIT-2026-10-24.md).
 
-1. Buat ruleset untuk main: block direct push, require pull request, require CI, dan batasi merge ke development.
-2. Buat ruleset untuk development: block direct push, require pull request, dan require CI.
-3. Aktifkan penghapusan branch setelah pull request merged.
-4. Jangan menyimpan secret, file .env, backup, atau data jemaat di Git.
+| Ruleset | Target | Aturan |
+| --- | --- | --- |
+| `development` | `refs/heads/development` | Wajib pull request (0 approval karena satu maintainer), blokir force push dan penghapusan, required checks: Frontend Quality Gate & Build, Database pgTAP & RLS Tests, Browser regression (Playwright), Backend syntax |
+| `main` | `refs/heads/main` | Sama dengan `development`, ditambah required check Release source branch |
+
+- Tidak ada bypass actor. Darurat hanya dengan mengubah ruleset oleh admin repository, lalu dicatat.
+- Required checks dibatasi ke GitHub Actions dan tidak mewajibkan branch up to date, agar tidak memaksa update berulang.
+- Penghapusan branch otomatis setelah merge aktif (`delete_branch_on_merge`). Branch `main` dan `development` tidak ikut terhapus karena ruleset memblokir penghapusannya.
+- Jangan menyimpan secret, file .env, backup, atau data jemaat di Git.
