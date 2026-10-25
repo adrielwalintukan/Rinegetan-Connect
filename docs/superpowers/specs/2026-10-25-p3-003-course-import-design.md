@@ -1,6 +1,6 @@
 # P3-003 — Impor Course Pelajari Alkitab
 
-**Status:** Desain disetujui pemilik project pada 2026-10-25; diimplementasikan dan ditinjau per tugas pada hari yang sama. Verifikasi lokal lulus (Node 285/285, pgTAP 12 file/478 tes, Playwright staff-courses 15/15). PR menuju `development` menunggu CI dan merge; belum production. Lihat [record](../../04-delivery/records/P3-003-2026-10-25.md).
+**Status:** Desain disetujui pemilik project pada 2026-10-25; diimplementasikan dan ditinjau per tugas pada hari yang sama. Verifikasi lokal lulus (Node 285/285, pgTAP 12 file/482 tes, Playwright staff-courses 15/15). PR menuju `development` menunggu CI dan merge; belum production. Lihat [record](../../04-delivery/records/P3-003-2026-10-25.md).
 **Dasar integrasi:** `development` pada `ccb9618`.
 **Issue:** P3-003 (#46).
 

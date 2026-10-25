@@ -1,5 +1,109 @@
 -- supabase/migrations/20261025000000_p3_003_course_imports.sql
 -- P3-003: staged course imports; Draft content is created only after Admin license approval.
+
+-- Payload contract mirrors parseCourseImport() output so a direct Data API insert cannot skip the parser.
+create function private.course_import_text_ok(v jsonb, min_len integer, max_len integer)
+returns boolean
+language sql
+immutable
+set search_path = ''
+as $$
+  select coalesce(jsonb_typeof(v) = 'string'
+    and char_length(v #>> '{}') between min_len and max_len
+    and v #>> '{}' = btrim(v #>> '{}'), false);
+$$;
+
+create function private.course_import_url_ok(v jsonb)
+returns boolean
+language sql
+immutable
+set search_path = ''
+as $$
+  select coalesce(jsonb_typeof(v) = 'null'
+    or (jsonb_typeof(v) = 'string' and char_length(v #>> '{}') <= 2048
+      and v #>> '{}' ~ '^https://[^/?#@[:space:][:cntrl:]]+([/?#][^[:space:][:cntrl:]]*)?$'), false);
+$$;
+
+create function private.course_import_keys(v jsonb)
+returns text[]
+language sql
+immutable
+set search_path = ''
+as $$
+  select case when jsonb_typeof(v) = 'object' then (select coalesce(array_agg(k order by k), '{}') from jsonb_object_keys(v) k) end;
+$$;
+
+create function private.course_import_payload_valid(p jsonb)
+returns boolean
+language plpgsql
+immutable
+set search_path = ''
+as $$
+declare
+  v_lesson jsonb;
+  v_slugs text[] := '{}';
+  v_positions numeric[] := '{}';
+  v_position numeric;
+begin
+  -- SQL does not guarantee OR evaluation order, so type checks that guard casts run in their own IF.
+  if private.course_import_keys(p) is distinct from array['course', 'format', 'language', 'lessons', 'license', 'source']
+    or jsonb_typeof(p->'lessons') is distinct from 'array' then
+    return false;
+  end if;
+  if p->'format' is distinct from '"rinegetan-course-import/1"' or p->'language' is distinct from '"id"'
+    or private.course_import_keys(p->'source') is distinct from array['name', 'rights_holder', 'url']
+    or not private.course_import_text_ok(p->'source'->'name', 1, 200)
+    or not private.course_import_text_ok(p->'source'->'rights_holder', 1, 200)
+    or not private.course_import_url_ok(p->'source'->'url')
+    or private.course_import_keys(p->'license') is distinct from array['name', 'notes', 'url']
+    or not private.course_import_text_ok(p->'license'->'name', 1, 200)
+    or not private.course_import_text_ok(p->'license'->'notes', 0, 1000)
+    or not private.course_import_url_ok(p->'license'->'url')
+    or private.course_import_keys(p->'course') is distinct from array['slug', 'summary', 'title']
+    or not private.course_import_text_ok(p->'course'->'title', 1, 200)
+    or not private.course_import_text_ok(p->'course'->'slug', 1, 220)
+    or p->'course'->>'slug' !~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+    or not private.course_import_text_ok(p->'course'->'summary', 0, 500)
+    or jsonb_array_length(p->'lessons') not between 1 and 100
+  then
+    return false;
+  end if;
+
+  for v_lesson in select value from jsonb_array_elements(p->'lessons') loop
+    if private.course_import_keys(v_lesson) is distinct from array['body', 'position', 'slug', 'summary', 'title']
+      or jsonb_typeof(v_lesson->'position') <> 'number' then
+      return false;
+    end if;
+    v_position := (v_lesson->>'position')::numeric;
+    if v_position <> trunc(v_position)
+      or v_position not between 1 and 2147483647
+      or v_position = any(v_positions)
+      or not private.course_import_text_ok(v_lesson->'title', 1, 200)
+      or not private.course_import_text_ok(v_lesson->'slug', 1, 220)
+      or v_lesson->>'slug' !~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+      or v_lesson->>'slug' = any(v_slugs)
+      or not private.course_import_text_ok(v_lesson->'summary', 0, 500)
+      or not private.course_import_text_ok(v_lesson->'body', 1, 50000)
+    then
+      return false;
+    end if;
+    v_slugs := v_slugs || (v_lesson->>'slug');
+    v_positions := v_positions || v_position;
+  end loop;
+  return true;
+end;
+$$;
+
+-- CHECK constraints run with the inserting role's privileges, so authenticated keeps execute.
+revoke all on function private.course_import_text_ok(jsonb, integer, integer) from public, anon;
+revoke all on function private.course_import_url_ok(jsonb) from public, anon;
+revoke all on function private.course_import_keys(jsonb) from public, anon;
+revoke all on function private.course_import_payload_valid(jsonb) from public, anon;
+grant execute on function private.course_import_text_ok(jsonb, integer, integer) to authenticated;
+grant execute on function private.course_import_url_ok(jsonb) to authenticated;
+grant execute on function private.course_import_keys(jsonb) to authenticated;
+grant execute on function private.course_import_payload_valid(jsonb) to authenticated;
+
 create table public.course_imports (
   id uuid primary key default gen_random_uuid(),
   status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
@@ -27,6 +131,7 @@ create table public.course_imports (
   constraint course_imports_lessons_match check (
     case when jsonb_typeof(payload->'lessons') = 'array' then jsonb_array_length(payload->'lessons') = lesson_count else false end
   ),
+  constraint course_imports_payload_contract check (private.course_import_payload_valid(payload)),
   constraint course_imports_course_match check (
     payload->'course'->>'slug' = course_slug and payload->'course'->>'title' = course_title
   ),

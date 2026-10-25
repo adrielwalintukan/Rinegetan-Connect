@@ -25,7 +25,7 @@ create temporary table import_payload as select jsonb_build_object(
   'license', jsonb_build_object('name', 'Izin', 'url', null, 'notes', ''),
   'course', jsonb_build_object('title', 'Seri Impor', 'slug', 'seri-impor', 'summary', 'Ringkas'),
   'lessons', jsonb_build_array(
-    jsonb_build_object('position', 1, 'title', 'Satu', 'slug', 'satu', 'summary', '', 'body', 'Isi satu.', 'status', 'published'),
+    jsonb_build_object('position', 1, 'title', 'Satu', 'slug', 'satu', 'summary', '', 'body', 'Isi satu.'),
     jsonb_build_object('position', 2, 'title', 'Dua', 'slug', 'dua', 'summary', '', 'body', 'Isi dua.'))) as p;
 grant select on import_payload to anon, authenticated;
 
@@ -63,6 +63,36 @@ select throws_ok($$ insert into public.course_imports (payload, course_title, co
 select throws_ok($$ insert into public.course_imports (payload, course_title, course_slug, lesson_count, source_name, rights_holder, license_name)
   select jsonb_set(jsonb_set(p, '{course,slug}', '"beda-lisensi"'), '{course,title}', '"Beda Lisensi"'), 'Beda Lisensi', 'beda-lisensi', 2, 'Sumber', 'Pemegang', 'Lain' from import_payload $$,
   '23514', null, 'license_name must match payload');
+-- Direct Data API inserts must meet the parser contract (payload_contract check)
+create temporary table bypass_case (label text, p jsonb);
+grant select on bypass_case to authenticated;
+insert into bypass_case select label, x from import_payload, lateral (values
+  ('language other than id', jsonb_set(p, '{language}', '"en"')),
+  ('unknown format', jsonb_set(p, '{format}', '"other/1"')),
+  ('missing format', p - 'format'),
+  ('unknown root key', p || '{"extra": 1}'),
+  ('unknown lesson key', jsonb_set(p, '{lessons,0,status}', '"published"')),
+  ('lesson without body', p #- '{lessons,0,body}'),
+  ('empty lesson body', jsonb_set(p, '{lessons,0,body}', '""')),
+  ('lesson body as number', jsonb_set(p, '{lessons,0,body}', '5')),
+  ('fractional position', jsonb_set(p, '{lessons,0,position}', '1.5')),
+  ('position as text', jsonb_set(p, '{lessons,0,position}', '"1"')),
+  ('duplicate lesson position', jsonb_set(p, '{lessons,1,position}', '1')),
+  ('duplicate lesson slug', jsonb_set(p, '{lessons,1,slug}', '"satu"')),
+  ('invalid lesson slug', jsonb_set(p, '{lessons,0,slug}', '"Satu Dua"')),
+  ('lesson title over 200', jsonb_set(p, '{lessons,0,title}', to_jsonb(repeat('a', 201)))),
+  ('lesson not an object', jsonb_set(p, '{lessons,0}', '"teks"')),
+  ('course summary over 500', jsonb_set(p, '{course,summary}', to_jsonb(repeat('a', 501)))),
+  ('source url with userinfo', jsonb_set(p, '{source,url}', '"https://user@example.invalid/x"'))
+) as c(label, x);
+select is((select count(*)::int from bypass_case where private.course_import_payload_valid(p)), 0, 'every bypass payload fails the contract');
+select ok(private.course_import_payload_valid(p), 'fixture payload meets the contract') from import_payload;
+select throws_ok($$ insert into public.course_imports (payload, course_title, course_slug, lesson_count, source_name, rights_holder, license_name)
+  select jsonb_set(jsonb_set(jsonb_set(p, '{course,slug}', '"bahasa-lain"'), '{course,title}', '"Bahasa Lain"'), '{language}', '"en"'), 'Bahasa Lain', 'bahasa-lain', 2, 'Sumber', 'Pemegang', 'Izin' from import_payload $$,
+  '23514', null, 'direct insert with language en is rejected');
+select throws_ok($$ insert into public.course_imports (payload, course_title, course_slug, lesson_count, source_name, rights_holder, license_name)
+  select jsonb_set(jsonb_set(p #- '{lessons,0,body}', '{course,slug}', '"tanpa-isi"'), '{course,title}', '"Tanpa Isi"'), 'Tanpa Isi', 'tanpa-isi', 2, 'Sumber', 'Pemegang', 'Izin' from import_payload $$,
+  '23514', null, 'direct insert with an invalid lesson is rejected');
 select results_eq($$ update public.course_imports set status = 'rejected', review_note = 'x' returning id $$, array[]::uuid[], 'Editor cannot reject');
 select throws_ok($$ select public.approve_course_import('83000000-0000-4000-8000-000000000001') $$, '42501', 'course_import_admin_only', 'Editor cannot approve');
 select throws_ok($$ delete from public.course_imports $$, '42501', null, 'nobody can delete imports');
@@ -85,7 +115,7 @@ select results_eq($$ select c.status::text, c.created_by, i.status, i.reviewed_b
   from public.course_imports i join public.courses c on c.slug = 'seri-impor' where i.id = '83000000-0000-4000-8000-000000000001' $$,
   $$ values ('draft'::text, '81000000-0000-4000-8000-00000000000a'::uuid, 'approved'::text, '81000000-0000-4000-8000-00000000000a'::uuid, true) $$, 'approved import links a Draft course');
 select results_eq($$ select l.position, l.status::text from public.course_lessons l join public.courses c on c.id = l.course_id where c.slug = 'seri-impor' order by l.position $$,
-  $$ values (1, 'draft'::text), (2, 'draft'::text) $$, 'lessons are Draft even if payload says published');
+  $$ values (1, 'draft'::text), (2, 'draft'::text) $$, 'imported lessons are Draft');
 select throws_ok($$ select public.approve_course_import('83000000-0000-4000-8000-000000000001') $$, '23514', 'course_import_not_pending', 'second approval is rejected');
 select results_eq($$ select action from public.audit_logs where entity_type = 'course_imports' and entity_id = '83000000-0000-4000-8000-000000000001' order by occurred_at, action $$,
   $$ values ('course_import.approved'::text), ('course_import.created'::text) $$, 'import audit recorded');
