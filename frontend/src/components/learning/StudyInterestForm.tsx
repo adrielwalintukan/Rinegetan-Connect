@@ -21,6 +21,7 @@ export function StudyInterestForm() {
   const [token, setToken] = useState("");
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [formError, setFormError] = useState("");
+  const [errorCount, setErrorCount] = useState(0);
   const [success, setSuccess] = useState("");
   const [busy, setBusy] = useState(false);
   const widgetRef = useRef<HTMLDivElement>(null);
@@ -30,11 +31,12 @@ export function StudyInterestForm() {
   const renderWidget = useCallback(() => {
     if (!SITE_KEY || !widgetRef.current || !window.turnstile || widgetId.current !== undefined) return;
     widgetId.current = window.turnstile.render(widgetRef.current, {
-      sitekey: SITE_KEY, language: "id", callback: setToken, "expired-callback": () => setToken(""), "error-callback": () => setToken(""),
+      sitekey: SITE_KEY, language: "id", size: "flexible", callback: setToken, "expired-callback": () => setToken(""), "error-callback": () => setToken(""),
     });
   }, []);
   useEffect(renderWidget, [renderWidget]);
-  useEffect(() => { if (formError) alertRef.current?.focus(); }, [formError]);
+  // errorCount re-focuses the alert even when the same message repeats.
+  useEffect(() => { if (formError) alertRef.current?.focus(); }, [formError, errorCount]);
 
   if (!SITE_KEY) {
     return <p className="mt-6 rounded-xl border border-navy/10 p-6 text-slate-600">
@@ -46,7 +48,7 @@ export function StudyInterestForm() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrors({}); setFormError(""); setSuccess("");
-    if (!values.consent) { setErrors({ consent: "Centang persetujuan untuk melanjutkan." }); setFormError("Periksa kembali isian Anda."); return; }
+    if (!values.consent) { setErrors({ consent: "Centang persetujuan untuk melanjutkan." }); setFormError("Periksa kembali isian Anda."); setErrorCount((n) => n + 1); return; }
     setBusy(true);
     try {
       const response = await fetch("/api/minat-belajar", {
@@ -57,12 +59,14 @@ export function StudyInterestForm() {
       if (!response.ok || !json.success) {
         if (json.field) setErrors({ [json.field]: json.error });
         setFormError(json.error || "Permintaan belum dapat dikirim. Silakan coba lagi.");
+        setErrorCount((n) => n + 1);
         return;
       }
       setValues({ name: "", contact: "", message: "", consent: false, website: "" });
       setSuccess(json.message || "Terima kasih. Tim kami akan menghubungi Anda.");
     } catch (error) {
       setFormError(clientErrorMessage(error, "Permintaan belum dapat dikirim. Silakan coba lagi."));
+      setErrorCount((n) => n + 1);
     } finally {
       setBusy(false); setToken("");
       window.turnstile?.reset(widgetId.current);

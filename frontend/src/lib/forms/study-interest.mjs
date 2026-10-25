@@ -28,7 +28,8 @@ export function parseStudyInterest(input) {
   if (!input || typeof input !== "object" || Array.isArray(input)) throw new StudyInterestError("Format permintaan tidak valid.");
   const data = /** @type {Record<string, unknown>} */ (input);
   if (Object.keys(data).some((key) => !KEYS.includes(key))) throw new StudyInterestError("Format permintaan tidak valid.");
-  const honeypot = typeof data.website === "string" && data.website.trim() !== "";
+  // Bots that fill the honeypot get the generic success before any field-level feedback.
+  if (typeof data.website === "string" && data.website.trim() !== "") return { name: "", contact: "", message: "", honeypot: true, turnstileToken: "" };
   const name = text(data.name, "name", "Nama", 100, true);
   const contact = text(data.contact, "contact", "Kontak", 254, true);
   const digits = contact.replace(/\D/g, "").length;
@@ -38,7 +39,7 @@ export function parseStudyInterest(input) {
   const message = text(data.message, "message", "Pesan", 1000, false);
   if (data.consent !== true) throw new StudyInterestError("Centang persetujuan untuk melanjutkan.", 400, "consent");
   const turnstileToken = typeof data.turnstileToken === "string" ? data.turnstileToken : "";
-  return { name, contact, message, honeypot, turnstileToken };
+  return { name, contact, message, honeypot: false, turnstileToken };
 }
 /** @param {string} ip @param {string} key */
 export function hashFormIp(ip, key) { return createHmac("sha256", key).update(ip).digest("hex").slice(0, 32); }

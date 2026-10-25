@@ -41,6 +41,9 @@ select results_eq($$ select array_agg(public.check_form_rate('study_interest', r
   $$ values (array[true, true, true, true, true, false]) $$, 'sixth submit within an hour is blocked');
 select ok(public.check_form_rate('study_interest', repeat('b', 32), 5, '1 hour'), 'another hash is not blocked');
 select ok(public.check_form_rate('study_interest_attempt', repeat('a', 32), 20, '1 hour'), 'attempt counter is separate from submit counter');
+select results_eq($$ select array_agg(public.check_form_rate('study_interest_attempt', repeat('f', 32), 20, '1 hour')) from generate_series(1, 21) $$,
+  $$ values (array_fill(true, array[20]) || false) $$, '21st attempt within an hour is blocked');
+select throws_ok($$ delete from public.study_interest_leads $$, '42501', null, 'service_role cannot delete leads (P3-006)');
 reset role;
 insert into public.form_rate_events (form, ip_hash, created_at) values ('study_interest', repeat('c', 32), now() - interval '25 hours');
 set local role service_role;

@@ -21,7 +21,7 @@ test("valid submission runs attempt rate, turnstile, submit rate, insert in orde
 });
 test("honeypot returns generic success without side effects", async () => {
   const d = deps();
-  const res = await submitStudyInterest({ ...validInput(), website: "http://spam" }, d);
+  const res = await submitStudyInterest({ ...validInput(), name: "", contact: "x", website: "http://spam" }, d);
   assert.equal(res.status, 200); assert.equal(d.calls.length, 0);
 });
 for (const [label, patch, field] of [

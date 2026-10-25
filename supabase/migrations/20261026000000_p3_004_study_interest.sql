@@ -112,8 +112,9 @@ $$;
 revoke all on function public.check_form_rate(text, text, integer, interval) from public, anon, authenticated;
 grant execute on function public.check_form_rate(text, text, integer, interval) to service_role;
 
-revoke all on table public.study_interest_leads from public, anon, authenticated;
-revoke all on table public.form_rate_events from public, anon, authenticated;
+-- Supabase default privileges also grant service_role ALL on new tables; narrow it explicitly.
+revoke all on table public.study_interest_leads from public, anon, authenticated, service_role;
+revoke all on table public.form_rate_events from public, anon, authenticated, service_role;
 grant select, update on table public.study_interest_leads to authenticated;
 -- form_rate_events is reached only through check_form_rate(), so no role gets direct grants.
 grant select, insert, update on table public.study_interest_leads to service_role;

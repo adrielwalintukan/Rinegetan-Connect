@@ -12,11 +12,12 @@ export async function PATCH(request: Request, context: Context): Promise<Respons
     if (!(request.headers.get("content-type") || "").toLowerCase().startsWith("application/json")) {
       return Response.json({ error: "Format permintaan tidak valid." }, { status: 415 });
     }
+    // Authenticate before reading the body so anonymous callers cannot make the server parse it.
+    const client = await createServerSupabaseClient();
+    const staff = await requireActiveStaff(client);
     let input: unknown;
     try { input = await request.json(); } catch { return Response.json({ error: "Format permintaan tidak valid." }, { status: 400 }); }
     const status = parseLeadStatus(input);
-    const client = await createServerSupabaseClient();
-    const staff = await requireActiveStaff(client);
     return Response.json({ success: true, data: await updateLeadStatus(client, (await context.params).id, status, staff.role) });
   } catch (error) {
     const denied = staffAccessResponse(error);
