@@ -1,6 +1,6 @@
 # P3-004 — Form Minat Belajar
 
-**Status:** Desain disetujui pemilik project pada 2026-10-26 dan lolos stress-test; diimplementasikan pada hari yang sama di branch `feature/p3-004-study-interest`. Belum merge dan belum production. Lihat [record](../../04-delivery/records/P3-004-2026-10-26.md).
+**Status:** Desain disetujui pemilik project pada 2026-10-26 dan lolos stress-test; diimplementasikan pada hari yang sama di branch `feature/p3-004-study-interest`. CI PR #87 lulus 5/5 pada `a12a8c9` (pgTAP 13 file/524 tes, staff-courses 16/16); menunggu merge; belum production. Lihat [record](../../04-delivery/records/P3-004-2026-10-26.md).
 **Dasar integrasi:** `development` pada `6dc89ed`.
 **Issue:** P3-004 (#47).
 
