@@ -86,7 +86,7 @@ Impor memasukkan satu course beserta lesson-nya dari berkas JSON yang disiapkan 
 
 **Langkah.**
 
-1. Di portal staf, tab Course, pilih **Impor JSON** dan pilih berkas. Bila ada kesalahan, pesan menyebut field-nya (mis. `lessons[3].slug`); perbaiki berkas lalu unggah ulang. Berkas yang ditolak tidak menyisakan catatan impor.
+1. Di portal staf, tab **Pelajari Alkitab**, pilih **Impor JSON** dan pilih berkas. Bila ada kesalahan, pesan menyebut field-nya (mis. `lessons[3].slug`); perbaiki berkas lalu unggah ulang. Berkas yang ditolak tidak menyisakan catatan impor.
 2. Berkas valid masuk daftar Impor berstatus menunggu, lengkap dengan sumber, pemegang hak, dan lisensi. Pilih **Lihat preview** untuk memeriksa course dan lesson. Bahasa tidak dideteksi otomatis; periksa sendiri di preview.
 3. Admin memeriksa sumber dan izin lisensi, lalu memilih **Setujui** (dengan konfirmasi) atau **Tolak** (alasan wajib, maksimal 500 karakter).
 4. Setelah disetujui, course dan semua lesson dibuat sebagai Draft dalam satu transaksi. Course muncul di daftar course; terbitkan lewat pengelola course seperti biasa. Hasil impor tidak pernah langsung Published.
