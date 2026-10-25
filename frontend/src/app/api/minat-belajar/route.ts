@@ -1,5 +1,6 @@
 // frontend/src/app/api/minat-belajar/route.ts
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { publicErrorMessage } from "@/lib/api/errors";
 import { StudyInterestError, clientIp, hashFormIp, readFormBody, submitStudyInterest, verifyTurnstile } from "@/lib/forms/study-interest";
 
 export const runtime = "nodejs";
@@ -9,7 +10,7 @@ export async function POST(request: Request): Promise<Response> {
   let input: unknown;
   try { input = await readFormBody(request); }
   catch (error) {
-    if (error instanceof StudyInterestError) return Response.json({ error: error.message }, { status: error.status });
+    if (error instanceof StudyInterestError) return Response.json({ error: publicErrorMessage(error) }, { status: error.status });
     throw error;
   }
   const key = process.env.SUPABASE_SECRET_KEY;
