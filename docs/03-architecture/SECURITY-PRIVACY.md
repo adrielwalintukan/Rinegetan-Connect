@@ -37,6 +37,12 @@ Semua form publik yang memproses data pastoral harus:
 - Unduhan satu aset, album, atau kategori hanya memasukkan aset Published + approved consent + public_download_enabled.
 - Job ZIP memiliki batas jumlah file/ukuran, rate limit, masa hidup singkat, dan URL bertanda tangan pendek bila Storage dipakai.
 
+## Impor course (P3-003)
+
+- Berkas impor diperlakukan sebagai input tak tepercaya: batas 2 MB dibaca secara streaming, UTF-8 ketat, daftar kunci yang diizinkan, dan URL hanya `https://` tanpa userinfo.
+- Kontrak yang sama ditegakkan di database (`course_imports_payload_contract`) sehingga insert langsung lewat Data API tidak melewati validasi.
+- Hasil impor hanya menjadi Draft setelah Admin meninjau sumber dan lisensi; audit tidak menyimpan payload. Anonim tidak dapat membaca staging maupun course Draft.
+
 ## RLS, key, dan secrets
 
 - Aktifkan RLS dan grants minimum pada semua tabel exposed.
