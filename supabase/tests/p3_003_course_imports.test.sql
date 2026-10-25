@@ -87,10 +87,17 @@ insert into bypass_case select label, x from import_payload, lateral (values
   ('source url with non-numeric port', jsonb_set(p, '{source,url}', '"https://sumber.example:abc"')),
   ('license url with port over 65535', jsonb_set(p, '{license,url}', '"https://sumber.example:65536/x"')),
   ('source url with forbidden host char', jsonb_set(p, '{source,url}', '"https://sumber<example/x"')),
-  ('source url with empty host', jsonb_set(p, '{source,url}', '"https://:443/x"'))
+  ('source url with empty host', jsonb_set(p, '{source,url}', '"https://:443/x"')),
+  ('source url with malformed IPv6', jsonb_set(p, '{source,url}', '"https://[::::]/"')),
+  ('source url with IPv4 in brackets', jsonb_set(p, '{source,url}', '"https://[1.2.3.4]/"')),
+  ('license url with invalid IPv4', jsonb_set(p, '{license,url}', '"https://999.1.1.1/"')),
+  ('license url with numeric last label', jsonb_set(p, '{license,url}', '"https://sumber.0x7f/"'))
 ) as c(label, x);
 select ok(bool_and(private.course_import_url_ok(to_jsonb(u))), 'parser-valid https URLs meet the contract')
-  from unnest(array['https://sumber.example', 'https://sumber.example:443/a@b?q=1#x', 'https://[2001:db8::1]:8443/x', 'https://sumber.example:/x']) u;
+  from unnest(array['https://sumber.example', 'https://sumber.example:443/a@b?q=1#x', 'https://[2001:db8::1]:8443/x', 'https://sumber.example:/x', 'https://[::ffff:192.0.2.1]/', 'https://192.0.2.1/x', 'https://sumber.example./x']) u;
+select throws_ok($$ insert into public.course_imports (payload, course_title, course_slug, lesson_count, source_name, source_url, rights_holder, license_name)
+  select jsonb_set(jsonb_set(jsonb_set(p, '{course,slug}', '"ipv6-salah"'), '{course,title}', '"IPv6 Salah"'), '{source,url}', '"https://[::::]/"'), 'IPv6 Salah', 'ipv6-salah', 2, 'Sumber', 'https://[::::]/', 'Pemegang', 'Izin' from import_payload $$,
+  '23514', null, 'direct insert with a malformed IPv6 URL is rejected');
 select is((select count(*)::int from bypass_case where private.course_import_payload_valid(p)), 0, 'every bypass payload fails the contract');
 select ok(private.course_import_payload_valid(p), 'fixture payload meets the contract') from import_payload;
 select throws_ok($$ insert into public.course_imports (payload, course_title, course_slug, lesson_count, source_name, rights_holder, license_name)

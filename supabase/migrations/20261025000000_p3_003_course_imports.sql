@@ -15,15 +15,35 @@ $$;
 
 create function private.course_import_url_ok(v jsonb)
 returns boolean
-language sql
+language plpgsql
 immutable
 set search_path = ''
 as $$
-  -- Authority = bracketed IPv6 or a host without WHATWG forbidden code points, then an optional numeric port <= 65535.
-  select coalesce(jsonb_typeof(v) = 'null'
-    or (jsonb_typeof(v) = 'string' and char_length(v #>> '{}') <= 2048
-      and v #>> '{}' ~ '^https://(\[[0-9A-Fa-f:.]+\]|[^][/?#@:<>\\^|%[:space:][:cntrl:]]+)(:[0-9]{0,5})?([/?#][^[:space:][:cntrl:]]*)?$'
-      and coalesce(nullif(substring(v #>> '{}' from '^https://(?:\[[^]]*\]|[^/?#:]*):([0-9]+)'), '')::numeric, 0) <= 65535), false);
+declare
+  v_url text;
+  v_parts text[];
+begin
+  if jsonb_typeof(v) = 'null' then
+    return true;
+  end if;
+  if jsonb_typeof(v) is distinct from 'string' or char_length(v #>> '{}') > 2048 then
+    return false;
+  end if;
+  v_url := v #>> '{}';
+  -- Authority = bracketed IP literal or a host without WHATWG forbidden code points, then an optional numeric port.
+  v_parts := regexp_match(v_url, '^https://(\[[0-9A-Fa-f:.]+\]|[^][/?#@:<>\\^|%[:space:][:cntrl:]]+)(?::([0-9]{0,5}))?(?:[/?#][^[:space:][:cntrl:]]*)?$');
+  if v_parts is null or coalesce(nullif(v_parts[2], '')::integer, 0) > 65535 then
+    return false;
+  end if;
+  -- IP literals must be real addresses, as new URL() requires: bracketed IPv6, or IPv4 when the last label is numeric.
+  if left(v_parts[1], 1) = '[' then
+    return position(':' in v_parts[1]) > 0 and pg_input_is_valid(btrim(v_parts[1], '[]'), 'inet');
+  end if;
+  if rtrim(v_parts[1], '.') ~* '(^|\.)(0x[0-9a-f]*|[0-9]+)$' then
+    return rtrim(v_parts[1], '.') ~ '^[0-9]+(\.[0-9]+){3}$' and pg_input_is_valid(rtrim(v_parts[1], '.'), 'inet');
+  end if;
+  return true;
+end;
 $$;
 
 create function private.course_import_keys(v jsonb)
