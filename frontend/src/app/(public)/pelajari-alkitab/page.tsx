@@ -2,6 +2,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { GridGuides } from "@/components/layout/CreationGrid";
 import { getPublicCourses } from "@/lib/courses/public-queries";
+import { StudyInterestForm } from "@/components/learning/StudyInterestForm";
 
 export async function generateMetadata() {
   await connection();
@@ -24,6 +25,11 @@ export default async function BibleCatalogue() {
             {course.summary && <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-600">{course.summary}</p>}
           </li>)}
         </ul>}
+        <section id="ingin-belajar" aria-labelledby="ingin-belajar-title" className="mt-16 scroll-mt-24 border-t border-navy/10 pt-12">
+          <h2 id="ingin-belajar-title" className="text-2xl font-bold text-navy sm:text-3xl">Ingin belajar bersama?</h2>
+          <p className="mt-3 max-w-2xl leading-relaxed text-slate-600">Tinggalkan nama dan kontak Anda. Admin gereja akan menghubungi Anda untuk belajar Alkitab bersama.</p>
+          <StudyInterestForm />
+        </section>
       </div>
     </div>
   </section>;
