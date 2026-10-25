@@ -109,9 +109,9 @@ Approve hanya lewat fungsi ini. Update langsung oleh Admin hanya untuk penolakan
 ## API dan UI
 
 - `POST /api/staff/course-imports` — Editor/Admin; validasi lalu insert `pending`. Kesalahan validasi 400, slug bentrok 409.
-- `POST /api/staff/course-imports/[id]` dengan aksi `approve` atau `reject` (alasan) — Admin. Setelah approve, revalidasi daftar course staf.
+- `POST /api/staff/course-imports/[id]` dengan aksi `approve` atau `reject` (alasan) — Admin. Setelah approve, UI me-refresh daftar course staf.
 - Daftar impor memuat metadata saja (tanpa payload), maksimal 50 terbaru dengan `pending` di atas, lewat client sesi (RLS). Payload untuk preview diambil per `id` saat staf membuka **Lihat preview**.
-- Tab Course di portal staf:
+- Tab Pelajari Alkitab di portal staf:
   - Tombol **Impor JSON** (Editor/Admin) membuka dialog unggah memakai pola modal yang ada; berkas dibaca di browser dan dikirim sebagai JSON; kesalahan tampil per field.
   - Daftar **Impor** (status pending di atas) dengan sumber, pemegang hak, dan lisensi; **Lihat preview** menampilkan course dan lesson sebagai teks berparagraf seperti reader (dirender React sebagai teks, bukan HTML).
   - Bila pengunggah dan penyetuju orang yang sama, tampil label "Diunggah dan disetujui oleh orang yang sama"; Admin tetap boleh menyetujui impornya sendiri.
