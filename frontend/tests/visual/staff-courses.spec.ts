@@ -318,3 +318,96 @@ test('status dropdown supports keyboard selection, Escape preserves parent modal
   await expect(modal).toBeVisible(); await expect(modal.getByRole('listbox')).toHaveCount(0);
   await page.keyboard.press('Escape'); await expect(modal).toHaveCount(0);
 });
+
+const importFile = (suffix: string, slug: string) => ({
+  name: `${slug}.json`, mimeType: 'application/json',
+  buffer: Buffer.from(JSON.stringify({
+    format: 'rinegetan-course-import/1', language: 'id',
+    source: { name: 'Sumber sintetis', url: 'https://contoh.invalid/seri', rights_holder: 'Pemegang sintetis' },
+    license: { name: 'Izin sintetis', notes: 'Hanya untuk uji lokal.' },
+    course: { title: `Impor ${slug} ${suffix}`, slug: `${slug}-${suffix}`, summary: 'Ringkasan impor sintetis.' },
+    lessons: [
+      { position: 1, title: 'Lesson impor satu', slug: 'satu', summary: '', body: 'Paragraf pertama.\n\nParagraf kedua.' },
+      { position: 2, title: 'Lesson impor dua', slug: 'dua', summary: '', body: 'Isi kedua.' },
+    ],
+  })),
+});
+async function uploadImport(page: Page, file: ReturnType<typeof importFile>, title?: string) {
+  await page.getByRole('button', { name:'Impor JSON', exact:true }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByLabel('Berkas JSON')).toBeFocused();
+  await dialog.getByLabel('Berkas JSON').setInputFiles(file);
+  await dialog.getByRole('button', { name:'Unggah untuk ditinjau', exact:true }).click();
+  if (title) { await expect(dialog).toHaveCount(0); await expect(importItem(page, title)).toBeVisible(); }
+}
+const importItem = (page: Page, title: string) => page.getByRole('region', { name:'Impor course' }).getByRole('listitem').filter({ has: page.getByRole('heading', { name:title, exact:true }) });
+const noPageOverflow = async (page: Page) => expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+
+test('course import: Editor stages, Admin rejects and approves into Draft, public stays hidden', async ({ page, local, playwright, baseURL }) => {
+  try {
+    await open(page, local, 'editor');
+    // Invalid file shows a field error and creates nothing.
+    const bad = importFile(local.suffix, 'invalid');
+    bad.buffer = Buffer.from(bad.buffer.toString().replace('"language":"id"', '"language":"en"'));
+    await uploadImport(page, bad);
+    await expect(page.getByRole('dialog').getByRole('alert')).toContainText('language');
+    await page.getByRole('dialog').getByRole('button', { name:'Batal', exact:true }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    expect(local.execute(`select count(*) from public.course_imports where course_slug = 'invalid-${local.suffix}'`)).toBe('0');
+
+    await uploadImport(page, importFile(local.suffix, 'tolak'), `Impor tolak ${local.suffix}`);
+    await uploadImport(page, importFile(local.suffix, 'terima'), `Impor terima ${local.suffix}`);
+    const accepted = importItem(page, `Impor terima ${local.suffix}`);
+    await expect(accepted).toContainText('Menunggu persetujuan');
+    await expect(accepted.getByRole('button', { name:'Setujui' })).toHaveCount(0);
+    await expect(accepted.getByRole('button', { name:'Tolak' })).toHaveCount(0);
+    await accepted.getByRole('button', { name:'Lihat preview' }).click();
+    await expect(accepted.getByRole('heading', { name:'2. Lesson impor dua' })).toBeVisible();
+    await expect(accepted.getByText('Paragraf kedua.')).toBeVisible();
+
+    await page.context().clearCookies();
+    await open(page, local, 'admin');
+    const rejected = importItem(page, `Impor tolak ${local.suffix}`);
+    await rejected.getByRole('button', { name:'Tolak', exact:true }).click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByRole('button', { name:'Tolak impor', exact:true }).click();
+    await expect(dialog.getByRole('alert')).toContainText('Alasan penolakan wajib diisi');
+    // Keyboard only: textarea -> Batal -> Tolak impor -> Enter.
+    await dialog.getByLabel('Alasan penolakan').focus();
+    await page.keyboard.type('Izin belum lengkap.');
+    await page.keyboard.press('Tab'); await expect(dialog.getByRole('button', { name:'Batal', exact:true })).toBeFocused();
+    await page.keyboard.press('Tab'); await expect(dialog.getByRole('button', { name:'Tolak impor', exact:true })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(rejected).toContainText('Alasan penolakan: Izin belum lengkap.');
+    await expect(page.getByRole('heading', { name:'Impor course', exact:true })).toBeFocused();
+
+    const approve = importItem(page, `Impor terima ${local.suffix}`);
+    await approve.getByRole('button', { name:'Setujui', exact:true }).click();
+    await page.getByRole('dialog').getByRole('button', { name:'Setujui dan buat Draft', exact:true }).click();
+    await expect(approve).toContainText('Disetujui');
+    await expect(page.getByRole('heading', { name:'Impor course', exact:true })).toBeFocused();
+    // The import item shares the course title; the course card comes after the panel.
+    await expect(card(page, `Impor terima ${local.suffix}`).last()).toContainText('Draft');
+    await expect(approve).not.toContainText('Diunggah dan disetujui oleh orang yang sama');
+
+    // Anonymous visitor (no staff cookies) must not see the Draft course.
+    const anonymous = await playwright.request.newContext({ baseURL });
+    try {
+      const response = await anonymous.get(`/pelajari-alkitab/terima-${local.suffix}`);
+      expect(response.status()).toBe(404);
+      expect(await response.text()).not.toContain(`Impor terima ${local.suffix}`);
+    } finally { await anonymous.dispose(); }
+
+    await page.setViewportSize({ width: 320, height: 800 });
+    await expect(page.getByRole('region', { name:'Impor course' })).toBeVisible();
+    await noPageOverflow(page);
+    await approve.getByRole('button', { name:'Lihat preview' }).click();
+    await expect(approve.getByRole('heading', { name:'2. Lesson impor dua' })).toBeVisible();
+    await noPageOverflow(page);
+  } finally {
+    local.execute(`begin;
+      delete from public.course_lessons where course_id in (select id from public.courses where slug like '%-${local.suffix}');
+      delete from public.course_imports where course_slug like '%-${local.suffix}';
+      delete from public.courses where slug like '%-${local.suffix}'; commit;`);
+  }
+});

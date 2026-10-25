@@ -31,3 +31,32 @@ export interface CourseContent {
   courses: Course[];
   lessons: CourseLesson[];
 }
+
+export interface CourseImportPayload {
+  format: "rinegetan-course-import/1";
+  language: "id";
+  source: { name: string; url: string | null; rights_holder: string };
+  license: { name: string; url: string | null; notes: string };
+  course: { title: string; slug: string; summary: string };
+  lessons: { position: number; title: string; slug: string; summary: string; body: string }[];
+}
+
+export interface CourseImport {
+  id: string;
+  status: "pending" | "approved" | "rejected";
+  course_title: string;
+  course_slug: string;
+  lesson_count: number;
+  source_name: string;
+  source_url: string | null;
+  rights_holder: string;
+  license_name: string;
+  license_url: string | null;
+  license_notes: string | null;
+  created_by: string | null;
+  created_at: string;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_note: string | null;
+  course_id: string | null;
+}

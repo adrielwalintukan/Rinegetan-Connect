@@ -28,6 +28,7 @@ function loadTsx(path, boundaries = {}) {
     if (id in boundaries) return boundaries[id];
     if (id.startsWith("@/lib/staff/audit")) return require(resolve(root, "src/lib/staff/audit.mjs"));
     if (id === "@/lib/courses/queries") return require(resolve(root, "src/lib/courses/queries.mjs"));
+    if (id === "@/lib/courses/import-actions") return require(resolve(root, "src/lib/courses/import-actions.mjs"));
     return require(id);
   }, testModule, testModule.exports);
   return testModule.exports;

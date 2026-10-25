@@ -2,7 +2,8 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireActiveStaff } from "@/lib/staff/server";
 import { StaffDashboard, type TabType } from "@/components/staff/StaffDashboard";
 import { getSiteSectionMedia } from "@/lib/public/queries";
-import type { Course, CourseLesson } from "@/types/courses";
+import { loadCourseImports } from "@/lib/courses/import-actions";
+import type { Course, CourseImport, CourseLesson } from "@/types/courses";
 import type { ContentItem } from "@/components/staff/ContentTable";
 import { loadAuditLogs } from "@/lib/staff/audit";
 import { loadCourseCollection } from "@/lib/courses/queries";
@@ -34,6 +35,7 @@ export default async function StaffHomePage({
     sectionMedia,
     coursesRes,
     lessonsRes,
+    importsRes,
   ] = await Promise.all([
     client
       .from("announcements")
@@ -63,6 +65,7 @@ export default async function StaffHomePage({
     getSiteSectionMedia(),
     loadCourseCollection(client, "courses"),
     loadCourseCollection(client, "course_lessons"),
+    loadCourseImports(client),
   ]);
 
   const staffRes =
@@ -101,6 +104,8 @@ export default async function StaffHomePage({
       initialTab={initialTab as TabType | undefined}
       initialCourses={(coursesRes.data as Course[]) || []}
       initialCourseLessons={(lessonsRes.data as CourseLesson[]) || []}
+      initialCourseImports={(importsRes.data as CourseImport[]) || []}
+      courseImportsError={importsRes.error ? "Daftar impor gagal dimuat. Silakan coba muat ulang." : null}
       coursesError={coursesRes.error || lessonsRes.error ? "Materi gagal dimuat. Silakan coba muat ulang." : null}
     />
   );
