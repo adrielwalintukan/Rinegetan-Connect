@@ -19,9 +19,11 @@ language sql
 immutable
 set search_path = ''
 as $$
+  -- Authority = bracketed IPv6 or a host without WHATWG forbidden code points, then an optional numeric port <= 65535.
   select coalesce(jsonb_typeof(v) = 'null'
     or (jsonb_typeof(v) = 'string' and char_length(v #>> '{}') <= 2048
-      and v #>> '{}' ~ '^https://[^/?#@[:space:][:cntrl:]]+([/?#][^[:space:][:cntrl:]]*)?$'), false);
+      and v #>> '{}' ~ '^https://(\[[0-9A-Fa-f:.]+\]|[^][/?#@:<>\\^|%[:space:][:cntrl:]]+)(:[0-9]{0,5})?([/?#][^[:space:][:cntrl:]]*)?$'
+      and coalesce(nullif(substring(v #>> '{}' from '^https://(?:\[[^]]*\]|[^/?#:]*):([0-9]+)'), '')::numeric, 0) <= 65535), false);
 $$;
 
 create function private.course_import_keys(v jsonb)

@@ -83,8 +83,14 @@ insert into bypass_case select label, x from import_payload, lateral (values
   ('lesson title over 200', jsonb_set(p, '{lessons,0,title}', to_jsonb(repeat('a', 201)))),
   ('lesson not an object', jsonb_set(p, '{lessons,0}', '"teks"')),
   ('course summary over 500', jsonb_set(p, '{course,summary}', to_jsonb(repeat('a', 501)))),
-  ('source url with userinfo', jsonb_set(p, '{source,url}', '"https://user@example.invalid/x"'))
+  ('source url with userinfo', jsonb_set(p, '{source,url}', '"https://user@example.invalid/x"')),
+  ('source url with non-numeric port', jsonb_set(p, '{source,url}', '"https://sumber.example:abc"')),
+  ('license url with port over 65535', jsonb_set(p, '{license,url}', '"https://sumber.example:65536/x"')),
+  ('source url with forbidden host char', jsonb_set(p, '{source,url}', '"https://sumber<example/x"')),
+  ('source url with empty host', jsonb_set(p, '{source,url}', '"https://:443/x"'))
 ) as c(label, x);
+select ok(bool_and(private.course_import_url_ok(to_jsonb(u))), 'parser-valid https URLs meet the contract')
+  from unnest(array['https://sumber.example', 'https://sumber.example:443/a@b?q=1#x', 'https://[2001:db8::1]:8443/x', 'https://sumber.example:/x']) u;
 select is((select count(*)::int from bypass_case where private.course_import_payload_valid(p)), 0, 'every bypass payload fails the contract');
 select ok(private.course_import_payload_valid(p), 'fixture payload meets the contract') from import_payload;
 select throws_ok($$ insert into public.course_imports (payload, course_title, course_slug, lesson_count, source_name, rights_holder, license_name)
@@ -93,6 +99,9 @@ select throws_ok($$ insert into public.course_imports (payload, course_title, co
 select throws_ok($$ insert into public.course_imports (payload, course_title, course_slug, lesson_count, source_name, rights_holder, license_name)
   select jsonb_set(jsonb_set(p #- '{lessons,0,body}', '{course,slug}', '"tanpa-isi"'), '{course,title}', '"Tanpa Isi"'), 'Tanpa Isi', 'tanpa-isi', 2, 'Sumber', 'Pemegang', 'Izin' from import_payload $$,
   '23514', null, 'direct insert with an invalid lesson is rejected');
+select throws_ok($$ insert into public.course_imports (payload, course_title, course_slug, lesson_count, source_name, source_url, rights_holder, license_name)
+  select jsonb_set(jsonb_set(jsonb_set(p, '{course,slug}', '"port-salah"'), '{course,title}', '"Port Salah"'), '{source,url}', '"https://sumber.example:abc"'), 'Port Salah', 'port-salah', 2, 'Sumber', 'https://sumber.example:abc', 'Pemegang', 'Izin' from import_payload $$,
+  '23514', null, 'direct insert with a non-numeric URL port is rejected');
 select results_eq($$ update public.course_imports set status = 'rejected', review_note = 'x' returning id $$, array[]::uuid[], 'Editor cannot reject');
 select throws_ok($$ select public.approve_course_import('83000000-0000-4000-8000-000000000001') $$, '42501', 'course_import_admin_only', 'Editor cannot approve');
 select throws_ok($$ delete from public.course_imports $$, '42501', null, 'nobody can delete imports');
