@@ -30,6 +30,8 @@ test("P2-203 environment contract keeps server credentials blank and private", (
     "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=",
     "SUPABASE_URL=",
     "SUPABASE_SECRET_KEY=",
+    "NEXT_PUBLIC_TURNSTILE_SITE_KEY=",
+    "TURNSTILE_SECRET_KEY=",
   ]);
   assert.doesNotMatch(environmentExample, /=.+$/m);
   assert.doesNotMatch(environmentExample, /SERVICE_ROLE|DATABASE_URL|supabase\.co/i);

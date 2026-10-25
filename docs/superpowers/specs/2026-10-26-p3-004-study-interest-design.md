@@ -1,6 +1,6 @@
 # P3-004 — Form Minat Belajar
 
-**Status:** Desain disetujui pemilik project pada 2026-10-26 dan lolos stress-test; belum diimplementasikan.
+**Status:** Desain disetujui pemilik project pada 2026-10-26 dan lolos stress-test; diimplementasikan pada hari yang sama di branch `feature/p3-004-study-interest`. Belum merge dan belum production. Lihat [record](../../04-delivery/records/P3-004-2026-10-26.md).
 **Dasar integrasi:** `development` pada `6dc89ed`.
 **Issue:** P3-004 (#47).
 
