@@ -1,6 +1,6 @@
 # P3-004 — Form Minat Belajar
 
-**Status:** Desain disetujui pemilik project pada 2026-10-26; belum diimplementasikan.
+**Status:** Desain disetujui pemilik project pada 2026-10-26 dan lolos stress-test; belum diimplementasikan.
 **Dasar integrasi:** `development` pada `6dc89ed`.
 **Issue:** P3-004 (#47).
 
@@ -40,7 +40,7 @@ Migration aditif `supabase/migrations/20261026000000_p3_004_study_interest.sql`.
 | --- | --- |
 | `id` | uuid, default `gen_random_uuid()` |
 | `name` | 1–100 code point, terpangkas (`= btrim`), tanpa NUL |
-| `contact` | 1–254 code point, terpangkas |
+| `contact` | 1–254 code point, terpangkas; email sederhana (`^[^\s@]+@[^\s@]+\.[^\s@]+$`) atau nomor telepon (hanya angka, spasi, `+`, `-`, `(`, `)`, dengan 8–15 digit) |
 | `message` | 0–1000 code point, default `''`, terpangkas |
 | `status` | `new` / `contacted` / `closed`, default `new` |
 | `consent_version` | 1–64 karakter, wajib |
@@ -51,7 +51,7 @@ Migration aditif `supabase/migrations/20261026000000_p3_004_study_interest.sql`.
 
 - Grant: `revoke all` dari public, anon, authenticated; authenticated hanya `select, update`. Insert hanya lewat server key (service role, melewati RLS).
 - RLS select dan update: `private.is_admin()` (Admin aktif). Tidak ada policy insert atau delete untuk klien; delete termasuk P3-006.
-- Trigger update: hanya `status` yang boleh berubah; trigger mengisi `handled_by = auth.uid()` dan `handled_at = now()`; perubahan kolom lain ditolak `study_interest_immutable`.
+- Trigger update: hanya `status` yang boleh berubah; trigger mengisi `handled_by = auth.uid()` dan `handled_at = now()`; perubahan kolom lain ditolak `study_interest_immutable`. Pengecualian (pola P3-003): pembersihan ON DELETE SET NULL yang hanya mengosongkan `handled_by` milik user yang sudah terhapus diizinkan dan tidak diaudit.
 - Audit: `study_interest.created` dan `study_interest.status_changed` dengan `entity_id` dan status saja, tanpa nama, kontak, atau pesan.
 
 ### `public.form_rate_events`
@@ -59,8 +59,8 @@ Migration aditif `supabase/migrations/20261026000000_p3_004_study_interest.sql`.
 | Kolom | Aturan |
 | --- | --- |
 | `id` | bigint identity |
-| `form` | teks, `study_interest` untuk issue ini |
-| `ip_hash` | 16 karakter hex (SHA-256 terpotong, pola `hashIp` media) |
+| `form` | teks: `study_interest_attempt` (percobaan) atau `study_interest` (submit tersimpan) |
+| `ip_hash` | 32 karakter hex: HMAC-SHA256 IP berkunci `SUPABASE_SECRET_KEY`, dipotong |
 | `created_at` | default `now()` |
 
 - Tanpa grant apa pun untuk anon dan authenticated; hanya server key. Index `(form, ip_hash, created_at)`.
@@ -70,14 +70,15 @@ Migration aditif `supabase/migrations/20261026000000_p3_004_study_interest.sql`.
 
 Runtime Node. Urutan:
 
-1. Body maksimal 8 KB (cek `Content-Length` lalu baca streaming dengan batas), UTF-8 ketat, JSON objek.
+1. `Content-Type` wajib `application/json` (415 bila tidak), sehingga form lintas situs memerlukan preflight CORS. Body maksimal 8 KB (cek `Content-Length` lalu baca streaming dengan batas), UTF-8 ketat, JSON objek.
 2. Allow-list kunci: `name`, `contact`, `message`, `consent`, `website` (honeypot), `turnstileToken`. Kunci lain ditolak 400.
 3. Honeypot `website` terisi → 200 dengan pesan sukses generik, tanpa menyimpan dan tanpa memanggil Turnstile.
 4. Validasi: teks dinormalkan seperti CMS (CRLF → LF, trim, tolak NUL dan surrogate tunggal), batas code point, `consent === true`. Error per field dalam Bahasa Indonesia tanpa memantulkan isi.
-5. Turnstile: `TURNSTILE_SECRET_KEY` wajib; bila tidak ada → 503 "Formulir sementara tidak tersedia". POST ke `https://challenges.cloudflare.com/turnstile/v0/siteverify` dengan timeout 5 detik; gagal atau error jaringan → 400 "Verifikasi gagal, silakan coba lagi".
-6. Rate limit: IP dari entri pertama `x-forwarded-for` (Vercel), di-hash; `check_form_rate('study_interest', hash, 5, '1 hour')` false → 429 pesan umum.
-7. Insert dengan `createSupabaseAdminClient()`; `consent_version = STUDY_INTEREST_CONSENT_VERSION`, `consented_at = now()`.
-8. Sukses → 201 "Terima kasih. Tim kami akan menghubungi Anda." Error DB → 500 pesan umum.
+5. Batas percobaan: `check_form_rate('study_interest_attempt', hash, 20, '1 hour')` false → 429 pesan umum. Kegagalan validasi pada langkah 4 tidak dihitung.
+6. Turnstile (fail-closed): `TURNSTILE_SECRET_KEY` wajib; bila tidak ada → 503 "Formulir sementara tidak tersedia". POST ke `https://challenges.cloudflare.com/turnstile/v0/siteverify` dengan timeout 5 detik; gagal atau error jaringan → 400 "Verifikasi gagal, silakan coba lagi".
+7. Batas submit: `check_form_rate('study_interest', hash, 5, '1 hour')` false → 429 pesan umum. IP diambil dari entri pertama `x-forwarded-for` (Vercel) lalu di-HMAC sebelum langkah 5.
+8. Insert dengan `createSupabaseAdminClient()`; `consent_version = STUDY_INTEREST_CONSENT_VERSION`, `consented_at = now()`.
+9. Sukses → 201 "Terima kasih. Tim kami akan menghubungi Anda." Error DB → 500 pesan umum.
 
 Tidak ada `console.log` isi form; log error hanya kode/nama error. Tidak ada email.
 
@@ -96,12 +97,12 @@ Logika validasi dan alur ada di `frontend/src/lib/forms/study-interest.mjs` (+ `
 ## UI staf
 
 - Tab **Minat belajar** hanya untuk Admin, pola sama dengan tab Audit/Staf (Editor tidak melihat tab dan server tidak memuat datanya untuk Editor).
-- Daftar 50 lead terbaru: nama, kontak, pesan, tanggal, status; pengubah status (`Baru`, `Sudah dihubungi`, `Selesai`) lewat `PATCH /api/staff/study-interest/[id]` (Admin, validasi status).
+- Daftar 50 lead terbaru: nama, kontak, pesan (teks biasa), tanggal masuk beserta usia lead, status; pengubah status (`Baru`, `Sudah dihubungi`, `Selesai`) lewat `PATCH /api/staff/study-interest/[id]` (Admin, `Content-Type: application/json`, validasi status).
 
 ## Pengujian
 
-- **Node:** validasi field dan batas, consent kosong, kunci tak dikenal, honeypot, Turnstile gagal/tanpa secret/timeout, rate limit 429, error DB generik, tidak ada isi form di log, body > 8 KB 413, route staf menolak non-Admin.
-- **pgTAP:** anon/authenticated non-Admin/Editor tidak bisa select/insert/update/delete lead; Admin bisa select dan update status; kolom lain immutable; `form_rate_events` dan `check_form_rate` tertutup bagi anon/authenticated; `check_form_rate` memblokir submit ke-6 dalam satu jam; audit tanpa nama/kontak/pesan.
+- **Node:** validasi field dan batas, consent kosong, kunci tak dikenal, honeypot, Turnstile gagal/tanpa secret/timeout (fail-closed), kedua batas rate 429, `Content-Type` salah 415, format kontak, HMAC IP tidak sama dengan IP polos, error DB generik, tidak ada isi form di log, body > 8 KB 413, route staf menolak non-Admin.
+- **pgTAP:** anon/authenticated non-Admin/Editor tidak bisa select/insert/update/delete lead; Admin bisa select dan update status; kolom lain immutable; `form_rate_events` dan `check_form_rate` tertutup bagi anon/authenticated; `check_form_rate` memblokir submit ke-6 (dan percobaan ke-21) dalam satu jam; penghapusan user yang pernah menangani lead berhasil dan mengosongkan `handled_by`; constraint kontak menolak teks bebas; audit tanpa nama/kontak/pesan.
 - **Playwright:** submit valid dengan test key Cloudflare yang selalu lulus; consent kosong menampilkan error; Admin melihat lead dan mengubah status; Editor tidak melihat tab; 320 px tanpa overflow.
 
 ## Dokumen
@@ -114,6 +115,26 @@ Akun Member, email notifikasi, ekspor, penghapusan dan retensi otomatis (P3-006)
 
 ## Risiko dan batas
 
-- Hash IP SHA-256 terpotong tanpa salt mengikuti pola media; event dihapus setelah 24 jam untuk membatasi paparan.
+- Hash IP memakai HMAC berkunci server sehingga tidak dapat dibalik tanpa kunci; event dihapus setelah 24 jam. Rotasi kunci hanya mereset rate limit.
 - `x-forwarded-for` dipercaya karena Vercel menulisnya; di lingkungan lain header dapat dipalsukan sehingga rate limit melemah, tetapi Turnstile tetap wajib.
-- Copy privasi belum disahkan gereja; fitur tidak boleh dirilis ke production sebelum pengesahan.
+- **Gate rilis production:** copy privasi disahkan gereja **dan** P3-006 selesai atau runbook penghapusan manual Admin tersedia, agar janji retensi 24 bulan dapat ditepati. P3-004 sendiri tidak menyediakan delete.
+
+## Stress Test Results: P3-004
+
+### Resolved Decisions
+- Hash IP: HMAC-SHA256 berkunci `SUPABASE_SECRET_KEY` (32 hex), bukan SHA-256 polos, karena IPv4 polos dapat di-brute force.
+- Format kontak: email sederhana atau nomor telepon 8–15 digit, di server dan constraint DB.
+- FK `handled_by`: pembersihan ON DELETE SET NULL diizinkan trigger (pola P3-003), diuji pgTAP.
+- Rate limit: 20 percobaan/jam sebelum Turnstile, 5 submit tersimpan/jam setelah Turnstile; Turnstile fail-closed.
+- Retensi: tanpa delete di P3-004; gate rilis production = copy disahkan + P3-006 atau runbook hapus manual; daftar lead menampilkan usia lead.
+
+### Changes Made
+- Spec diperbarui di bagian Data, API, UI staf, Pengujian, dan Risiko sesuai keputusan di atas; `Content-Type: application/json` wajib pada kedua route (hasil refleksi).
+
+### Deferred / Parking Lot
+- Delete, ekspor, dan retensi otomatis: P3-006.
+- Pola hash IP unduhan media tidak diubah (di luar lingkup).
+
+### Confidence Assessment
+- Overall: High
+- Areas of concern: copy privasi belum disahkan; ketergantungan pada `x-forwarded-for` dari Vercel.
