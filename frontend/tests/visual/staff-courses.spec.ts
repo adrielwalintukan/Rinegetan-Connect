@@ -411,3 +411,63 @@ test('course import: Editor stages, Admin rejects and approves into Draft, publi
       delete from public.courses where slug like '%-${local.suffix}'; commit;`);
   }
 });
+test('study interest: visitor submits with consent, Admin handles, Editor cannot see', async ({ page, local, playwright, baseURL }) => {
+  const name = `Peminat ${local.suffix}`;
+  const lead = () => local.execute(`select count(*) from public.study_interest_leads where name = '${name}'`);
+  try {
+    await page.goto('/pelajari-alkitab#ingin-belajar');
+    const section = page.getByRole('region', { name:'Ingin belajar bersama?' });
+    await expect(section).toBeVisible();
+    await section.getByLabel('Nama', { exact:true }).fill(name);
+    await section.getByLabel('Nomor WhatsApp atau email').fill(`peminat-${local.suffix}@example.invalid`);
+    await section.getByLabel('Pesan (opsional)').fill('Ingin belajar bersama keluarga.');
+    // Consent is unchecked by default and required.
+    await expect(section.getByRole('checkbox')).not.toBeChecked();
+    await section.getByRole('button', { name:'Kirim', exact:true }).click();
+    await expect(section.getByRole('alert')).toBeFocused();
+    await expect(section).toContainText('Centang persetujuan untuk melanjutkan.');
+    expect(lead()).toBe('0');
+
+    await section.getByRole('checkbox').check();
+    // Cloudflare's always-pass test key fills the hidden response field once solved.
+    await expect(section.locator('input[name="cf-turnstile-response"]')).not.toHaveValue('', { timeout:30_000 });
+    await section.getByRole('button', { name:'Kirim', exact:true }).click();
+    await expect(section.getByRole('status')).toContainText('Terima kasih. Tim kami akan menghubungi Anda.');
+    expect(lead()).toBe('1');
+    const id = local.execute(`select id from public.study_interest_leads where name = '${name}'`);
+
+    await page.setViewportSize({ width: 320, height: 800 });
+    await noPageOverflow(page);
+    await page.setViewportSize({ width: 1280, height: 900 });
+
+    // Editor: no tab, and the status route refuses.
+    await local.login(page.context(), 'editor');
+    await page.goto('/staff?tab=interest');
+    await expect(page.getByRole('button', { name:'Minat belajar' })).toHaveCount(0);
+    await expect(page.getByText(name)).toHaveCount(0);
+    const refused = await page.request.patch(`/api/staff/study-interest/${id}`, { data:{ status:'closed' } });
+    expect(refused.status()).toBe(403);
+
+    // Anonymous visitors cannot change status either.
+    const anonymous = await playwright.request.newContext({ baseURL });
+    try { expect((await anonymous.patch(`/api/staff/study-interest/${id}`, { data:{ status:'closed' } })).status()).toBe(401); }
+    finally { await anonymous.dispose(); }
+
+    // Admin: sees the lead and marks it contacted.
+    await page.context().clearCookies();
+    await local.login(page.context(), 'admin');
+    await page.goto('/staff?tab=interest');
+    const item = page.getByRole('listitem').filter({ hasText:name });
+    await expect(item).toContainText(`peminat-${local.suffix}@example.invalid`);
+    await expect(item).toContainText('Ingin belajar bersama keluarga.');
+    await item.getByLabel('Status').selectOption('contacted');
+    await expect.poll(() => local.execute(`select status from public.study_interest_leads where id = '${id}'`)).toBe('contacted');
+    await page.setViewportSize({ width: 320, height: 800 });
+    await noPageOverflow(page);
+  } finally {
+    local.execute(`begin;
+      delete from public.audit_logs where entity_type = 'study_interest_leads' and entity_id in (select id from public.study_interest_leads where name = '${name}');
+      delete from public.study_interest_leads where name = '${name}';
+      delete from public.form_rate_events where created_at > now() - interval '1 hour'; commit;`);
+  }
+});
