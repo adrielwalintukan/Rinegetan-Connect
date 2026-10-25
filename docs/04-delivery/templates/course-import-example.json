@@ -1,0 +1,11 @@
+{
+  "format": "rinegetan-course-import/1",
+  "language": "id",
+  "source": { "name": "Contoh Pelayanan (sintetis)", "url": "https://contoh.invalid/seri", "rights_holder": "Contoh Pemegang Hak" },
+  "license": { "name": "Izin tertulis (contoh)", "url": "https://contoh.invalid/izin", "notes": "Contoh: boleh ditampilkan di website gereja lokal; tidak untuk dijual." },
+  "course": { "title": "Contoh Seri Pendalaman", "slug": "contoh-seri-pendalaman", "summary": "Contoh ringkasan course. Ganti dengan materi asli." },
+  "lessons": [
+    { "position": 1, "title": "Pelajaran Pertama", "slug": "pelajaran-pertama", "summary": "Ringkasan singkat.", "body": "Paragraf pertama.\n\nParagraf kedua dipisahkan satu baris kosong." },
+    { "position": 2, "title": "Pelajaran Kedua", "slug": "pelajaran-kedua", "summary": "", "body": "Isi pelajaran kedua." }
+  ]
+}

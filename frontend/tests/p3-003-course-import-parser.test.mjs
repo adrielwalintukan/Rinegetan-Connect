@@ -1,6 +1,7 @@
 // frontend/tests/p3-003-course-import-parser.test.mjs
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFileSync } from "node:fs";
 import { parseCourseImport, CourseImportError, MAX_IMPORT_BYTES } from "../src/lib/courses/imports.mjs";
 
 export const validImport = () => ({
@@ -103,4 +104,8 @@ test("non-string raw is a 400, not 413", () => {
 });
 test("a leading UTF-8 BOM is ignored", () => {
   assert.equal(parseCourseImport("\uFEFF" + raw(validImport())).course.slug, "seri-contoh");
+});
+test("documented example file passes the parser", () => {
+  const example = readFileSync(new URL("../../docs/04-delivery/templates/course-import-example.json", import.meta.url), "utf8");
+  assert.equal(parseCourseImport(example).lessons.length, 2);
 });

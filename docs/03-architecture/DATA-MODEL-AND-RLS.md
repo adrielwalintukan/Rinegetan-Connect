@@ -28,7 +28,7 @@
 
 ### Tabel Phase 3
 
-P3-001 menyediakan courses dan course_lessons. Berikutnya: course_imports, study_interest_leads, prayer_requests, visitor_submissions, consent_records, dan form_rate_events.
+P3-001 menyediakan courses dan course_lessons; P3-003 menambah course_imports (lihat bawah). Berikutnya: study_interest_leads, prayer_requests, visitor_submissions, consent_records, dan form_rate_events.
 
 ### Tabel Phase 4–5
 
@@ -60,6 +60,17 @@ RLS lesson memeriksa status induk di database, termasuk lookup langsung melalui 
 
 Trigger terpisah `private.record_course_content_audit()` mencatat `content.created`, `content.updated`, `content.status_changed`, dan `content.deleted`, dengan entity_type `courses`/`course_lessons`, actor sesi, status, course_id dan posisi lama/baru yang relevan. Setiap UPDATE menyertakan array `changed_fields` terurut dari allowlist `title`, `slug`, `summary`, `status`, serta `body`, `position` khusus lesson; hanya nama field yang benar-benar berubah dicatat, tanpa menyalin isi summary/body lama atau baru. Metadata otomatis dan identifier tidak termasuk; no-op menghasilkan `[]`. Perubahan status bersamaan dengan field lain tetap memakai `content.status_changed`. Delete mencatat alasan standar `Penghapusan permanen course oleh Admin` atau `Penghapusan permanen lesson oleh Admin` dalam transaksi yang sama, tanpa RPC alasan terpisah. Audit tetap hanya dapat dibaca Admin dan tidak dapat ditulis langsung oleh role Data API. Kedua fungsi trigger memiliki search_path kosong dan executable grant dicabut dari PUBLIC/anon/authenticated; SECURITY DEFINER metadata hanya digunakan untuk pemeriksaan lifecycle FK Auth.
 
+### course_imports (P3-003)
+
+Staging impor course; hasil impor masuk `courses`/`course_lessons` hanya setelah Admin menyetujui. Kolom: id, status (`pending`/`approved`/`rejected`, default `pending`), payload (jsonb), course_title, course_slug, lesson_count (1-100), source_name/source_url/rights_holder, license_name/license_url/license_notes, created_by/created_at, reviewed_by/reviewed_at, review_note (wajib saat `rejected`), course_id (FK `courses` ON DELETE SET NULL, terisi saat `approved`).
+
+- Constraint: payload maksimal 2.097.152 byte, `payload->'lessons'` array 1-100 sama dengan lesson_count, slug payload sama dengan course_slug; partial unique index pada course_slug untuk `pending`.
+- Trigger insert memaksa `pending`, `created_by = auth.uid()`, mengosongkan field keputusan, dan menolak slug yang sudah ada di `courses`. Trigger update menolak perubahan payload, sumber/lisensi, metadata pembuat, dan transisi selain `pending` ke `approved`/`rejected`. Audit `course_import.created/approved/rejected` tanpa payload.
+- RLS/grant: anon tanpa akses; authenticated memiliki select/insert/update tanpa delete. Select dan insert untuk Editor/Admin; update hanya Admin dan hanya untuk penolakan (`rejected`, `review_note` terisi, `course_id` kosong).
+- `public.approve_course_import(p_import_id uuid) returns uuid`: SECURITY DEFINER, `search_path` kosong, execute hanya untuk authenticated, menolak non-Admin. Mengunci baris (`for update`), mensyaratkan `pending`, lalu dalam satu transaksi membuat course dan lesson Draft (hanya title, slug, summary, body, position) dan menandai impor `approved` dengan `course_id`. Pelanggaran slug membatalkan seluruh transaksi.
+
+Migration: `20261025000000_p3_003_course_imports.sql`. Panduan operasi: [CONTENT-OPERATIONS](../04-delivery/CONTENT-OPERATIONS.md).
+
 ### events
 
 Memuat title, slug, summary, body, starts_at, ends_at, all_day, timezone, venue, department_id, cover_asset_id, status, published_at. Validasi: ends_at tidak boleh sebelum starts_at; timezone default Asia/Makassar.
@@ -90,6 +101,7 @@ departments ──0:N── media_albums
 media_albums ──N:M── media_assets melalui album_assets
 media_assets ──1:N── consent_records
 courses ──1:N── course_lessons (RESTRICT)
+course_imports ──0:1── courses (SET NULL)
 ~~~
 
 Gunakan soft archive untuk konten. Penghapusan permanen melakukan pemeriksaan relasi, penghapusan object Storage yang aman, dan audit log; hanya Admin.
@@ -104,6 +116,7 @@ Gunakan soft archive untuk konten. Penghapusan permanen melakukan pemeriksaan re
 | profiles/staff_roles | Tidak | Baca profil sendiri minimum | Kelola staf/role |
 | audit_logs | Tidak | Tidak | SELECT |
 | schedules/settings publik | SELECT filter Published | CRUD relevan | CRUD |
+| course_imports | Tidak | SELECT/INSERT | SELECT/INSERT + tolak; setujui lewat fungsi approve |
 | prayer_requests/visitor_submissions/leads | Tidak | Tidak | CRUD/ekspor terkontrol |
 | storage object | Read jika metadata mengizinkan | Scoped upload/edit | Scoped full control |
 

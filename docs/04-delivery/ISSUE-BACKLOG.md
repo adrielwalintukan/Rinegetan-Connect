@@ -32,7 +32,7 @@ Status per 2026-10-23:
 | P3-001 | [PR #41](https://github.com/adrielwalintukan/Rinegetan-Connect/pull/41) merge 2026-10-22, commit `42a3d01`; CI hasil merge lulus | Dirilis 2026-10-23 melalui PR #39 (`main` `5b88773`); tiga migration P3-001 diterapkan | [P3-001](records/P3-001-2026-10-19.md), [OPS-001](records/OPS-001-2026-10-23.md) |
 | P3-002 | [PR #42](https://github.com/adrielwalintukan/Rinegetan-Connect/pull/42) merge 2026-10-23 WITA, commit `14bf46a`; CI hasil merge lulus | Dirilis 2026-10-23 melalui PR #39 (`main` `5b88773`) | [P3-002](records/P3-002-2026-10-22.md), [OPS-001](records/OPS-001-2026-10-23.md) |
 
-P3-003 dan issue berikutnya tetap backlog. P3-003 masih menunggu keputusan sumber, format impor, dan lisensi materi.
+P3-003 (#46): selesai di branch fitur `feature/p3-003-course-import`; PR menunggu merge ke `development` (status 2026-10-25). Belum dirilis ke production dan migration belum diterapkan di sana. Bukti: [P3-003](records/P3-003-2026-10-25.md). P3-004 dan seterusnya tetap backlog. Pernyataan lama bahwa P3-003 menunggu keputusan sumber/format/lisensi bersifat historis; keputusan pemilik 2026-10-25 ada di [desain](../superpowers/specs/2026-10-25-p3-003-course-import-design.md).
 
 | ID | Issue | Acceptance ringkas | Dependensi |
 | --- | --- | --- | --- |

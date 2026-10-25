@@ -27,7 +27,7 @@ Cadence usulan adalah satu minggu fokus per sprint. Bila ada blocker konten, izi
 | Sprint | Sasaran dan keluaran | Status |
 | --- | --- | --- |
 | S3.0 | Bentuk model Course/Lesson dan reader publik untuk Pelajari Alkitab; progres hanya di browser pengguna. | Selesai (P3-001, P3-002; production 2026-10-23) |
-| S3.1 | Buat CMS course/lesson dan impor pihak ketiga yang selalu masuk sebagai draft serta melewati pemeriksaan lisensi. | Sebagian: CMS selesai (P3-001); impor backlog (P3-003) |
+| S3.1 | Buat CMS course/lesson dan impor pihak ketiga yang selalu masuk sebagai draft serta melewati pemeriksaan lisensi. | Sebagian: CMS selesai (P3-001); impor (P3-003) selesai di branch fitur, menunggu merge ke `development` (belum production) |
 | S3.2 | Buat form minat belajar, permohonan doa, dan kunjungan dengan consent, anti-spam, dan akses Admin-only. | Backlog |
 | S3.3 | Uji retensi 24 bulan, audit akses, ekspor terkontrol, dan prosedur respons data pastoral. | Backlog |
 
