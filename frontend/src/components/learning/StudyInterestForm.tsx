@@ -15,7 +15,7 @@ type Field = "name" | "contact" | "message" | "consent" | "turnstile";
 const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 const inputClass = "mt-2 block min-h-11 w-full rounded-lg border border-navy/20 bg-white px-4 py-2 text-base text-navy focus:border-navy focus:outline-none focus:ring-2 focus:ring-sabbath-500 aria-[invalid=true]:border-red-600";
 
-// Copy is a draft (consent version draft-2026-10-26) awaiting church approval before production.
+// Copy disahkan pemilik project atas nama gereja pada 2026-10-29 (consent version 2026-10-29).
 export function StudyInterestForm() {
   const [values, setValues] = useState({ name: "", contact: "", message: "", consent: false, website: "" });
   const [token, setToken] = useState("");

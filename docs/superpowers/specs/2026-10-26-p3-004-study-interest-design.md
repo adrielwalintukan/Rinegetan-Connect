@@ -89,7 +89,7 @@ Logika validasi dan alur ada di `frontend/src/lib/forms/study-interest.mjs` (+ `
 - `/pelajari-alkitab`: bagian "Ingin belajar bersama?" (id `ingin-belajar`) di bawah katalog, berisi form.
 - Halaman lesson: tautan "Ingin belajar bersama?" ke `/pelajari-alkitab#ingin-belajar`.
 - Komponen klien `StudyInterestForm`: label terlihat, `aria-describedby` untuk error, ringkasan error yang menerima fokus, tombol nonaktif saat mengirim, pesan sukses di `role="status"`.
-- Copy menampilkan tujuan pemrosesan, retensi 24 bulan, pengelola (Admin gereja), dan checkbox persetujuan yang tidak tercentang. Konstanta `STUDY_INTEREST_CONSENT_VERSION = "draft-2026-10-26"`; record mencatat copy masih menunggu pengesahan gereja.
+- Copy menampilkan tujuan pemrosesan, retensi 24 bulan, pengelola (Admin gereja), dan checkbox persetujuan yang tidak tercentang. Konstanta `STUDY_INTEREST_CONSENT_VERSION = "2026-10-29"`; naskah disahkan pemilik project atas nama gereja pada 2026-10-29 dan tidak boleh diubah tanpa versi baru.
 - Widget Turnstile dimuat dari `https://challenges.cloudflare.com/turnstile/v0/api.js` dengan `NEXT_PUBLIC_TURNSTILE_SITE_KEY`; tanpa site key, form menampilkan pesan bahwa formulir belum tersedia.
 - Honeypot `website` disembunyikan secara visual dan dari pembaca layar (`aria-hidden`, `tabIndex={-1}`, `autoComplete="off"`).
 - Tanpa overflow pada 320 px; target sentuh minimal 44 px.
