@@ -53,6 +53,8 @@ Permohonan doa, informasi pengunjung, dan lead belajar bukan konten editorial. H
 - ekspor hanya jika perlu, dengan alasan dan catatan audit;
 - review/hapus mengikuti periode retensi yang ditetapkan Admin.
 
+**Minat belajar (P3-004).** Pengunjung mengisi form "Ingin belajar bersama?" di halaman Pelajari Alkitab. Admin aktif membuka tab **Minat belajar** di portal staf, menghubungi peminat lewat kontak yang diberikan, lalu mengubah status menjadi **Sudah dihubungi** atau **Selesai**. Editor tidak melihat tab ini. Daftar menampilkan 50 lead terbaru beserta tanggal masuk dan usia lead. Penghapusan otomatis dan ekspor belum tersedia (P3-006); sampai itu ada, retensi 24 bulan dijalankan manual oleh Admin mengikuti [runbook retensi dan penghapusan lead](RETENTION-DELETION-RUNBOOK.md). Jangan menyalin isi lead ke dokumen atau chat lain.
+
 ## Course Alkitab dan lesson
 
 Admin/Editor aktif memakai tab **Pelajari Alkitab** untuk membuat course, memilih induknya, lalu mengelola lesson. Materi baru selalu Draft; publikasi dilakukan setelah materi tersimpan.

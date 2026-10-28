@@ -15,6 +15,7 @@ Dokumentasi ini adalah fondasi perencanaan dan implementasi Rinegetan Connect un
 - [Pilot gratis dan deployment](04-delivery/ZERO-COST-PILOT-AND-DEPLOYMENT.md)
 - [Runbook deployment](04-delivery/DEPLOYMENT-RUNBOOK.md)
 - [Runbook backup dan pemulihan](04-delivery/BACKUP-RESTORE-RUNBOOK.md)
+- [Runbook retensi dan penghapusan lead](04-delivery/RETENTION-DELETION-RUNBOOK.md)
 - [Workflow Git dan Pull Request](04-delivery/GIT-WORKFLOW.md)
 - [Sprint plan Phase 2](04-delivery/PHASE-2-SPRINT-PLAN.md)
 - [Issue backlog Phase 2](04-delivery/PHASE-2-ISSUE-BACKLOG.md)

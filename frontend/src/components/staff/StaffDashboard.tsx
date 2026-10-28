@@ -9,6 +9,7 @@ import {
   Clock,
   Building,
   History,
+  HeartHandshake,
   Plus,
   LogOut,
   UserCheck,
@@ -26,6 +27,8 @@ import { AuditLogViewer, type AuditEntry } from "./AuditLogViewer";
 import { MediaManager } from "./MediaManager";
 import { SectionMediaManager } from "./SectionMediaManager";
 import { StaffManager, type StaffMember } from "./StaffManager";
+import { StudyInterestManager } from "./StudyInterestManager";
+import type { StudyInterestLead } from "@/types/forms";
 import { AdventistSymbol } from "@/components/identity/AdventistSymbol";
 import type { ContentStatus } from "@/types/content";
 import type { MediaAsset, MediaAlbum } from "@/types/media";
@@ -52,6 +55,8 @@ interface StaffDashboardProps {
   initialCourseImports?: CourseImport[];
   courseImportsError?: string | null;
   coursesError?: string | null;
+  initialStudyInterest?: StudyInterestLead[];
+  studyInterestError?: string | null;
 }
 
 export type TabType =
@@ -63,6 +68,7 @@ export type TabType =
   | "media"
   | "banners"
   | "audit"
+  | "interest"
   | "staff";
 
 export const StaffDashboard: React.FC<StaffDashboardProps> = ({
@@ -85,6 +91,8 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   initialCourseImports = [],
   courseImportsError,
   coursesError,
+  initialStudyInterest = [],
+  studyInterestError,
 }) => {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>(() => {
@@ -96,7 +104,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
       "departments",
       "media",
       "banners",
-      ...(role === "admin" ? (["audit", "staff"] as const) : []),
+      ...(role === "admin" ? (["interest", "audit", "staff"] as const) : []),
     ];
     if (initialTab && validTabs.includes(initialTab)) return initialTab;
     if (typeof window !== "undefined") {
@@ -111,7 +119,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   });
 
   const handleTabChange = (tabId: TabType) => {
-    if ((tabId === "staff" || tabId === "audit") && role !== "admin") return;
+    if ((tabId === "staff" || tabId === "audit" || tabId === "interest") && role !== "admin") return;
     if (tabId === "audit") router.refresh();
     setActiveTab(tabId);
     setCurrentFilter("all");
@@ -342,6 +350,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
     { id: "media" as TabType, label: "Media & Galeri", icon: ImageIcon },
     { id: "banners" as TabType, label: "Banner Halaman", icon: LayoutTemplate },
     ...(role === "admin" ? [
+      { id: "interest" as TabType, label: "Minat belajar", icon: HeartHandshake },
       { id: "audit" as TabType, label: "Log Audit", icon: History },
       { id: "staff" as TabType, label: "Kelola Staf", icon: Users },
     ] : []),
@@ -442,7 +451,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
           </nav>
 
           {/* Create Button (only for content tabs) */}
-          {activeTab !== "courses" && activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && (
+          {activeTab !== "courses" && activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && activeTab !== "interest" && (
             <button
               type="button"
               onClick={() => {
@@ -461,6 +470,8 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
         <div className="mt-6">
           {activeTab === "courses" ? (
             <CourseManager courses={initialCourses} lessons={initialCourseLessons} role={role} onNotification={showNotification} error={coursesError} imports={initialCourseImports} importsError={courseImportsError} />
+          ) : activeTab === "interest" ? (
+            role === "admin" ? <StudyInterestManager leads={initialStudyInterest} error={studyInterestError} /> : null
           ) : activeTab === "audit" ? (
             role === "admin" ? <AuditLogViewer logs={initialAuditLogs} error={auditLogsError} /> : null
           ) : activeTab === "staff" ? (
@@ -518,7 +529,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
       </main>
 
       {/* Dialogs */}
-      {activeTab !== "courses" && activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && (
+      {activeTab !== "courses" && activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && activeTab !== "interest" && (
         <ContentMutationDialog
           key={`${activeTab}_${editingItem?.id || "new"}`}
           isOpen={isMutationOpen}
@@ -534,7 +545,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
         />
       )}
 
-      {activeTab !== "courses" && activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && (
+      {activeTab !== "courses" && activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && activeTab !== "interest" && (
         <DeleteConfirmationDialog
           isOpen={isDeleteOpen}
           onClose={() => {
