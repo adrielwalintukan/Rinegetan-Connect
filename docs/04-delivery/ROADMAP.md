@@ -6,7 +6,7 @@
 | --- | --- | --- | --- |
 | 1 | Website resmi | Selesai, perlu dipertahankan/didokumentasikan | Rute publik dan identitas visual |
 | 2 | CMS dan fondasi platform | Selesai; rilis production 2026-10-16 (PR #31) dan tindak lanjut 2026-10-23 (PR #39) | Refactor Next.js, Supabase, Admin/Editor, CMS, galeri |
-| 3 | Pelayanan digital | Berjalan: P3-001 dan P3-002 dirilis production 2026-10-23; P3-003 selesai di branch fitur (menunggu merge ke `development`, belum production); P3-004–P3-006 backlog | Course Alkitab, form doa/pengunjung, lead privat |
+| 3 | Pelayanan digital | Berjalan: P3-001 dan P3-002 dirilis production 2026-10-23; P3-003 merge ke `development` (belum production); P3-004 selesai di branch fitur (menunggu merge, belum production); P3-005–P3-006 backlog | Course Alkitab, form doa/pengunjung, lead privat |
 | 4 | Sekolah Sabat digital | Sesudah Phase 3 | Integrasi Adventech; cache materi dan offline hanya setelah izin tertulis (P4-005) |
 | 5 | PWA dan notifikasi | Terakhir | Installability, Web Push, preferensi |
 

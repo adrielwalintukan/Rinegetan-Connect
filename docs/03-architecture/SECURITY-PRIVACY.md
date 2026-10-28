@@ -28,6 +28,15 @@ Semua form publik yang memproses data pastoral harus:
 4. Memakai rate limit, honeypot, dan respons generik agar tidak menjadi oracle spam.
 5. Tidak mengirim detail sensitif lewat email atau log. Email hanya memberi sinyal bahwa ada permintaan baru.
 
+Form minat belajar (P3-004) menerapkan ini sebagai berikut:
+
+- Route `POST /api/minat-belajar` mewajibkan `Content-Type: application/json`, body maksimal 8 KB UTF-8 ketat, dan daftar kunci yang diizinkan; checkbox persetujuan tidak tercentang default dan versi copy (`2026-10-29`) disimpan bersama lead.
+- Honeypot terisi mendapat respons sukses generik tanpa penyimpanan. Batas percobaan 20 per jam per hash IP sebelum Turnstile, lalu 5 submit tersimpan per jam setelah Turnstile.
+- Turnstile fail-closed: tanpa secret server route menjawab 503; verifikasi gagal atau timeout 5 detik ditolak.
+- Hash IP memakai HMAC-SHA256 berkunci server, bukan SHA-256 polos, dan event rate dihapus setelah 24 jam.
+- Isi form tidak masuk log, audit, atau email; tidak ada email notifikasi. Lead hanya terbaca Admin aktif.
+- Test key Turnstile Cloudflare hanya dipakai lokal/CI; key production diisi pemilik di Vercel.
+
 ## Foto, anak, dan unduhan
 
 - Setiap aset menyimpan bukti/rujukan persetujuan sebelum Published.

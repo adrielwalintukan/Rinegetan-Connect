@@ -28,7 +28,7 @@
 
 ### Tabel Phase 3
 
-P3-001 menyediakan courses dan course_lessons; P3-003 menambah course_imports (lihat bawah). Berikutnya: study_interest_leads, prayer_requests, visitor_submissions, consent_records, dan form_rate_events.
+P3-001 menyediakan courses dan course_lessons; P3-003 menambah course_imports; P3-004 menambah study_interest_leads dan form_rate_events (lihat bawah). Berikutnya: prayer_requests dan visitor_submissions. Persetujuan lead disimpan di baris lead; `consent_records` tetap khusus persetujuan foto media.
 
 ### Tabel Phase 4–5
 
@@ -71,6 +71,17 @@ Staging impor course; hasil impor masuk `courses`/`course_lessons` hanya setelah
 
 Migration: `20261025000000_p3_003_course_imports.sql`. Panduan operasi: [CONTENT-OPERATIONS](../04-delivery/CONTENT-OPERATIONS.md).
 
+### study_interest_leads dan form_rate_events (P3-004)
+
+Lead minat belajar dari form publik. Kolom: id, name (1-100), contact (1-254, email sederhana atau nomor telepon 8-15 digit), message (0-1000, default kosong), status (`new`/`contacted`/`closed`, default `new`), consent_version, consented_at, created_at, handled_by (FK `auth.users` ON DELETE SET NULL), handled_at. Teks terpangkas dibatasi constraint.
+
+- Ditulis hanya oleh route server `POST /api/minat-belajar` dengan server key; anon dan authenticated tidak punya grant insert.
+- RLS/grant: authenticated hanya select/update, keduanya untuk Admin aktif (`private.is_admin()`); tidak ada delete (retensi dan penghapusan di P3-006).
+- Trigger: insert memaksa `new` tanpa penanganan; update hanya boleh mengubah status dan mengisi handled_by/handled_at, selain itu `study_interest_immutable`; pembersihan ON DELETE SET NULL handled_by diizinkan. Audit `study_interest.created`/`study_interest.status_changed` hanya berisi status, tanpa nama, kontak, atau pesan.
+- `form_rate_events` (form, ip_hash, created_at) tanpa grant untuk role mana pun; diakses hanya lewat `public.check_form_rate(form, ip_hash, limit, window)` (SECURITY DEFINER, execute hanya service_role) yang menghapus event lebih tua dari 24 jam dan mengunci per hash. ip_hash adalah HMAC-SHA256 IP berkunci server (32 hex).
+
+Migration: `20261026000000_p3_004_study_interest.sql`.
+
 ### events
 
 Memuat title, slug, summary, body, starts_at, ends_at, all_day, timezone, venue, department_id, cover_asset_id, status, published_at. Validasi: ends_at tidak boleh sebelum starts_at; timezone default Asia/Makassar.
@@ -102,6 +113,7 @@ media_albums ──N:M── media_assets melalui album_assets
 media_assets ──1:N── consent_records
 courses ──1:N── course_lessons (RESTRICT)
 course_imports ──0:1── courses (SET NULL)
+study_interest_leads ──0:1── auth.users melalui handled_by (SET NULL)
 ~~~
 
 Gunakan soft archive untuk konten. Penghapusan permanen melakukan pemeriksaan relasi, penghapusan object Storage yang aman, dan audit log; hanya Admin.

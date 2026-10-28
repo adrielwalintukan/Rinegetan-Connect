@@ -95,6 +95,8 @@ jobs:
             echo "NEXT_PUBLIC_SUPABASE_URL=$(jq -r .API_URL "$RUNNER_TEMP/supabase-status.json")"
             echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$(jq -r .ANON_KEY "$RUNNER_TEMP/supabase-status.json")"
             echo "SUPABASE_URL=$(jq -r .API_URL "$RUNNER_TEMP/supabase-status.json")"
+            # Cloudflare's public always-pass Turnstile test site key; inlined at build time (P3-004).
+            echo "NEXT_PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA"
           } >> "$GITHUB_ENV"
           rm "$RUNNER_TEMP/supabase-status.json"
       - name: Build production bundle

@@ -29,6 +29,8 @@ test("public Supabase environment example contains only blank public values", ()
     "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=",
     "SUPABASE_URL=",
     "SUPABASE_SECRET_KEY=",
+    "NEXT_PUBLIC_TURNSTILE_SITE_KEY=",
+    "TURNSTILE_SECRET_KEY=",
   ]);
   assert.doesNotMatch(source, /SERVICE_ROLE|DATABASE_URL|kjxkmmjumrpafdublrbk|supabase\.co/i);
   assert.doesNotMatch(source, /=.+$/m);
