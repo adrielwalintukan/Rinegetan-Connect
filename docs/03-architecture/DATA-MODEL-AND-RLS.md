@@ -76,7 +76,7 @@ Migration: `20261025000000_p3_003_course_imports.sql`. Panduan operasi: [CONTENT
 Lead minat belajar dari form publik. Kolom: id, name (1-100), contact (1-254, email sederhana atau nomor telepon 8-15 digit), message (0-1000, default kosong), status (`new`/`contacted`/`closed`, default `new`), consent_version, consented_at, created_at, handled_by (FK `auth.users` ON DELETE SET NULL), handled_at. Teks terpangkas dibatasi constraint.
 
 - Ditulis hanya oleh route server `POST /api/minat-belajar` dengan server key; anon dan authenticated tidak punya grant insert.
-- RLS/grant: authenticated hanya select/update, keduanya untuk Admin aktif (`private.is_admin()`); tidak ada delete (retensi dan penghapusan di P3-006).
+- RLS/grant: authenticated hanya select/update, keduanya untuk Admin aktif (`private.is_admin()`); tidak ada delete (retensi dan penghapusan di P3-006). Retensi 24 bulan sampai P3-006 tersedia dijalankan manual lewat SQL oleh operator mengikuti [runbook retensi dan penghapusan lead](../04-delivery/RETENTION-DELETION-RUNBOOK.md).
 - Trigger: insert memaksa `new` tanpa penanganan; update hanya boleh mengubah status dan mengisi handled_by/handled_at, selain itu `study_interest_immutable`; pembersihan ON DELETE SET NULL handled_by diizinkan. Audit `study_interest.created`/`study_interest.status_changed` hanya berisi status, tanpa nama, kontak, atau pesan.
 - `form_rate_events` (form, ip_hash, created_at) tanpa grant untuk role mana pun; diakses hanya lewat `public.check_form_rate(form, ip_hash, limit, window)` (SECURITY DEFINER, execute hanya service_role) yang menghapus event lebih tua dari 24 jam dan mengunci per hash. ip_hash adalah HMAC-SHA256 IP berkunci server (32 hex).
 
