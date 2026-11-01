@@ -22,6 +22,12 @@ Backup melindungi data gereja, bukan sekadar database. Pemilik backup ditunjuk A
 5. Simpan di lokasi yang dikelola gereja dengan akses terbatas dan redundansi yang disetujui.
 6. Catat checksum, lokasi logical, retensi, dan penanggung jawab. Jangan menyertakan doa/nomor kontak dalam catatan terbuka.
 
+## Masa simpan arsip
+
+- Arsip backup (termasuk salinan kedua) dihapus **paling lama 90 hari** setelah dibuat. Hapus arsip lama pada siklus backup berikutnya dan catat tanggal penghapusan, nama arsip, dan penanggung jawab tanpa path pribadi.
+- Batas ini menjaga janji copy consent lead minat belajar ("paling lama 24 bulan"): lead dihapus dari database pada cut-off 24 bulan dikurangi 120 hari ([runbook retensi](RETENTION-DELETION-RUNBOOK.md)), sehingga salinan terakhirnya di backup hilang sebelum 24 bulan. Menyimpan arsip lebih dari 90 hari memerlukan keputusan baru dan penyesuaian cut-off.
+- Dua arsip historis Oktober 2026 dibuat sebelum P3-004 dan tidak memuat lead; batas 90 hari berlaku untuk setiap arsip yang dibuat setelah migration P3-004 diterapkan di production.
+
 ## Salinan kedua arsip terenkripsi
 
 Salin file `.tar.age` utuh ke lokasi kedua yang disetujui pemilik backup, misalnya penyimpanan gereja dengan akses terbatas atau media eksternal. Folder lain pada laptop yang sama belum memberi redundansi perangkat. Tujuan salinan belum ditetapkan per 18 Oktober 2026; jangan menganggap unggahan atau salinan sudah tersedia.
