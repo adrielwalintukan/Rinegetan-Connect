@@ -2,7 +2,7 @@
 import { createHmac } from "node:crypto";
 import { UserFacingError, GENERIC_ERROR_MESSAGE } from "../api/errors.mjs";
 
-export const STUDY_INTEREST_CONSENT_VERSION = "draft-2026-10-26";
+export const STUDY_INTEREST_CONSENT_VERSION = "2026-10-29";
 export const MAX_STUDY_INTEREST_BYTES = 8192;
 const KEYS = ["name", "contact", "message", "consent", "website", "turnstileToken"];
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
