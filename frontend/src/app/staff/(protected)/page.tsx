@@ -3,6 +3,8 @@ import { requireActiveStaff } from "@/lib/staff/server";
 import { StaffDashboard, type TabType } from "@/components/staff/StaffDashboard";
 import { getSiteSectionMedia } from "@/lib/public/queries";
 import { loadCourseImports } from "@/lib/courses/import-actions";
+import { loadStudyInterestLeads } from "@/lib/forms/study-interest-admin";
+import type { StudyInterestLead } from "@/types/forms";
 import type { Course, CourseImport, CourseLesson } from "@/types/courses";
 import type { ContentItem } from "@/components/staff/ContentTable";
 import { loadAuditLogs } from "@/lib/staff/audit";
@@ -21,7 +23,7 @@ export default async function StaffHomePage({
   const client = await createServerSupabaseClient();
   const staff = await requireActiveStaff(client);
   const rawTab = typeof resolvedParams?.tab === "string" ? resolvedParams.tab : undefined;
-  const initialTab = (rawTab === "staff" || rawTab === "audit") && staff.role !== "admin" ? "announcements" : rawTab;
+  const initialTab = (rawTab === "staff" || rawTab === "audit" || rawTab === "interest") && staff.role !== "admin" ? "announcements" : rawTab;
 
   // Fetch initial content securely server-side
   const [
@@ -68,6 +70,9 @@ export default async function StaffHomePage({
     loadCourseImports(client),
   ]);
 
+  // Leads are private to Admins; Editors never trigger the query.
+  const interestRes = staff.role === "admin" ? await loadStudyInterestLeads(client) : { data: [], error: false };
+
   const staffRes =
     staff.role === "admin"
       ? await client
@@ -106,6 +111,8 @@ export default async function StaffHomePage({
       initialCourseLessons={(lessonsRes.data as CourseLesson[]) || []}
       initialCourseImports={(importsRes.data as CourseImport[]) || []}
       courseImportsError={importsRes.error ? "Daftar impor gagal dimuat. Silakan coba muat ulang." : null}
+      initialStudyInterest={(interestRes.data as StudyInterestLead[] | null) || []}
+      studyInterestError={interestRes.error ? "Data minat belajar gagal dimuat. Silakan coba muat ulang." : null}
       coursesError={coursesRes.error || lessonsRes.error ? "Materi gagal dimuat. Silakan coba muat ulang." : null}
     />
   );

@@ -47,6 +47,7 @@ export default async function BibleLesson({ params }: Props) {
           {previous && <Link prefetch={false} href={`${courseUrl}/${previous.slug}`} className="btn-secondary min-h-11">Sebelumnya: {previous.title}</Link>}
           {next && <Link prefetch={false} href={`${courseUrl}/${next.slug}`} className="btn-primary min-h-11">Berikutnya: {next.title}</Link>}
           <Link prefetch={false} href={courseUrl} className="inline-flex min-h-11 items-center text-sm font-semibold text-navy underline underline-offset-4">Kembali ke course</Link>
+          <Link prefetch={false} href="/pelajari-alkitab#ingin-belajar" className="inline-flex min-h-11 items-center text-sm font-semibold text-navy underline underline-offset-4">Ingin belajar bersama?</Link>
         </nav>
       </article>
     </div>

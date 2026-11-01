@@ -24,7 +24,7 @@ export function settings() {
   if (!/^project_id = "Rinegetan-Connect"$/m.test(readFileSync(resolve(root,'supabase/config.toml'),'utf8'))) throw new Error('Unexpected local project.');
   const status = JSON.parse(run(process.execPath, [resolve(frontend,'node_modules/supabase/dist/supabase.js'),'--workdir',root,'status','-o','json']));
   loopback(status.API_URL); loopback(status.DB_URL);
-  if (new URL(status.API_URL).port !== '54321' || new URL(status.DB_URL).port !== '54322' || !status.JWT_SECRET || !status.ANON_KEY) throw new Error('Unexpected local test settings.');
+  if (new URL(status.API_URL).port !== '54321' || new URL(status.DB_URL).port !== '54322' || !status.JWT_SECRET || !status.ANON_KEY || !status.SERVICE_ROLE_KEY) throw new Error('Unexpected local test settings.');
   const state = run(runtime,['inspect','--format','{{.Name}}|{{.State.Status}}',container]).trim();
   if (state.replace(/^\//,'') !== `${container}|running`) throw new Error('Local project database is not running.');
   localSettings = Object.freeze(status);
@@ -72,7 +72,9 @@ export async function fixture(origin) {
 }
 export function startLocalApp(mode = 'start') {
   const config = settings();
-  const env = {...process.env, NEXT_PUBLIC_SUPABASE_URL:config.API_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:config.ANON_KEY, SUPABASE_URL:config.API_URL, SUPABASE_SECRET_KEY:'', NEXT_TELEMETRY_DISABLED:'1'};
+  // Local CLI service key (loopback only, verified above) and Cloudflare's public always-pass Turnstile test keys.
+  const env = {...process.env, NEXT_PUBLIC_SUPABASE_URL:config.API_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:config.ANON_KEY, SUPABASE_URL:config.API_URL, SUPABASE_SECRET_KEY:config.SERVICE_ROLE_KEY,
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY:'1x00000000000000000000AA', TURNSTILE_SECRET_KEY:'1x0000000000000000000000000000000AA', NEXT_TELEMETRY_DISABLED:'1'};
   if (mode === 'quality') run(process.execPath,[resolve(frontend,'node_modules/supabase/dist/supabase.js'),'--workdir',root,'stop']);
   const child = mode === 'quality' ? spawn('npm.cmd',['run','test:all'],{cwd:frontend,env,stdio:'inherit',windowsHide:true,shell:true}) : spawn(process.execPath,[resolve(frontend,'node_modules/next/dist/bin/next'),mode,...(mode==='build'?[]:['--hostname','127.0.0.1','--port','3412'])],{cwd:frontend,env,stdio:'inherit',windowsHide:true});
   for(const signal of ['SIGINT','SIGTERM']) process.on(signal,()=>child.kill(signal));
