@@ -7,7 +7,7 @@ Menepati janji copy form "Data disimpan paling lama 24 bulan, lalu dihapus" untu
 ## Dasar kebijakan
 
 - Janji kepada peminat adalah batas atas: data disimpan **paling lama 24 bulan** sejak `created_at`, termasuk salinannya di arsip backup. Retensi lead **tidak dapat diperpanjang** untuk lead yang menyetujui versi consent `2026-10-29`, termasuk untuk kebutuhan pastoral. Perubahan kebijakan hanya berlaku untuk pengumpulan baru, lewat copy dan versi consent baru yang disahkan ([SECURITY-PRIVACY](../03-architecture/SECURITY-PRIVACY.md)).
-- **Cut-off penghapusan: 24 bulan dikurangi 120 hari** (sekitar 20 bulan). Margin 120 hari menampung jeda tinjauan mingguan (7 hari) dan masa simpan arsip backup paling lama 90 hari ([runbook backup](BACKUP-RESTORE-RUNBOOK.md)), sehingga salinan terakhir hilang sebelum 24 bulan meski bulan kalender pendek.
+- **Cut-off penghapusan: 24 bulan dikurangi 120 hari** (sekitar 20 bulan). Margin 120 hari menampung jeda tinjauan mingguan (7 hari) dan masa simpan arsip backup paling lama 90 hari, dijamin oleh pembersihan arsip mingguan pada umur 83 hari ([runbook backup](BACKUP-RESTORE-RUNBOOK.md#masa-simpan-arsip)); total paling lama 7 + 90 = 97 hari, di bawah margin 120 hari, sehingga salinan terakhir hilang sebelum 24 bulan meski bulan kalender pendek.
 - Runbook dijalankan **setiap minggu**.
 - P3-004 **tidak** menyediakan tombol hapus: tidak ada grant `DELETE` untuk tabel ini ([DATA-MODEL-AND-RLS](../03-architecture/DATA-MODEL-AND-RLS.md)). Penghapusan karena itu manual lewat SQL, bukan portal staf.
 - Penghapusan permanen hanya atas keputusan Admin, bukan untuk memperbaiki bug aplikasi (perbaiki dengan migration forward atau rollback deploy).
