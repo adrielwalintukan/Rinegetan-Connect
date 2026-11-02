@@ -30,6 +30,7 @@ function loadTsx(path, boundaries = {}) {
     if (id === "@/lib/courses/queries") return require(resolve(root, "src/lib/courses/queries.mjs"));
     if (id === "@/lib/courses/import-actions") return require(resolve(root, "src/lib/courses/import-actions.mjs"));
     if (id === "@/lib/forms/study-interest-admin") return require(resolve(root, "src/lib/forms/study-interest-admin.mjs"));
+    if (id === "@/lib/forms/pastoral-admin") return require(resolve(root, "src/lib/forms/pastoral-admin.mjs"));
     return require(id);
   }, testModule, testModule.exports);
   return testModule.exports;
@@ -92,6 +93,7 @@ function dashboard(role, initialTab) {
     "./SectionMediaManager": { SectionMediaManager: nullComponent },
     "./StaffManager": { StaffManager: nullComponent },
     "./StudyInterestManager": { StudyInterestManager: nullComponent },
+    "./PastoralManagers": { PrayerRequestManager: nullComponent, VisitManager: nullComponent },
     "@/components/identity/AdventistSymbol": { AdventistSymbol: nullComponent },
     "@/lib/api/errors": require(resolve(root, "src/lib/api/errors.mjs")),
   });
