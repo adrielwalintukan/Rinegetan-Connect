@@ -37,6 +37,12 @@ Form minat belajar (P3-004) menerapkan ini sebagai berikut:
 - Isi form tidak masuk log, audit, atau email; tidak ada email notifikasi. Lead hanya terbaca Admin aktif.
 - Test key Turnstile Cloudflare hanya dipakai lokal/CI; key production diisi pemilik di Vercel.
 
+Form doa dan kunjungan (P3-005) memakai alur yang sama lewat helper bersama `lib/forms/public-form.mjs`:
+
+- Route `POST /api/doa` dan `POST /api/kunjungan` dengan aturan body, honeypot, Turnstile, dan HMAC IP yang sama. Rate limit terpisah per form: `prayer_attempt`/`prayer` dan `visit_attempt`/`visit`, masing-masing 20 percobaan dan 5 submit tersimpan per jam per hash IP.
+- Doa: nama dan kontak opsional; "Saya ingin dihubungi" hanya berlaku bila kontak diisi. Kunjungan: tanggal tidak boleh lewat menurut Asia/Makassar, jumlah orang 1-20.
+- Versi consent `draft-2026-11-02` disimpan per baris sampai copy disahkan gereja. Tidak ada email notifikasi; isi doa dan data kunjungan tidak masuk log atau audit dan hanya terbaca Admin aktif.
+
 ## Foto, anak, dan unduhan
 
 - Setiap aset menyimpan bukti/rujukan persetujuan sebelum Published.
@@ -63,7 +69,7 @@ Form minat belajar (P3-004) menerapkan ini sebagai berikut:
 
 ## Retensi, backup, dan pemulihan
 
-- Doa, pengunjung, dan lead: review/hapus default setelah 24 bulan; Admin dapat mengubah retensi untuk kebutuhan pastoral yang terdokumentasi, tetapi tidak pernah melewati periode yang dijanjikan copy consent yang disetujui pengirim. Lead minat belajar (consent `2026-10-29`, "paling lama 24 bulan") tidak dapat diperpanjang; dihapus pada cut-off 24 bulan dikurangi 120 hari agar salinan backup (paling lama 90 hari) juga hilang sebelum 24 bulan ([runbook retensi](../04-delivery/RETENTION-DELETION-RUNBOOK.md)).
+- Doa, pengunjung, dan lead: review/hapus default setelah 24 bulan; Admin dapat mengubah retensi untuk kebutuhan pastoral yang terdokumentasi, tetapi tidak pernah melewati periode yang dijanjikan copy consent yang disetujui pengirim. Lead minat belajar (consent `2026-10-29`, "paling lama 24 bulan") serta permohonan doa dan data kunjungan (copy "paling lama 24 bulan") tidak dapat diperpanjang; dihapus pada cut-off 24 bulan dikurangi 120 hari agar salinan backup (paling lama 90 hari) juga hilang sebelum 24 bulan ([runbook retensi](../04-delivery/RETENTION-DELETION-RUNBOOK.md)).
 - Konten publik archived tetap dipertahankan hingga Admin melakukan penghapusan sesuai kebijakan.
 - Backup manual terenkripsi: bulanan dan sebelum migration yang mengubah struktur/data.
 - Backup dikuasai gereja pada lokasi akses-terbatas. Catat tanggal, cakupan, checksum, penyimpanan, dan penanggung jawab.

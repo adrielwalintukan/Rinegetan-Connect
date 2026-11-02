@@ -1,6 +1,6 @@
 # P3-005 — Form Doa dan Kunjungan
 
-**Status:** Desain disetujui pemilik project pada 2026-11-02; belum diimplementasikan.
+**Status:** Desain disetujui pemilik project pada 2026-11-02; diimplementasikan pada hari yang sama di branch `feature/p3-005-prayer-visit`. Lihat [record](../../04-delivery/records/P3-005-2026-11-02.md).
 **Dasar integrasi:** `development` pada `b39e391`.
 **Issue:** P3-005 (#48).
 

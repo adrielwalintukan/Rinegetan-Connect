@@ -2,14 +2,14 @@
 
 ## Tujuan dan pemilik
 
-Menepati janji copy form "Data disimpan paling lama 24 bulan, lalu dihapus" untuk lead pastoral (saat ini `study_interest_leads` P3-004; diperluas ke doa/pengunjung saat P3-005 tersedia). Keputusan menghapus diambil **Admin gereja**; eksekusi SQL dilakukan **pemilik/operator database** yang berwenang. Jangan menjadikan runbook ini alasan menyalin isi lead ke chat, dokumen, atau alat lain.
+Menepati janji copy form "Data disimpan paling lama 24 bulan, lalu dihapus" untuk data pastoral: lead minat belajar (`study_interest_leads`, P3-004), permohonan doa (`prayer_requests`), dan data kunjungan (`visitor_submissions`, P3-005). Keputusan menghapus diambil **Admin gereja**; eksekusi SQL dilakukan **pemilik/operator database** yang berwenang. Jangan menjadikan runbook ini alasan menyalin isi lead ke chat, dokumen, atau alat lain.
 
 ## Dasar kebijakan
 
-- Janji kepada peminat adalah batas atas: data disimpan **paling lama 24 bulan** sejak `created_at`, termasuk salinannya di arsip backup. Retensi lead **tidak dapat diperpanjang** untuk lead yang menyetujui versi consent `2026-10-29`, termasuk untuk kebutuhan pastoral. Perubahan kebijakan hanya berlaku untuk pengumpulan baru, lewat copy dan versi consent baru yang disahkan ([SECURITY-PRIVACY](../03-architecture/SECURITY-PRIVACY.md)).
+- Janji kepada peminat adalah batas atas: data disimpan **paling lama 24 bulan** sejak `created_at`, termasuk salinannya di arsip backup. Retensi **tidak dapat diperpanjang** untuk data yang disetujui dengan versi consent `2026-10-29` (minat belajar) atau versi doa/kunjungan yang disahkan, termasuk untuk kebutuhan pastoral. Perubahan kebijakan hanya berlaku untuk pengumpulan baru, lewat copy dan versi consent baru yang disahkan ([SECURITY-PRIVACY](../03-architecture/SECURITY-PRIVACY.md)).
 - **Cut-off penghapusan: 24 bulan dikurangi 120 hari** (sekitar 20 bulan). Margin 120 hari menampung jeda tinjauan mingguan (7 hari) dan masa simpan arsip backup paling lama 90 hari, dijamin oleh pembersihan arsip mingguan pada umur 83 hari ([runbook backup](BACKUP-RESTORE-RUNBOOK.md#masa-simpan-arsip)); total paling lama 7 + 90 = 97 hari, di bawah margin 120 hari, sehingga salinan terakhir hilang sebelum 24 bulan meski bulan kalender pendek.
 - Runbook dijalankan **setiap minggu**.
-- P3-004 **tidak** menyediakan tombol hapus: tidak ada grant `DELETE` untuk tabel ini ([DATA-MODEL-AND-RLS](../03-architecture/DATA-MODEL-AND-RLS.md)). Penghapusan karena itu manual lewat SQL, bukan portal staf.
+- P3-004 dan P3-005 **tidak** menyediakan tombol hapus: tidak ada grant `DELETE` untuk ketiga tabel ([DATA-MODEL-AND-RLS](../03-architecture/DATA-MODEL-AND-RLS.md)). Penghapusan karena itu manual lewat SQL, bukan portal staf.
 - Penghapusan permanen hanya atas keputusan Admin, bukan untuk memperbaiki bug aplikasi (perbaiki dengan migration forward atau rollback deploy).
 
 ## Peran
@@ -32,18 +32,25 @@ Menepati janji copy form "Data disimpan paling lama 24 bulan, lalu dihapus" untu
 
 Cut-off di semua langkah adalah `now() - interval '24 months' + interval '120 days'` (24 bulan dikurangi 120 hari); jangan diubah per putaran.
 
+Tabel yang dicakup: `public.study_interest_leads` (P3-004), `public.prayer_requests`, dan `public.visitor_submissions` (P3-005). Langkah 2 dan 2b dijalankan **satu tabel per transaksi**; ganti nilai `v_table` sesuai tabel yang diputuskan.
+
 ```sql
--- 1. Tinjau: jumlah dan id lead yang melewati retensi (tanpa nama/kontak/pesan)
-select id, created_at, status
-from public.study_interest_leads
+-- 1. Tinjau: jumlah dan id yang melewati retensi di ketiga tabel (tanpa nama/kontak/isi)
+select 'study_interest_leads' as tabel, id, created_at, status from public.study_interest_leads
 where created_at < now() - interval '24 months' + interval '120 days'
-order by created_at;
+union all
+select 'prayer_requests', id, created_at, status from public.prayer_requests
+where created_at < now() - interval '24 months' + interval '120 days'
+union all
+select 'visitor_submissions', id, created_at, status from public.visitor_submissions
+where created_at < now() - interval '24 months' + interval '120 days'
+order by tabel, created_at;
 ```
 
 ```sql
--- 2. Hapus dalam transaksi; isi daftar id dari keputusan Admin (langkah 2).
--- Hanya lead yang melewati cut-off yang dapat terhapus. Bila jumlah baris yang benar-benar
--- terhapus berbeda dari jumlah id (id salah ketik, sudah terhapus, atau belum melewati cut-off),
+-- 2. Hapus dalam transaksi; isi tabel dan daftar id dari keputusan Admin (langkah 2).
+-- Hanya baris yang melewati cut-off yang dapat terhapus. Bila jumlah baris yang benar-benar
+-- terhapus berbeda dari jumlah id (id salah ketik, salah tabel, sudah terhapus, atau belum melewati cut-off),
 -- blok raise exception dan seluruh transaksi batal; COMMIT setelah error menjadi ROLLBACK.
 begin;
 create temp table purge_ids (id uuid primary key) on commit drop;
@@ -53,61 +60,65 @@ insert into purge_ids (id) values
 
 do $$
 declare
+  v_table text := 'study_interest_leads';  -- atau prayer_requests / visitor_submissions
   v_requested integer;
   v_deleted integer;
 begin
-  select count(*) into v_requested from purge_ids;
-  with gone as (
-    delete from public.study_interest_leads l
-    using purge_ids p
-    where l.id = p.id
-      and l.created_at < now() - interval '24 months' + interval '120 days'
-    returning l.id
-  )
-  select count(*) into v_deleted from gone;
-  if v_deleted <> v_requested then
-    raise exception 'Terhapus % dari % id; transaksi dibatalkan. Periksa ulang id dan cut-off.', v_deleted, v_requested;
+  if v_table not in ('study_interest_leads', 'prayer_requests', 'visitor_submissions') then
+    raise exception 'Tabel % tidak dicakup runbook ini.', v_table;
   end if;
-  raise notice 'Terhapus % lead.', v_deleted;
+  select count(*) into v_requested from purge_ids;
+  execute format(
+    'with gone as (delete from public.%I l using purge_ids p where l.id = p.id
+       and l.created_at < now() - interval ''24 months'' + interval ''120 days'' returning l.id)
+     select count(*) from gone', v_table) into v_deleted;
+  if v_deleted <> v_requested then
+    raise exception 'Terhapus % dari % id di %; transaksi dibatalkan. Periksa ulang tabel, id, dan cut-off.', v_deleted, v_requested, v_table;
+  end if;
+  raise notice 'Terhapus % baris dari %.', v_deleted, v_table;
 end $$;
 commit;
 ```
 
-Bila Admin memutuskan menghapus seluruh lead yang lebih tua dari cut-off, ganti langkah 2 dengan:
+Bila Admin memutuskan menghapus seluruh baris yang lebih tua dari cut-off pada satu tabel, ganti langkah 2 dengan:
 
 ```sql
--- 2b. Hapus seluruh lead yang melewati cut-off (hanya setelah tinjauan langkah 1)
+-- 2b. Hapus seluruh baris yang melewati cut-off pada satu tabel (hanya setelah tinjauan langkah 1)
 begin;
 do $$
 declare
+  v_table text := 'study_interest_leads';  -- atau prayer_requests / visitor_submissions
   v_deleted integer;
+  v_left boolean;
 begin
-  with gone as (
-    delete from public.study_interest_leads
-    where created_at < now() - interval '24 months' + interval '120 days'
-    returning id
-  )
-  select count(*) into v_deleted from gone;
-  if exists (select 1 from public.study_interest_leads where created_at < now() - interval '24 months' + interval '120 days') then
-    raise exception 'Masih ada lead melewati cut-off; transaksi dibatalkan.';
+  if v_table not in ('study_interest_leads', 'prayer_requests', 'visitor_submissions') then
+    raise exception 'Tabel % tidak dicakup runbook ini.', v_table;
   end if;
-  raise notice 'Terhapus % lead.', v_deleted;
+  execute format(
+    'with gone as (delete from public.%I where created_at < now() - interval ''24 months'' + interval ''120 days'' returning id)
+     select count(*) from gone', v_table) into v_deleted;
+  execute format('select exists (select 1 from public.%I where created_at < now() - interval ''24 months'' + interval ''120 days'')', v_table) into v_left;
+  if v_left then
+    raise exception 'Masih ada baris melewati cut-off di %; transaksi dibatalkan.', v_table;
+  end if;
+  raise notice 'Terhapus % baris dari %.', v_deleted, v_table;
 end $$;
 commit;
 ```
 
 ```sql
--- 3. Verifikasi
-select count(*) as melewati_retensi
-from public.study_interest_leads
-where created_at < now() - interval '24 months' + interval '120 days';  -- harus 0
+-- 3. Verifikasi: semua nilai harus 0
+select
+  (select count(*) from public.study_interest_leads where created_at < now() - interval '24 months' + interval '120 days') as minat_belajar,
+  (select count(*) from public.prayer_requests where created_at < now() - interval '24 months' + interval '120 days') as doa,
+  (select count(*) from public.visitor_submissions where created_at < now() - interval '24 months' + interval '120 days') as kunjungan;
 ```
 
 ## Catatan
 
 - **Jalankan di Supabase SQL Editor, bukan lewat aplikasi.** SQL Editor berjalan sebagai pemilik tabel sehingga melewati RLS/grants. Route server dan portal staf tidak dapat menghapus karena tidak ada grant `DELETE` untuk role mana pun. Jangan menambah grant `DELETE` hanya untuk runbook ini.
-- **Tidak ada audit otomatis untuk DELETE.** Trigger audit P3-004 hanya mencatat `insert`/`update`; penghapusan tidak menghasilkan baris `audit_logs`. Karena itu catatan operasional langkah 3/6 adalah bukti retensi. Jangan mengarang entri audit.
-- **Tidak ada foreign key ke tabel ini**, jadi penghapusan tidak memicu kegagalan relasi. `audit_logs.entity_id` menyimpan id lead sebagai nilai biasa tanpa foreign key; baris audit lama tetap ada dan hanya berisi status, bukan data pribadi.
+- **Tidak ada audit otomatis untuk DELETE.** Trigger audit P3-004 dan P3-005 hanya mencatat `insert`/`update`; penghapusan tidak menghasilkan baris `audit_logs`. Karena itu catatan operasional langkah 3/6 adalah bukti retensi. Jangan mengarang entri audit.
+- **Tidak ada foreign key ke ketiga tabel**, jadi penghapusan tidak memicu kegagalan relasi. `audit_logs.entity_id` menyimpan id lead sebagai nilai biasa tanpa foreign key; baris audit lama tetap ada dan hanya berisi status, bukan data pribadi.
 - **`form_rate_events` tidak perlu ditangani manual.** Rate limiter sudah menghapus event lebih tua dari 24 jam setiap kali form dipakai.
 - **Backup terenkripsi terpisah.** Lead yang sudah dihapus dari database masih ada di arsip backup sampai arsip itu dihapus. Arsip backup dihapus paling lama 90 hari setelah dibuat ([runbook backup](BACKUP-RESTORE-RUNBOOK.md#masa-simpan-arsip)); cut-off 24 bulan dikurangi 120 hari memastikan salinan terakhir hilang sebelum 24 bulan. Bila arsip disimpan lebih lama dari 90 hari, janji retensi tidak lagi terpenuhi.
 - **Restore mengembalikan data terhapus.** Setelah restore dari backup lama, ulangi langkah 1 sampai 5 agar janji retensi kembali benar.
@@ -115,6 +126,6 @@ where created_at < now() - interval '24 months' + interval '120 days';  -- harus
 ## Sumber
 
 - [SECURITY-PRIVACY, retensi](../03-architecture/SECURITY-PRIVACY.md)
-- [DATA-MODEL-AND-RLS, study_interest_leads](../03-architecture/DATA-MODEL-AND-RLS.md)
+- [DATA-MODEL-AND-RLS, study_interest_leads, prayer_requests, visitor_submissions](../03-architecture/DATA-MODEL-AND-RLS.md)
 - [CONTENT-OPERATIONS, operasi pastoral](CONTENT-OPERATIONS.md)
 - [Runbook backup dan pemulihan](BACKUP-RESTORE-RUNBOOK.md)
