@@ -471,3 +471,72 @@ test('study interest: visitor submits with consent, Admin handles, Editor cannot
       delete from public.form_rate_events where created_at > now() - interval '1 hour'; commit;`);
   }
 });
+
+test('prayer and visit forms: consent, Turnstile, Admin-only handling', async ({ page, local, playwright, baseURL }) => {
+  const prayerText = `Doa sintetis ${local.suffix}`;
+  const visitor = `Tamu ${local.suffix}`;
+  const count = (table: string, where: string) => local.execute(`select count(*) from public.${table} where ${where}`);
+  try {
+    await page.goto('/kontak#permohonan-doa');
+    const prayer = page.getByRole('region', { name:'Permohonan doa' });
+    await prayer.getByLabel('Permohonan doa').fill(prayerText);
+    await expect(prayer.getByRole('checkbox', { name:'Saya ingin dihubungi' })).toBeDisabled();
+    await prayer.getByRole('button', { name:'Kirim permohonan' }).click();
+    await expect(prayer.getByRole('alert')).toBeFocused();
+    expect(count('prayer_requests', `request = '${prayerText}'`)).toBe('0');
+    await prayer.getByRole('checkbox', { name:/Saya setuju/ }).check();
+    await expect(prayer.locator('input[name="cf-turnstile-response"]')).not.toHaveValue('', { timeout:30_000 });
+    await prayer.getByRole('button', { name:'Kirim permohonan' }).click();
+    await expect(prayer.getByRole('status')).toContainText('Permohonan doa Anda sudah kami terima.');
+    expect(count('prayer_requests', `request = '${prayerText}'`)).toBe('1');
+
+    const visit = page.getByRole('region', { name:'Saya ingin berkunjung' });
+    await visit.getByLabel('Nama', { exact:true }).fill(visitor);
+    await visit.getByLabel('Nomor WhatsApp atau email').fill(`tamu-${local.suffix}@example.invalid`);
+    await visit.getByLabel('Jumlah orang (opsional)').fill('3');
+    await visit.getByRole('checkbox', { name:/Saya setuju/ }).check();
+    await expect(visit.locator('input[name="cf-turnstile-response"]')).not.toHaveValue('', { timeout:30_000 });
+    await visit.getByRole('button', { name:'Kirim', exact:true }).click();
+    await expect(visit.getByRole('status')).toContainText('menyambut kunjungan Anda');
+    expect(count('visitor_submissions', `name = '${visitor}' and party_size = 3`)).toBe('1');
+
+    await page.setViewportSize({ width: 320, height: 800 });
+    await noPageOverflow(page);
+    await page.setViewportSize({ width: 1280, height: 900 });
+
+    const prayerId = local.execute(`select id from public.prayer_requests where request = '${prayerText}'`);
+    const visitId = local.execute(`select id from public.visitor_submissions where name = '${visitor}'`);
+
+    await local.login(page.context(), 'editor');
+    for (const tab of ['prayer', 'visit']) {
+      await page.goto(`/staff?tab=${tab}`);
+      await expect(page.getByRole('button', { name:'Doa', exact:true })).toHaveCount(0);
+      await expect(page.getByRole('button', { name:'Kunjungan', exact:true })).toHaveCount(0);
+    }
+    expect((await page.request.patch(`/api/staff/prayer-requests/${prayerId}`, { data:{ status:'closed' } })).status()).toBe(403);
+    expect((await page.request.patch(`/api/staff/visits/${visitId}`, { data:{ status:'closed' } })).status()).toBe(403);
+    const anonymous = await playwright.request.newContext({ baseURL });
+    try { expect((await anonymous.patch(`/api/staff/prayer-requests/${prayerId}`, { data:{ status:'closed' } })).status()).toBe(401); }
+    finally { await anonymous.dispose(); }
+
+    await page.context().clearCookies();
+    await local.login(page.context(), 'admin');
+    await page.goto('/staff?tab=prayer');
+    const prayerItem = page.getByRole('listitem').filter({ hasText:prayerText });
+    await expect(prayerItem).toContainText('Tanpa nama');
+    await prayerItem.getByLabel('Status').selectOption('prayed');
+    await expect.poll(() => local.execute(`select status from public.prayer_requests where id = '${prayerId}'`)).toBe('prayed');
+    await page.goto('/staff?tab=visit');
+    const visitItem = page.getByRole('listitem').filter({ hasText:visitor });
+    await expect(visitItem).toContainText('3 orang');
+    await visitItem.getByLabel('Status').selectOption('contacted');
+    await expect.poll(() => local.execute(`select status from public.visitor_submissions where id = '${visitId}'`)).toBe('contacted');
+  } finally {
+    local.execute(`begin;
+      delete from public.audit_logs where entity_type = 'prayer_requests' and entity_id in (select id from public.prayer_requests where request = '${prayerText}');
+      delete from public.audit_logs where entity_type = 'visitor_submissions' and entity_id in (select id from public.visitor_submissions where name = '${visitor}');
+      delete from public.prayer_requests where request = '${prayerText}';
+      delete from public.visitor_submissions where name = '${visitor}';
+      delete from public.form_rate_events where created_at > now() - interval '1 hour'; commit;`);
+  }
+});
