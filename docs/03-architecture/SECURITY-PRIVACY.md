@@ -63,7 +63,7 @@ Form minat belajar (P3-004) menerapkan ini sebagai berikut:
 
 ## Retensi, backup, dan pemulihan
 
-- Doa, pengunjung, dan lead: review/hapus default setelah 24 bulan; Admin dapat mengubah retensi untuk kebutuhan pastoral yang terdokumentasi.
+- Doa, pengunjung, dan lead: review/hapus default setelah 24 bulan; Admin dapat mengubah retensi untuk kebutuhan pastoral yang terdokumentasi, tetapi tidak pernah melewati periode yang dijanjikan copy consent yang disetujui pengirim. Lead minat belajar (consent `2026-10-29`, "paling lama 24 bulan") tidak dapat diperpanjang; dihapus pada cut-off 24 bulan dikurangi 120 hari agar salinan backup (paling lama 90 hari) juga hilang sebelum 24 bulan ([runbook retensi](../04-delivery/RETENTION-DELETION-RUNBOOK.md)).
 - Konten publik archived tetap dipertahankan hingga Admin melakukan penghapusan sesuai kebijakan.
 - Backup manual terenkripsi: bulanan dan sebelum migration yang mengubah struktur/data.
 - Backup dikuasai gereja pada lokasi akses-terbatas. Catat tanggal, cakupan, checksum, penyimpanan, dan penanggung jawab.
