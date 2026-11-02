@@ -120,6 +120,53 @@ test("editor audit URL never queries audit data and falls back to content", asyn
   assert.equal(result.props.initialTab, "announcements");
 });
 
+test("admin private form queries start together before any private result resolves", async () => {
+  const db = database();
+  const originalFrom = db.from.bind(db);
+  const tables = ["study_interest_leads", "prayer_requests", "visitor_submissions"];
+  const started = [];
+  const releases = [];
+  db.from = (table) => {
+    if (!tables.includes(table)) return originalFrom(table);
+    const builder = {
+      select() { return builder; }, order() { return builder; },
+      limit() {
+        started.push(table);
+        return new Promise((resolve) => releases.push(() => resolve({ data: [{ id: table }], error: null })));
+      },
+    };
+    return builder;
+  };
+  const pending = pageResult("admin", db, "prayer");
+  // Yield to real page/loaders, but keep all database responses unresolved.
+  await new Promise((resolve) => setImmediate(resolve));
+  try {
+    assert.deepEqual([...started], tables);
+  } finally {
+    // Also drain the serial baseline on assertion failure so no work leaks.
+    for (let i = 0; i < tables.length; i++) {
+      releases.splice(0).forEach((release) => release());
+      await new Promise((resolve) => setImmediate(resolve));
+    }
+  }
+  const result = await pending;
+  assert.deepEqual(result.props.initialStudyInterest, [{ id: "study_interest_leads" }]);
+  assert.deepEqual(result.props.initialPrayerRequests, [{ id: "prayer_requests" }]);
+  assert.deepEqual(result.props.initialVisits, [{ id: "visitor_submissions" }]);
+});
+
+test("editor pastoral URLs start zero private form queries", async () => {
+  for (const tab of ["interest", "prayer", "visit"]) {
+    const db = database();
+    const result = await pageResult("editor", db, tab);
+    assert.equal(db.queries.some(({ table }) => ["study_interest_leads", "prayer_requests", "visitor_submissions"].includes(table)), false);
+    assert.deepEqual(result.props.initialStudyInterest, []);
+    assert.deepEqual(result.props.initialPrayerRequests, []);
+    assert.deepEqual(result.props.initialVisits, []);
+    assert.equal(result.props.initialTab, "announcements");
+  }
+});
+
 test("audit query failure reaches the UI as a friendly error, separate from an empty list", async () => {
   const result = await pageResult("admin", database({ error: { code: "42703", message: "private schema details" } }));
   assert.deepEqual(result.props.initialAuditLogs, []);

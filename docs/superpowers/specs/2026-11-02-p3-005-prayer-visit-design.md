@@ -105,6 +105,7 @@ Dipindah dari `study-interest.mjs` tanpa perubahan perilaku: `readFormBody` (JSO
 - Kartu "Sampaikan langsung saat Sabat" diganti **Permohonan doa** (`PrayerRequestForm`).
 - Kartu `#berkunjung` tetap memuat info kunjungan dan diikuti **Saya ingin berkunjung** (`VisitForm`); CTA navigasi tetap mendarat di sana.
 - Pola sama dengan `StudyInterestForm`: Turnstile `size: "flexible"`, honeypot tersembunyi, error per field dengan `aria-describedby`, alert yang menerima fokus ulang, status sukses, pesan "belum tersedia" bila site key kosong.
+- Klarifikasi tindak lanjut PR #89 (2026-11-02): dua widget P3-005 memakai ukuran resmi `compact` (150 × 140px). Pengukuran browser menunjukkan ruang isi kartu pada 320px hanya 230px, sementara `flexible` memiliki minimum 300px dan memperlebar dokumen menjadi 345px. Keputusan ini memenuhi kontrak mobile tanpa mengubah token, verifikasi server, consent, atau form P3-004; widget lebih tinggi pada desktop. Grid form dibatasi ke kolom yang dapat menyusut dan pesan panjang dibungkus.
 - Checkbox "Saya ingin dihubungi" nonaktif selama kontak kosong.
 - Copy: tujuan (dibaca hanya oleh Admin gereja, tidak dipublikasikan atau dibagikan), "Data disimpan paling lama 24 bulan, lalu dihapus.", checkbox persetujuan tidak tercentang. Ditandai draf menunggu pengesahan gereja.
 - Teks "Layanan doa dan kunjungan sedang disiapkan" di `DigitalMinistrySection` diperbarui.

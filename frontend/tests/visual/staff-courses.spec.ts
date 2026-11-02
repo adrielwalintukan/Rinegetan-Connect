@@ -1,4 +1,5 @@
 import { test as base, expect, type Page, type Locator } from '@playwright/test';
+import { writeFileSync } from 'node:fs';
 import { fixture, loopback } from '../helpers/local-course-fixture.mjs';
 type LocalFixture = Awaited<ReturnType<typeof fixture>>;
 const test = base.extend<{ local: LocalFixture }>({
@@ -341,7 +342,73 @@ async function uploadImport(page: Page, file: ReturnType<typeof importFile>, tit
   if (title) { await expect(dialog).toHaveCount(0); await expect(importItem(page, title)).toBeVisible(); }
 }
 const importItem = (page: Page, title: string) => page.getByRole('region', { name:'Impor course' }).getByRole('listitem').filter({ has: page.getByRole('heading', { name:title, exact:true }) });
-const noPageOverflow = async (page: Page) => expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+const noPageOverflow = async (page: Page) => {
+  const bounds = await page.evaluate(() => ({
+    viewport: innerWidth, document: document.documentElement.scrollWidth,
+    outside: [...document.querySelectorAll('main *')].filter(node => node.getBoundingClientRect().right > innerWidth + 0.5)
+      .map(node => ({ tag:node.tagName, id:node.id, width:Math.round(node.getBoundingClientRect().width), right:Math.round(node.getBoundingClientRect().right) })).slice(0,12),
+  }));
+  expect(bounds.document, JSON.stringify(bounds)).toBeLessThanOrEqual(bounds.viewport);
+};
+
+for (const width of [320, 375, 768, 1024, 1440]) test(`Kontak forms fit initial, widget, long text, error and success at ${width}px`, async ({ page }, testInfo) => {
+  await page.setViewportSize({ width, height:900 });
+  await page.emulateMedia({ reducedMotion:'reduce' });
+  let release!:()=>void;
+  const gate = new Promise<void>(resolve => { release=resolve; });
+  const measure = async (state: string) => {
+    const path=testInfo.outputPath(`${state}-bounds.json`);
+    writeFileSync(path, JSON.stringify(await page.evaluate(() => ({
+    viewport:innerWidth, document:document.documentElement.scrollWidth,
+    elements:[...document.querySelectorAll('[data-testid="prayer-request"], [data-testid="visit-info-card"], form, form > div, form iframe, #prayer-request, #visit-date')].map(node => {
+      const style=getComputedStyle(node), box=node.getBoundingClientRect();
+      return { tag:node.tagName, id:node.id, width:box.width, right:box.right, client:node.clientWidth, scroll:node.scrollWidth, padding:style.paddingInline, columns:style.gridTemplateColumns };
+    }),
+    }))));
+    await testInfo.attach(`${state}-bounds`, { contentType:'application/json', path });
+  };
+  await page.route('https://challenges.cloudflare.com/turnstile/v0/api.js?*', async route => { await gate; await route.continue(); });
+  try {
+    await page.goto('/kontak', { waitUntil:'domcontentloaded' });
+    await expect(page.getByRole('textbox', { name:'Permohonan doa', exact:true })).toBeVisible();
+    await measure('initial');
+    await noPageOverflow(page);
+  } finally { release(); }
+  const prayer = page.getByRole('region', { name:'Permohonan doa' });
+  const visit = page.getByRole('region', { name:'Saya ingin berkunjung' });
+  for (const form of [prayer, visit]) {
+    await form.scrollIntoViewIfNeeded();
+    await expect(form.locator('input[name="cf-turnstile-response"]')).not.toHaveValue('', { timeout:30_000 });
+  }
+  await measure('widget');
+  await noPageOverflow(page);
+  await page.screenshot({ path:testInfo.outputPath(`kontak-${width}-widget.png`), fullPage:true });
+  const longText='Sintetis'.repeat(100);
+  for (const [form, endpoint, button, field] of [
+    [prayer, '/api/doa', 'Kirim permohonan', 'request'],
+    [visit, '/api/kunjungan', 'Kirim', 'message'],
+  ] as const) {
+    await form.locator(`textarea[name="${field}"]`).fill(longText);
+    await form.getByRole('button', { name:button, exact:true }).click();
+    await expect(form.getByRole('alert')).toBeFocused();
+    await noPageOverflow(page);
+    await form.getByRole('checkbox', { name:/Saya setuju/ }).check();
+    await page.route(`**${endpoint}`, route => route.fulfill({ status:400, json:{ error:longText, field } }), { times:1 });
+    await form.getByRole('button', { name:button, exact:true }).click();
+    await expect(form.getByRole('alert')).toHaveText(longText);
+    await expect(form.getByRole('alert')).toBeFocused();
+    await noPageOverflow(page);
+    await page.route(`**${endpoint}`, route => route.fulfill({ json:{ success:true, message:longText } }), { times:1 });
+    await form.getByRole('button', { name:button, exact:true }).click();
+    await expect(form.getByRole('status')).toHaveText(longText);
+    await noPageOverflow(page);
+    await targets(form.locator('form > div').first());
+    const submitBox=await form.getByRole('button', { name:button, exact:true }).boundingBox();
+    expect(submitBox?.width).toBeGreaterThanOrEqual(44);
+    expect(submitBox?.height).toBeGreaterThanOrEqual(44);
+  }
+  await page.screenshot({ path:testInfo.outputPath(`kontak-${width}-success.png`), fullPage:true });
+});
 
 test('course import: Editor stages, Admin rejects and approves into Draft, public stays hidden', async ({ page, local, playwright, baseURL }) => {
   try {
@@ -522,13 +589,16 @@ test('prayer and visit forms: consent, Turnstile, Admin-only handling', async ({
     await page.context().clearCookies();
     await local.login(page.context(), 'admin');
     await page.goto('/staff?tab=prayer');
+    await page.setViewportSize({ width:320, height:800 });
     const prayerItem = page.getByRole('listitem').filter({ hasText:prayerText });
     await expect(prayerItem).toContainText('Tanpa nama');
+    await noPageOverflow(page);
     await prayerItem.getByLabel('Status').selectOption('prayed');
     await expect.poll(() => local.execute(`select status from public.prayer_requests where id = '${prayerId}'`)).toBe('prayed');
     await page.goto('/staff?tab=visit');
     const visitItem = page.getByRole('listitem').filter({ hasText:visitor });
     await expect(visitItem).toContainText('3 orang');
+    await noPageOverflow(page);
     await visitItem.getByLabel('Status').selectOption('contacted');
     await expect.poll(() => local.execute(`select status from public.visitor_submissions where id = '${visitId}'`)).toBe('contacted');
   } finally {

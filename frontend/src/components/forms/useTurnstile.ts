@@ -20,7 +20,8 @@ export function useTurnstile() {
     const api = turnstile();
     if (!TURNSTILE_SITE_KEY || !ref.current || !api || widgetId.current !== undefined) return;
     widgetId.current = api.render(ref.current, {
-      sitekey: TURNSTILE_SITE_KEY, language: "id", size: "flexible", callback: setToken, "expired-callback": () => setToken(""), "error-callback": () => setToken(""),
+      // The 320px contact cards have 230px inside; flexible has a 300px minimum.
+      sitekey: TURNSTILE_SITE_KEY, language: "id", size: "compact", callback: setToken, "expired-callback": () => setToken(""), "error-callback": () => setToken(""),
     });
   }, []);
   useEffect(render, [render]);

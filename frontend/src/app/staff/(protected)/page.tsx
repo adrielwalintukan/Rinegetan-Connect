@@ -39,6 +39,9 @@ export default async function StaffHomePage({
     coursesRes,
     lessonsRes,
     importsRes,
+    interestRes,
+    prayerRes,
+    visitRes,
   ] = await Promise.all([
     client
       .from("announcements")
@@ -69,12 +72,11 @@ export default async function StaffHomePage({
     loadCourseCollection(client, "courses"),
     loadCourseCollection(client, "course_lessons"),
     loadCourseImports(client),
+    // Private form queries are independent; Editors never start them.
+    (async () => staff.role === "admin" ? await loadStudyInterestLeads(client) : { data: [], error: false })(),
+    (async () => staff.role === "admin" ? await loadPastoralRows(client, "prayer_requests") : { data: [], error: false })(),
+    (async () => staff.role === "admin" ? await loadPastoralRows(client, "visitor_submissions") : { data: [], error: false })(),
   ]);
-
-  // Leads are private to Admins; Editors never trigger the query.
-  const interestRes = staff.role === "admin" ? await loadStudyInterestLeads(client) : { data: [], error: false };
-  const prayerRes = staff.role === "admin" ? await loadPastoralRows(client, "prayer_requests") : { data: [], error: false };
-  const visitRes = staff.role === "admin" ? await loadPastoralRows(client, "visitor_submissions") : { data: [], error: false };
 
   const staffRes =
     staff.role === "admin"

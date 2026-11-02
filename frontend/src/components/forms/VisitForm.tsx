@@ -8,7 +8,7 @@ import { TURNSTILE_SCRIPT, TURNSTILE_SITE_KEY, useTurnstile } from "./useTurnsti
 
 type Field = "name" | "contact" | "visitDate" | "partySize" | "message" | "consent" | "turnstile";
 const EMPTY = { name: "", contact: "", visitDate: "", partySize: "", message: "", consent: false, website: "" };
-const inputClass = "mt-2 block min-h-11 w-full rounded-lg border border-navy/20 bg-white px-4 py-2 text-base text-navy focus:border-navy focus:outline-none focus:ring-2 focus:ring-sabbath-500 aria-[invalid=true]:border-red-600";
+const inputClass = "mt-2 block min-h-11 min-w-0 w-full rounded-lg border border-navy/20 bg-white px-4 py-2 text-base text-navy focus:border-navy focus:outline-none focus:ring-2 focus:ring-sabbath-500 aria-[invalid=true]:border-red-600";
 const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Makassar" }).format(new Date());
 
 // Copy is a draft (consent version draft-2026-11-02) awaiting church approval before production.
@@ -58,7 +58,7 @@ export function VisitForm() {
   }
 
   const describe = (field: Field) => errors[field] ? `visit-${field}-error` : undefined;
-  const errorText = (field: Field) => errors[field] && <p id={`visit-${field}-error`} className="mt-1 text-sm text-red-700">{errors[field]}</p>;
+  const errorText = (field: Field) => errors[field] && <p id={`visit-${field}-error`} className="mt-1 break-words text-sm text-red-700">{errors[field]}</p>;
 
   return <>
     <Script src={TURNSTILE_SCRIPT} strategy="afterInteractive" onLoad={renderWidget} onReady={renderWidget} />
@@ -66,9 +66,9 @@ export function VisitForm() {
       <p>Data ini hanya dipakai Admin gereja untuk menyambut dan menghubungi Anda tentang kunjungan, dan tidak dibagikan kepada pihak lain.</p>
       <p>Data disimpan paling lama 24 bulan, lalu dihapus.</p>
     </div>
-    {formError && <div ref={alertRef} tabIndex={-1} role="alert" className="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">{formError}</div>}
-    <div role="status" className="mt-6 empty:hidden">{success && <p className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">{success}</p>}</div>
-    <form onSubmit={submit} noValidate className="mt-6 grid gap-5">
+    {formError && <div ref={alertRef} tabIndex={-1} role="alert" className="mt-6 break-words rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">{formError}</div>}
+    <div role="status" className="mt-6 break-words empty:hidden">{success && <p className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">{success}</p>}</div>
+    <form onSubmit={submit} noValidate className="mt-6 grid grid-cols-1 gap-5">
       <div>
         <label htmlFor="visit-name" className="text-sm font-semibold text-navy">Nama</label>
         <input id="visit-name" name="name" autoComplete="name" required value={values.name} onChange={(e) => setValues({ ...values, name: e.target.value })}

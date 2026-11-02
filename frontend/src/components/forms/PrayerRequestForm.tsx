@@ -8,7 +8,7 @@ import { TURNSTILE_SCRIPT, TURNSTILE_SITE_KEY, useTurnstile } from "./useTurnsti
 
 type Field = "name" | "contact" | "request" | "consent" | "turnstile";
 const EMPTY = { name: "", contact: "", request: "", wantsContact: false, consent: false, website: "" };
-const inputClass = "mt-2 block min-h-11 w-full rounded-lg border border-navy/20 bg-white px-4 py-2 text-base text-navy focus:border-navy focus:outline-none focus:ring-2 focus:ring-sabbath-500 aria-[invalid=true]:border-red-600";
+const inputClass = "mt-2 block min-h-11 min-w-0 w-full rounded-lg border border-navy/20 bg-white px-4 py-2 text-base text-navy focus:border-navy focus:outline-none focus:ring-2 focus:ring-sabbath-500 aria-[invalid=true]:border-red-600";
 
 // Copy is a draft (consent version draft-2026-11-02) awaiting church approval before production.
 export function PrayerRequestForm() {
@@ -58,7 +58,7 @@ export function PrayerRequestForm() {
   }
 
   const describe = (field: Field) => errors[field] ? `prayer-${field}-error` : undefined;
-  const errorText = (field: Field) => errors[field] && <p id={`prayer-${field}-error`} className="mt-1 text-sm text-red-700">{errors[field]}</p>;
+  const errorText = (field: Field) => errors[field] && <p id={`prayer-${field}-error`} className="mt-1 break-words text-sm text-red-700">{errors[field]}</p>;
 
   return <>
     <Script src={TURNSTILE_SCRIPT} strategy="afterInteractive" onLoad={renderWidget} onReady={renderWidget} />
@@ -66,9 +66,9 @@ export function PrayerRequestForm() {
       <p>Permohonan doa hanya dibaca Admin gereja untuk didoakan dan, bila Anda minta, untuk menghubungi Anda. Permohonan tidak dipublikasikan dan tidak dibagikan kepada pihak lain.</p>
       <p>Nama dan kontak boleh dikosongkan. Data disimpan paling lama 24 bulan, lalu dihapus.</p>
     </div>
-    {formError && <div ref={alertRef} tabIndex={-1} role="alert" className="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">{formError}</div>}
-    <div role="status" className="mt-6 empty:hidden">{success && <p className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">{success}</p>}</div>
-    <form onSubmit={submit} noValidate className="mt-6 grid gap-5">
+    {formError && <div ref={alertRef} tabIndex={-1} role="alert" className="mt-6 break-words rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">{formError}</div>}
+    <div role="status" className="mt-6 break-words empty:hidden">{success && <p className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">{success}</p>}</div>
+    <form onSubmit={submit} noValidate className="mt-6 grid grid-cols-1 gap-5">
       <div>
         <label htmlFor="prayer-request" className="text-sm font-semibold text-navy">Permohonan doa</label>
         <textarea id="prayer-request" name="request" rows={5} required value={values.request} onChange={(e) => setValues({ ...values, request: e.target.value })}
