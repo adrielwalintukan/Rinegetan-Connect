@@ -74,6 +74,13 @@ begin
     is distinct from (to_jsonb(old) - array['status', 'handled_by', 'handled_at']) then
     raise check_violation using message = tg_argv[0];
   end if;
+  -- Re-sending the current status (retry, stale view) keeps the original handler and time;
+  -- the audit trigger records nothing for it either.
+  if new.status = old.status then
+    new.handled_by := old.handled_by;
+    new.handled_at := old.handled_at;
+    return new;
+  end if;
   new.handled_by := auth.uid();
   new.handled_at := now();
   return new;

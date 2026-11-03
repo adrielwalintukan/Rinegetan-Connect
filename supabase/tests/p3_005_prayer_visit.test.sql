@@ -74,6 +74,12 @@ select is((select count(*)::int from public.visitor_submissions), 1, 'Admin sees
 select lives_ok($$ update public.prayer_requests set status = 'prayed' where id = '96000000-0000-4000-8000-000000000001' $$, 'Admin marks prayer prayed');
 select results_eq($$ select status, handled_by, handled_at is not null from public.prayer_requests where id = '96000000-0000-4000-8000-000000000001' $$,
   $$ values ('prayed'::text, '95000000-0000-4000-8000-00000000000a'::uuid, true) $$, 'prayer status change records the handler');
+select set_config('p3005.handled_at', (select handled_at::text from public.prayer_requests where id = '96000000-0000-4000-8000-000000000001'), true);
+select set_config('request.jwt.claim.sub', '95000000-0000-4000-8000-00000000000b', true);
+select lives_ok($$ update public.prayer_requests set status = 'prayed' where id = '96000000-0000-4000-8000-000000000001' $$, 'another Admin re-sends the same status');
+select results_eq($$ select handled_by, handled_at::text = current_setting('p3005.handled_at') from public.prayer_requests where id = '96000000-0000-4000-8000-000000000001' $$,
+  $$ values ('95000000-0000-4000-8000-00000000000a'::uuid, true) $$, 'same status keeps the original handler and time');
+select set_config('request.jwt.claim.sub', '95000000-0000-4000-8000-00000000000a', true);
 select throws_ok($$ update public.prayer_requests set request = 'Ubah' where id = '96000000-0000-4000-8000-000000000001' $$, '23514', 'prayer_request_immutable', 'prayer details are immutable');
 select throws_ok($$ update public.prayer_requests set status = 'contacted' where id = '96000000-0000-4000-8000-000000000001' $$, '23514', null, 'visit status is not a prayer status');
 select lives_ok($$ update public.visitor_submissions set status = 'contacted' where id = '96000000-0000-4000-8000-000000000002' $$, 'Admin marks visit contacted');
@@ -84,7 +90,7 @@ reset role;
 
 -- audit: status only
 select results_eq($$ select action from public.audit_logs where entity_id = '96000000-0000-4000-8000-000000000001' order by occurred_at, action $$,
-  $$ values ('prayer_request.created'::text), ('prayer_request.status_changed'::text) $$, 'prayer audit recorded');
+  $$ values ('prayer_request.created'::text), ('prayer_request.status_changed'::text) $$, 'prayer audit recorded; a repeated status adds no event');
 select results_eq($$ select action from public.audit_logs where entity_id = '96000000-0000-4000-8000-000000000002' order by occurred_at, action $$,
   $$ values ('visitor_submission.created'::text), ('visitor_submission.status_changed'::text) $$, 'visit audit recorded');
 select is((select count(*)::int from public.audit_logs where entity_type in ('prayer_requests', 'visitor_submissions')
