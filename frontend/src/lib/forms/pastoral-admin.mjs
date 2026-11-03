@@ -36,3 +36,32 @@ export async function updatePastoralStatus(client, table, id, status, role) {
   if (!data) throw new PublicFormError("Data tidak ditemukan.", 404);
   return data;
 }
+
+/** Writes one count-only `pastoral.viewed` audit; false means the caller must not show the rows.
+ * @param {import('@supabase/supabase-js').SupabaseClient} client
+ * @param {{ study_interest_leads: number, prayer_requests: number, visitor_submissions: number }} rows */
+export async function recordPastoralAccess(client, rows) {
+  try {
+    const { error } = await client.rpc("record_pastoral_access", { p_study_interest: rows.study_interest_leads, p_prayer: rows.prayer_requests, p_visit: rows.visitor_submissions });
+    return !error;
+  } catch { return false; }
+}
+
+/** Rows past the retention cut-off per table; counts only.
+ * @param {import('@supabase/supabase-js').SupabaseClient} client */
+export async function loadExpiredPastoralCounts(client) {
+  try {
+    const { data, error } = await client.rpc("expired_pastoral_counts");
+    const row = Array.isArray(data) ? data[0] : null;
+    return error || !row ? { data: null, error: true } : { data: row, error: false };
+  } catch { return { data: null, error: true }; }
+}
+
+/** Deletes every row past the cut-off in all three tables; the database writes the audit.
+ * @param {import('@supabase/supabase-js').SupabaseClient} client @param {'admin' | 'editor'} role */
+export async function purgeExpiredPastoralData(client, role) {
+  if (role !== "admin") throw new PublicFormError("Hanya Admin yang dapat mengelola data pastoral.", 403);
+  const { data, error } = await client.rpc("purge_expired_pastoral_data");
+  if (error) throw new PublicFormError(publicErrorMessage(error), error.code === "42501" ? 403 : 500);
+  return Array.isArray(data) ? data[0] : data;
+}

@@ -50,12 +50,14 @@ Permohonan doa, informasi pengunjung, dan lead belajar bukan konten editorial. H
 
 - buka data melalui dashboard privat;
 - beri status penanganan tanpa memasukkan informasi pastoral sensitif ke audit/log;
-- ekspor hanya jika perlu, dengan alasan dan catatan audit;
+- ekspor hanya jika perlu, dengan alasan dan catatan audit (P3-006 tidak menyediakan ekspor; keputusan pemilik 2026-11-03);
 - review/hapus mengikuti periode retensi yang ditetapkan Admin, tanpa melewati periode yang dijanjikan copy consent.
 
-**Minat belajar (P3-004).** Pengunjung mengisi form "Ingin belajar bersama?" di halaman Pelajari Alkitab. Admin aktif membuka tab **Minat belajar** di portal staf, menghubungi peminat lewat kontak yang diberikan, lalu mengubah status menjadi **Sudah dihubungi** atau **Selesai**. Editor tidak melihat tab ini. Daftar menampilkan 50 lead terbaru beserta tanggal masuk dan usia lead. Penghapusan otomatis dan ekspor belum tersedia (P3-006); sampai itu ada, Admin menjalankan penghapusan manual setiap minggu pada cut-off 24 bulan dikurangi 120 hari (tanpa perpanjangan) mengikuti [runbook retensi dan penghapusan lead](RETENTION-DELETION-RUNBOOK.md). Jangan menyalin isi lead ke dokumen atau chat lain.
+**Minat belajar (P3-004).** Pengunjung mengisi form "Ingin belajar bersama?" di halaman Pelajari Alkitab. Admin aktif membuka tab **Minat belajar** di portal staf, menghubungi peminat lewat kontak yang diberikan, lalu mengubah status menjadi **Sudah dihubungi** atau **Selesai**. Editor tidak melihat tab ini. Daftar menampilkan 50 lead terbaru beserta tanggal masuk dan usia lead. Penghapusan mingguan dijalankan Admin lewat portal (lihat **Retensi (P3-006)** di bawah) mengikuti [runbook retensi dan penghapusan lead](RETENTION-DELETION-RUNBOOK.md); ekspor tidak tersedia. Jangan menyalin isi lead ke dokumen atau chat lain.
 
 **Doa dan kunjungan (P3-005).** Pengunjung mengirim **Permohonan doa** atau **Saya ingin berkunjung** di halaman Kontak. Admin aktif membuka tab **Doa** dan **Kunjungan** di portal staf. Status doa: **Baru**, **Sudah didoakan**, **Selesai**; status kunjungan: **Baru**, **Sudah dihubungi**, **Selesai**. Permohonan tanpa nama/kontak tampil sebagai "Tanpa nama"/"Tanpa kontak"; hubungi hanya pengirim yang menandai "Ingin dihubungi". Editor tidak melihat kedua tab. Isi doa tidak dibacakan, dipublikasikan, atau dibagikan di luar Admin, dan tidak disalin ke dokumen atau chat lain. Penghapusan mengikuti runbook retensi yang sama.
+
+**Retensi (P3-006).** Setiap minggu Admin membuka tab **Log Audit**. Panel **Retensi data pastoral** menampilkan jumlah data minat belajar, doa, dan kunjungan yang melewati cut-off 24 bulan dikurangi 120 hari. Tombol **Hapus data kedaluwarsa** menghapus semua data itu sekaligus setelah konfirmasi, dan database mencatat jumlahnya di audit (juga bila 0). Retensi tidak dapat diubah atau diperpanjang dari portal. Daftar **Akses data pastoral** menunjukkan kapan dan oleh siapa data pastoral dimuat, hanya berupa jumlah. Bila audit akses gagal ditulis, tab Minat belajar/Doa/Kunjungan menampilkan pesan gagal muat, bukan data.
 
 ## Course Alkitab dan lesson
 

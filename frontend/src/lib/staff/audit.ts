@@ -1,4 +1,4 @@
-export { loadAuditLogs, formatAuditTimestamp } from "./audit.mjs";
+export { loadAuditLogs, loadPastoralAccessLogs, formatAuditTimestamp } from "./audit.mjs";
 
 export interface AuditEntry {
   id: string;
