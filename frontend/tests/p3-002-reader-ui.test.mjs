@@ -47,9 +47,9 @@ test('query failures propagate to safe error UI instead of legitimate empty cont
 test('real catalogue reaches past 1000 rows',async()=>{
  const courses=Array.from({length:1002},(_,i)=>({...course,id:String(i),title:`Public ${i}`,slug:`public-${i}`}));const {load}=setup({courses});const html=render(await load(base+'page.tsx').default());assert.match(html,/Public 1001/);
 });
-test('desktop nav and Hero CTA point at reader while Bible card alone becomes available',()=>{
+test('desktop nav and Hero CTA point at reader and ministry cards link to live services',()=>{
  const load=tsxLoader({'next/navigation':{usePathname:()=>'/','useRouter':()=>({})},'next/link':{__esModule:true,default:({children,prefetch,...props})=>{void prefetch;return React.createElement('a',props,children);}}});
  const nav=render(React.createElement(load('src/components/layout/GlobalNav.jsx').GlobalNav));assert.match(nav,/<a[^>]*href="\/pelajari-alkitab"[^>]*data-testid="nav-cta-pelajari-alkitab"/);
  const hero=render(React.createElement(load('src/components/sections/Hero.jsx').Hero));assert.match(hero,/<a[^>]*href="\/pelajari-alkitab"[^>]*data-testid="hero-cta-pelajari-alkitab"/);
- const digital=render(React.createElement(load('src/components/sections/DigitalMinistrySection.jsx').DigitalMinistrySection));assert.match(digital,/href="\/pelajari-alkitab"/);assert.equal((digital.match(/Segera hadir/g)||[]).length,2);
+ const digital=render(React.createElement(load('src/components/sections/DigitalMinistrySection.jsx').DigitalMinistrySection));assert.match(digital,/href="\/pelajari-alkitab"/);assert.equal((digital.match(/Segera hadir/g)||[]).length,0);assert.match(digital,/href="\/kontak#permohonan-doa"/);assert.match(digital,/href="\/kontak#berkunjung"/);
 });

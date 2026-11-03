@@ -30,6 +30,7 @@ function loadTsx(path, boundaries = {}) {
     if (id === "@/lib/courses/queries") return require(resolve(root, "src/lib/courses/queries.mjs"));
     if (id === "@/lib/courses/import-actions") return require(resolve(root, "src/lib/courses/import-actions.mjs"));
     if (id === "@/lib/forms/study-interest-admin") return require(resolve(root, "src/lib/forms/study-interest-admin.mjs"));
+    if (id === "@/lib/forms/pastoral-admin") return require(resolve(root, "src/lib/forms/pastoral-admin.mjs"));
     return require(id);
   }, testModule, testModule.exports);
   return testModule.exports;
@@ -92,6 +93,7 @@ function dashboard(role, initialTab) {
     "./SectionMediaManager": { SectionMediaManager: nullComponent },
     "./StaffManager": { StaffManager: nullComponent },
     "./StudyInterestManager": { StudyInterestManager: nullComponent },
+    "./PastoralManagers": { PrayerRequestManager: nullComponent, VisitManager: nullComponent },
     "@/components/identity/AdventistSymbol": { AdventistSymbol: nullComponent },
     "@/lib/api/errors": require(resolve(root, "src/lib/api/errors.mjs")),
   });
@@ -116,6 +118,53 @@ test("editor audit URL never queries audit data and falls back to content", asyn
   assert.equal(db.queries.some((query) => query.table === "audit_logs"), false);
   assert.deepEqual(result.props.initialAuditLogs, []);
   assert.equal(result.props.initialTab, "announcements");
+});
+
+test("admin private form queries start together before any private result resolves", async () => {
+  const db = database();
+  const originalFrom = db.from.bind(db);
+  const tables = ["study_interest_leads", "prayer_requests", "visitor_submissions"];
+  const started = [];
+  const releases = [];
+  db.from = (table) => {
+    if (!tables.includes(table)) return originalFrom(table);
+    const builder = {
+      select() { return builder; }, order() { return builder; },
+      limit() {
+        started.push(table);
+        return new Promise((resolve) => releases.push(() => resolve({ data: [{ id: table }], error: null })));
+      },
+    };
+    return builder;
+  };
+  const pending = pageResult("admin", db, "prayer");
+  // Yield to real page/loaders, but keep all database responses unresolved.
+  await new Promise((resolve) => setImmediate(resolve));
+  try {
+    assert.deepEqual([...started], tables);
+  } finally {
+    // Also drain the serial baseline on assertion failure so no work leaks.
+    for (let i = 0; i < tables.length; i++) {
+      releases.splice(0).forEach((release) => release());
+      await new Promise((resolve) => setImmediate(resolve));
+    }
+  }
+  const result = await pending;
+  assert.deepEqual(result.props.initialStudyInterest, [{ id: "study_interest_leads" }]);
+  assert.deepEqual(result.props.initialPrayerRequests, [{ id: "prayer_requests" }]);
+  assert.deepEqual(result.props.initialVisits, [{ id: "visitor_submissions" }]);
+});
+
+test("editor pastoral URLs start zero private form queries", async () => {
+  for (const tab of ["interest", "prayer", "visit"]) {
+    const db = database();
+    const result = await pageResult("editor", db, tab);
+    assert.equal(db.queries.some(({ table }) => ["study_interest_leads", "prayer_requests", "visitor_submissions"].includes(table)), false);
+    assert.deepEqual(result.props.initialStudyInterest, []);
+    assert.deepEqual(result.props.initialPrayerRequests, []);
+    assert.deepEqual(result.props.initialVisits, []);
+    assert.equal(result.props.initialTab, "announcements");
+  }
 });
 
 test("audit query failure reaches the UI as a friendly error, separate from an empty list", async () => {

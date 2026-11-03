@@ -55,6 +55,8 @@ Permohonan doa, informasi pengunjung, dan lead belajar bukan konten editorial. H
 
 **Minat belajar (P3-004).** Pengunjung mengisi form "Ingin belajar bersama?" di halaman Pelajari Alkitab. Admin aktif membuka tab **Minat belajar** di portal staf, menghubungi peminat lewat kontak yang diberikan, lalu mengubah status menjadi **Sudah dihubungi** atau **Selesai**. Editor tidak melihat tab ini. Daftar menampilkan 50 lead terbaru beserta tanggal masuk dan usia lead. Penghapusan otomatis dan ekspor belum tersedia (P3-006); sampai itu ada, Admin menjalankan penghapusan manual setiap minggu pada cut-off 24 bulan dikurangi 120 hari (tanpa perpanjangan) mengikuti [runbook retensi dan penghapusan lead](RETENTION-DELETION-RUNBOOK.md). Jangan menyalin isi lead ke dokumen atau chat lain.
 
+**Doa dan kunjungan (P3-005).** Pengunjung mengirim **Permohonan doa** atau **Saya ingin berkunjung** di halaman Kontak. Admin aktif membuka tab **Doa** dan **Kunjungan** di portal staf. Status doa: **Baru**, **Sudah didoakan**, **Selesai**; status kunjungan: **Baru**, **Sudah dihubungi**, **Selesai**. Permohonan tanpa nama/kontak tampil sebagai "Tanpa nama"/"Tanpa kontak"; hubungi hanya pengirim yang menandai "Ingin dihubungi". Editor tidak melihat kedua tab. Isi doa tidak dibacakan, dipublikasikan, atau dibagikan di luar Admin, dan tidak disalin ke dokumen atau chat lain. Penghapusan mengikuti runbook retensi yang sama.
+
 ## Course Alkitab dan lesson
 
 Admin/Editor aktif memakai tab **Pelajari Alkitab** untuk membuat course, memilih induknya, lalu mengelola lesson. Materi baru selalu Draft; publikasi dilakukan setelah materi tersimpan.

@@ -28,7 +28,7 @@
 
 ### Tabel Phase 3
 
-P3-001 menyediakan courses dan course_lessons; P3-003 menambah course_imports; P3-004 menambah study_interest_leads dan form_rate_events (lihat bawah). Berikutnya: prayer_requests dan visitor_submissions. Persetujuan lead disimpan di baris lead; `consent_records` tetap khusus persetujuan foto media.
+P3-001 menyediakan courses dan course_lessons; P3-003 menambah course_imports; P3-004 menambah study_interest_leads dan form_rate_events; P3-005 menambah prayer_requests dan visitor_submissions (lihat bawah). Persetujuan lead disimpan di baris lead; `consent_records` tetap khusus persetujuan foto media.
 
 ### Tabel Phase 4–5
 
@@ -81,6 +81,17 @@ Lead minat belajar dari form publik. Kolom: id, name (1-100), contact (1-254, em
 - `form_rate_events` (form, ip_hash, created_at) tanpa grant untuk role mana pun; diakses hanya lewat `public.check_form_rate(form, ip_hash, limit, window)` (SECURITY DEFINER, execute hanya service_role) yang menghapus event lebih tua dari 24 jam dan mengunci per hash. ip_hash adalah HMAC-SHA256 IP berkunci server (32 hex).
 
 Migration: `20261026000000_p3_004_study_interest.sql`.
+
+### prayer_requests dan visitor_submissions (P3-005)
+
+- `prayer_requests`: id, name (0-100, opsional), contact (0-254; bila diisi email sederhana atau telepon 8-15 digit), request (1-2000), wants_contact (hanya benar bila contact diisi, constraint `prayer_requests_contact_for_reply`), status (`new`/`prayed`/`closed`), consent_version, consented_at, created_at, handled_by (FK `auth.users` ON DELETE SET NULL), handled_at.
+- `visitor_submissions`: id, name (1-100), contact (1-254, format sama dengan P3-004), visit_date (date opsional; "tidak lampau" diperiksa route agar baris lama tetap valid), party_size (1-20 opsional), message (0-1000), status (`new`/`contacted`/`closed`), kolom consent dan penanganan yang sama.
+- Ditulis hanya oleh route `POST /api/doa` dan `POST /api/kunjungan` dengan server key. `service_role` hanya insert (hak default dicabut eksplisit); authenticated select/update untuk Admin aktif (`private.is_admin()`); tidak ada delete untuk role mana pun; anon dan Editor tanpa akses.
+- Trigger generik `private.prepare_pastoral_row(pesan)` memaksa `new` saat insert dan hanya mengizinkan perubahan status (`prayer_request_immutable`/`visitor_submission_immutable`), dengan pembersihan ON DELETE SET NULL yang sama. Mengirim ulang status yang sama mempertahankan handled_by/handled_at lama dan tidak menambah audit. `private.record_pastoral_audit(prefix)` mencatat `prayer_request.created`/`.status_changed` dan `visitor_submission.created`/`.status_changed` dengan status saja.
+- `form_rate_events.form` kini menerima `prayer`, `prayer_attempt`, `visit`, dan `visit_attempt`; `check_form_rate` tidak berubah.
+- Penghapusan manual mingguan pada cut-off 24 bulan dikurangi 120 hari mengikuti [runbook retensi](../04-delivery/RETENTION-DELETION-RUNBOOK.md) sampai P3-006 tersedia.
+
+Migration: `20261102000000_p3_005_prayer_visit.sql`.
 
 ### events
 
