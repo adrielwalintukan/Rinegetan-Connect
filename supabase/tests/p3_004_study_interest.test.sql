@@ -79,6 +79,18 @@ select is((select count(*)::int from public.study_interest_leads), 2, 'Admin see
 select lives_ok($$ update public.study_interest_leads set status = 'contacted' where id = '93000000-0000-4000-8000-000000000001' $$, 'Admin changes status');
 select results_eq($$ select status, handled_by, handled_at is not null from public.study_interest_leads where id = '93000000-0000-4000-8000-000000000001' $$,
   $$ values ('contacted'::text, '91000000-0000-4000-8000-00000000000a'::uuid, true) $$, 'status change records the handler');
+-- now() is fixed per transaction, so backdate handled_at to make an overwrite detectable
+reset role;
+alter table public.study_interest_leads disable trigger study_interest_leads_prepare;
+update public.study_interest_leads set handled_at = now() - interval '1 day' where id = '93000000-0000-4000-8000-000000000001';
+alter table public.study_interest_leads enable trigger study_interest_leads_prepare;
+select set_config('p3004.handled_at', (select handled_at::text from public.study_interest_leads where id = '93000000-0000-4000-8000-000000000001'), true);
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '91000000-0000-4000-8000-00000000000b', true);
+select lives_ok($$ update public.study_interest_leads set status = 'contacted' where id = '93000000-0000-4000-8000-000000000001' $$, 'second Admin re-sends the same status');
+select results_eq($$ select handled_by, handled_at = current_setting('p3004.handled_at')::timestamptz from public.study_interest_leads where id = '93000000-0000-4000-8000-000000000001' $$,
+  $$ values ('91000000-0000-4000-8000-00000000000a'::uuid, true) $$, 'same-status update keeps handler and time');
+select set_config('request.jwt.claim.sub', '91000000-0000-4000-8000-00000000000a', true);
 select throws_ok($$ update public.study_interest_leads set name = 'Ubah' where id = '93000000-0000-4000-8000-000000000001' $$, '23514', 'study_interest_immutable', 'lead details are immutable');
 select throws_ok($$ update public.study_interest_leads set status = 'unknown' where id = '93000000-0000-4000-8000-000000000001' $$, '23514', null, 'unknown status is rejected');
 select throws_ok($$ delete from public.study_interest_leads $$, '42501', null, 'Admin cannot delete leads (P3-006)');

@@ -77,10 +77,10 @@ Lead minat belajar dari form publik. Kolom: id, name (1-100), contact (1-254, em
 
 - Ditulis hanya oleh route server `POST /api/minat-belajar` dengan server key; anon dan authenticated tidak punya grant insert.
 - RLS/grant: authenticated hanya select/update, keduanya untuk Admin aktif (`private.is_admin()`); tidak ada delete (retensi dan penghapusan di P3-006). Sampai P3-006 tersedia, penghapusan dijalankan manual lewat SQL oleh operator setiap minggu pada cut-off 24 bulan dikurangi 120 hari mengikuti [runbook retensi dan penghapusan lead](../04-delivery/RETENTION-DELETION-RUNBOOK.md).
-- Trigger: insert memaksa `new` tanpa penanganan; update hanya boleh mengubah status dan mengisi handled_by/handled_at, selain itu `study_interest_immutable`; pembersihan ON DELETE SET NULL handled_by diizinkan. Audit `study_interest.created`/`study_interest.status_changed` hanya berisi status, tanpa nama, kontak, atau pesan.
+- Trigger: insert memaksa `new` tanpa penanganan; update hanya boleh mengubah status dan mengisi handled_by/handled_at, selain itu `study_interest_immutable`; update yang mengirim ulang status yang sama (retry atau tampilan basi) mempertahankan handled_by/handled_at lama karena audit tidak mencatat update tanpa perubahan status; pembersihan ON DELETE SET NULL handled_by diizinkan. Audit `study_interest.created`/`study_interest.status_changed` hanya berisi status, tanpa nama, kontak, atau pesan.
 - `form_rate_events` (form, ip_hash, created_at) tanpa grant untuk role mana pun; diakses hanya lewat `public.check_form_rate(form, ip_hash, limit, window)` (SECURITY DEFINER, execute hanya service_role) yang menghapus event lebih tua dari 24 jam dan mengunci per hash. ip_hash adalah HMAC-SHA256 IP berkunci server (32 hex).
 
-Migration: `20261026000000_p3_004_study_interest.sql`.
+Migration: `20261026000000_p3_004_study_interest.sql`, `20261103000000_p3_004_study_interest_same_status.sql`.
 
 ### events
 
