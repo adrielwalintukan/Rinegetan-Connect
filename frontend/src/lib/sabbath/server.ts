@@ -1,5 +1,6 @@
 import "server-only";
-import { refreshQuarterly } from "./adventech.mjs";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createPostgresCache, refreshQuarterly } from "./adventech.mjs";
 
 async function fetchQuarterlyFromAdventech(quarterId: string, fetcher: typeof fetch = fetch) {
   if (typeof quarterId !== "string" || !/^\d{4}-0[1-4](?:-[a-z0-9]+)?$/.test(quarterId)) {
@@ -35,13 +36,14 @@ async function fetchQuarterlyFromAdventech(quarterId: string, fetcher: typeof fe
   return { payload: JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)), sourceVersion, etag };
 }
 
-// Rights verification and database access remain closed until P4-005 is approved.
+// Both server and database rights gates remain closed until P4-005 is approved.
 export async function loadSabbathQuarterly(quarterId: string) {
   return refreshQuarterly(`id-${quarterId}`, {
     authorized: async () => false,
     fetchQuarterly: () => fetchQuarterlyFromAdventech(quarterId),
-    readCache: async () => null,
-    writeCache: async () => { throw new Error("Sabbath content rights are not approved"); },
+    readCache: async (sourceId: string) => createPostgresCache(await createServerSupabaseClient()).readCache(sourceId),
+    writeCache: async (snapshot: Parameters<ReturnType<typeof createPostgresCache>["writeCache"]>[0]) =>
+      createPostgresCache(await createServerSupabaseClient()).writeCache(snapshot),
     now: () => new Date(),
   });
 }

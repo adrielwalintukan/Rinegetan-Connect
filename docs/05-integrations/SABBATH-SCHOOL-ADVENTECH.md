@@ -19,7 +19,7 @@ Adventech upstream
 
 Adapter memvalidasi bahasa, class, quarter, lesson ID, judul, urutan, isi, URL asset, attribution, dan version. Bila sumber gagal, UI menunjukkan status terakhir yang di-cache beserta waktu pembaruan, bukan mengarang konten.
 
-Fondasi P4-001 menyediakan normalisasi metadata dan segmen sintetis, mekanisme refresh/fallback yang diuji dengan pengganti sumber dan penyimpanan, serta tabel cache privat tanpa grant aplikasi. Entri server tetap menolak akses sebelum melakukan request atau membaca cache. Jalur database, register hak, pemetaan seluruh kelas dan jenis blok, reader, serta aktivasi nyata belum tersedia. Tidak ada cache materi atau pengambilan upstream yang diaktifkan oleh fondasi ini; lihat [catatan analisis P4-001](../04-delivery/records/P4-001-ANALYSIS-2026-11-07.md).
+Fondasi P4-001 menyediakan normalisasi metadata dan segmen sintetis, mekanisme refresh/fallback, serta tabel cache privat tanpa grant tabel bagi aplikasi. RPC baca/tulis tersambung melalui sesi Supabase server, dengan pemeriksaan Admin aktif dan gate hak di database; gate database dan entri server tetap tertutup. Kode RPC diuji dengan fixture sintetis dan gate sementara dalam transaksi rollback. Register hak, pemetaan seluruh kelas dan jenis blok, reader, serta aktivasi nyata belum tersedia. Tidak ada cache materi atau pengambilan upstream yang diaktifkan oleh fondasi ini; lihat [catatan analisis P4-001](../04-delivery/records/P4-001-ANALYSIS-2026-11-07.md).
 
 ## Bahasa dan kelas
 

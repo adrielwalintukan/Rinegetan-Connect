@@ -3,6 +3,26 @@ function requiredText(value) {
   return value.trim();
 }
 
+export function createPostgresCache(client) {
+  return {
+    async readCache(sourceId) {
+      const { data, error } = await client.rpc("sabbath_cache_read", { p_source_id: sourceId });
+      if (error || !Array.isArray(data) || data.length > 1) throw new Error("Cache unavailable");
+      if (data.length === 0) return null;
+      const row = data[0];
+      return { sourceId: row.source_id, sourceVersion: row.source_version, fetchedAt: row.fetched_at,
+        etag: row.etag, payload: row.payload };
+    },
+    async writeCache(snapshot) {
+      const { data, error } = await client.rpc("sabbath_cache_write", {
+        p_source_id: snapshot.sourceId, p_source_version: snapshot.sourceVersion, p_fetched_at: snapshot.fetchedAt,
+        p_etag: snapshot.etag, p_payload: snapshot.payload,
+      });
+      if (error || data !== true) throw new Error("Cache unavailable");
+    },
+  };
+}
+
 export async function refreshQuarterly(sourceId, { authorized, fetchQuarterly, readCache, writeCache, now }) {
   const unavailable = { status: "unavailable" };
   const allowed = async () => { try { return await authorized(sourceId) === true; } catch { return false; } };

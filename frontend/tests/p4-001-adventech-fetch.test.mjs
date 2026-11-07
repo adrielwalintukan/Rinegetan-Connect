@@ -9,6 +9,7 @@ const compiled = ts.transpileModule(source + "\nexport { fetchQuarterlyFromAdven
 const server = {};
 new Function("require", "exports", compiled)((id) => {
   if (id === "server-only") return {};
+  if (id === "@/lib/supabase/server") return { createServerSupabaseClient: async () => { throw new Error("must not connect"); } };
   if (id === "./adventech.mjs") return core;
   throw new Error("Unexpected import");
 }, server);
