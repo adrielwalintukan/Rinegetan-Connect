@@ -11,7 +11,7 @@
 | Mengundang/menonaktifkan staf | Tidak | Ya |
 | Menghapus permanen | Tidak | Ya |
 | Membaca data doa, kunjungan, dan lead | Tidak | Ya |
-| Ekspor data privat | Tidak | Ya, dengan alasan/audit |
+| Ekspor data privat pastoral | Tidak tersedia | Tidak tersedia (keputusan P3-006) |
 
 ## Alur standar konten
 
@@ -50,8 +50,8 @@ Permohonan doa, informasi pengunjung, dan lead belajar bukan konten editorial. H
 
 - buka data melalui dashboard privat;
 - beri status penanganan tanpa memasukkan informasi pastoral sensitif ke audit/log;
-- ekspor hanya jika perlu, dengan alasan dan catatan audit (P3-006 tidak menyediakan ekspor; keputusan pemilik 2026-11-03);
-- review/hapus mengikuti periode retensi yang ditetapkan Admin, tanpa melewati periode yang dijanjikan copy consent.
+- ekspor data pastoral tidak tersedia (keputusan pemilik P3-006, 2026-11-03); data dibaca melalui portal;
+- review/hapus setiap minggu mengikuti cut-off tetap 24 bulan dikurangi 120 hari; retensi data yang sudah dikumpulkan tidak dapat diubah atau diperpanjang (lihat **Retensi (P3-006)** di bawah).
 
 **Minat belajar (P3-004).** Pengunjung mengisi form "Ingin belajar bersama?" di halaman Pelajari Alkitab. Admin aktif membuka tab **Minat belajar** di portal staf, menghubungi peminat lewat kontak yang diberikan, lalu mengubah status menjadi **Sudah dihubungi** atau **Selesai**. Editor tidak melihat tab ini. Daftar menampilkan 50 lead terbaru beserta tanggal masuk dan usia lead. Penghapusan mingguan dijalankan Admin lewat portal (lihat **Retensi (P3-006)** di bawah) mengikuti [runbook retensi dan penghapusan lead](RETENTION-DELETION-RUNBOOK.md); ekspor tidak tersedia. Jangan menyalin isi lead ke dokumen atau chat lain.
 
