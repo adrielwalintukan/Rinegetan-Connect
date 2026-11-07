@@ -1,0 +1,14 @@
+begin;
+select no_plan();
+select has_table('private', 'sabbath_content_cache', 'private cache exists');
+select ok((select relrowsecurity from pg_class where oid = 'private.sabbath_content_cache'::regclass), 'row level security is enabled');
+select ok(not has_table_privilege('anon', 'private.sabbath_content_cache', 'SELECT'), 'anon cannot read cache');
+select ok(not has_table_privilege('authenticated', 'private.sabbath_content_cache', 'SELECT'), 'staff cannot read cache');
+select ok(not has_table_privilege('authenticated', 'private.sabbath_content_cache', 'INSERT'), 'staff cannot write cache');
+select ok(not has_table_privilege('service_role', 'private.sabbath_content_cache', 'SELECT'), 'service role cannot read cache');
+select throws_ok($$insert into private.sabbath_content_cache (source_id, source_version, fetched_at, payload) values ('id-2026-01', '', now(), '{}')$$, '23514', null, 'empty source version is rejected');
+select throws_ok($$insert into private.sabbath_content_cache (source_id, source_version, fetched_at, payload) values ('id-2026-01', 'v1', now(), '[]')$$, '23514', null, 'non-object payload is rejected');
+select throws_ok($$insert into private.sabbath_content_cache (source_id, source_version, fetched_at, payload, validation_status) values ('id-2026-01', 'v1', now(), '{}', 'invalid')$$, '23514', null, 'invalid status is rejected');
+select lives_ok($$insert into private.sabbath_content_cache (source_id, source_version, fetched_at, payload) values ('id-2026-01', 'v1', now(), '{"synthetic":true}')$$, 'valid synthetic cache record can be stored by owner');
+select * from finish();
+rollback;

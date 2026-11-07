@@ -47,6 +47,8 @@ P3-003 (#46): PR #86 merge ke `development` pada 2026-10-25 (`6dc89ed`), CI hasi
 
 Urutan dependensi: P4-001 (adapter server) → P4-002/P4-003 (katalog dan reader online) → P4-004 (mekanisme paket lokal) → P4-005 (gate izin). Batas izin yang disepakati tetap berlaku: tidak ada cache/offline materi sebelum izin tertulis pemegang hak dicatat dan disetujui. Mekanisme teknis P4-001–P4-004 boleh dibangun, tetapi cache materi dan unduhan/offline tidak diaktifkan untuk publik sebelum P4-005 lulus. Keputusan pemilik yang masih terbuka: apakah cache server untuk penayangan online (acceptance P4-001) memerlukan izin tertulis yang sama dengan paket offline; sampai diputuskan, berlaku batas yang lebih ketat ini. Lihat [gate lisensi Adventech](../05-integrations/SABBATH-SCHOOL-ADVENTECH.md#gate-lisensi-wajib).
 
+P4-001: fondasi gate tertutup dan validasi sintetis dikerjakan pada branch fitur; penyimpanan belum terhubung, kontrak seluruh kelas/blok dan cakupan izin belum terbukti. Issue #50 tetap terbuka dan fondasi ini tidak berarti siap diaktifkan atau dirilis. Bukti: [catatan P4-001](records/P4-001-ANALYSIS-2026-11-07.md).
+
 | ID | Issue | Acceptance ringkas | Dependensi |
 | --- | --- | --- | --- |
 | P4-001 | Adapter Adventech server-side. | Sumber diambil lewat adapter, dinormalisasi, divalidasi, dicache, dan memiliki attribution. | P2 server foundation |
