@@ -32,3 +32,4 @@ export type VisitSubmission = {
   created_at: string;
   handled_at: string | null;
 };
+export type PastoralCounts = { study_interest_leads: number; prayer_requests: number; visitor_submissions: number };

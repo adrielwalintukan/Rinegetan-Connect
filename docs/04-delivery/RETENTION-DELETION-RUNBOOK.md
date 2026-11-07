@@ -9,24 +9,33 @@ Menepati janji copy form "Data disimpan paling lama 24 bulan, lalu dihapus" untu
 - Janji kepada peminat adalah batas atas: data disimpan **paling lama 24 bulan** sejak `created_at`, termasuk salinannya di arsip backup. Retensi **tidak dapat diperpanjang** untuk data yang disetujui dengan versi consent `2026-10-29` (minat belajar) atau versi doa/kunjungan yang disahkan, termasuk untuk kebutuhan pastoral. Perubahan kebijakan hanya berlaku untuk pengumpulan baru, lewat copy dan versi consent baru yang disahkan ([SECURITY-PRIVACY](../03-architecture/SECURITY-PRIVACY.md)).
 - **Cut-off penghapusan: 24 bulan dikurangi 120 hari** (sekitar 20 bulan). Margin 120 hari menampung jeda tinjauan mingguan (7 hari) dan masa simpan arsip backup paling lama 90 hari, dijamin oleh pembersihan arsip mingguan pada umur 83 hari ([runbook backup](BACKUP-RESTORE-RUNBOOK.md#masa-simpan-arsip)); total paling lama 7 + 90 = 97 hari, di bawah margin 120 hari, sehingga salinan terakhir hilang sebelum 24 bulan meski bulan kalender pendek.
 - Runbook dijalankan **setiap minggu**.
-- P3-004 dan P3-005 **tidak** menyediakan tombol hapus: tidak ada grant `DELETE` untuk ketiga tabel ([DATA-MODEL-AND-RLS](../03-architecture/DATA-MODEL-AND-RLS.md)). Penghapusan karena itu manual lewat SQL, bukan portal staf.
+- Sejak P3-006, Admin menghapus lewat tombol **Hapus data kedaluwarsa** di tab **Log Audit** portal staf. Tombol memanggil `purge_expired_pastoral_data()`, yang hanya menghapus baris sebelum cut-off dan mencatat jumlahnya di audit. Tetap tidak ada grant `DELETE` untuk role mana pun ([DATA-MODEL-AND-RLS](../03-architecture/DATA-MODEL-AND-RLS.md)). SQL di bawah menjadi **cadangan** bila portal tidak dapat dipakai.
 - Penghapusan permanen hanya atas keputusan Admin, bukan untuk memperbaiki bug aplikasi (perbaiki dengan migration forward atau rollback deploy).
 
 ## Peran
 
 | Peran | Tanggung jawab |
 | --- | --- |
-| Admin gereja | Meninjau daftar lead yang melewati cut-off dan menetapkan penghapusannya. |
-| Pemilik/operator database | Menjalankan SQL di Supabase SQL Editor pada project yang benar, lalu mencatat bukti. |
+| Admin gereja | Meninjau jumlah data yang melewati cut-off dan menjalankan penghapusan di portal. |
+| Pemilik/operator database | Hanya untuk prosedur cadangan: menjalankan SQL di Supabase SQL Editor pada project yang benar, lalu mencatat bukti. |
 
-## Prosedur
+## Prosedur portal (P3-006)
+
+1. Buka portal staf sebagai Admin aktif, lalu tab **Log Audit**.
+2. Panel **Retensi data pastoral** menampilkan jumlah data minat belajar, doa, dan kunjungan yang melewati cut-off.
+3. Bila jumlahnya lebih dari 0, tekan **Hapus data kedaluwarsa**, lalu konfirmasi. Semua data yang melewati cut-off di ketiga tabel terhapus dalam satu transaksi; tidak ada pilihan per baris dan tidak ada perpanjangan.
+4. Pastikan jumlah kembali 0. Audit `*.purged` (jumlah dan cut-off, juga untuk putaran tanpa data) menjadi bukti putaran mingguan; tidak perlu catatan operasional terpisah.
+
+## Prosedur cadangan (SQL)
+
+Dipakai hanya bila portal tidak dapat dipakai.
 
 1. **Tinjau kandidat.** Jalankan SQL tinjau di bawah; salinan hasil yang bertahan hanya berupa **jumlah** dan **id**, tanpa nama/kontak/pesan.
 2. **Putuskan.** Admin menetapkan id yang dihapus. Lead yang melewati cut-off wajib dihapus pada putaran yang sama; tidak ada perpanjangan.
 3. **Catat sebelum hapus.** Simpan keputusan (tanggal, jumlah, id, penanggung jawab) pada catatan operasional gereja. Tidak ada PII di catatan.
 4. **Jalankan penghapusan.** Jalankan SQL hapus. SQL hanya menghapus lead yang melewati cut-off dan membatalkan seluruh transaksi bila jumlah baris yang benar-benar terhapus tidak sama dengan jumlah id yang diputuskan.
 5. **Verifikasi.** Jalankan SQL verifikasi; tabel harus bersih dari lead yang lebih tua dari cut-off.
-6. **Tutup.** Catat tanggal, jumlah, dan pelaksana pada catatan operasional. Bila P3-006 tersedia nanti, alihkan langkah ini ke fitur tersebut.
+6. **Tutup.** Catat tanggal, jumlah, dan pelaksana pada catatan operasional.
 
 ## SQL (jalankan di Supabase SQL Editor project yang benar)
 
@@ -117,11 +126,11 @@ select
 ## Catatan
 
 - **Jalankan di Supabase SQL Editor, bukan lewat aplikasi.** SQL Editor berjalan sebagai pemilik tabel sehingga melewati RLS/grants. Route server dan portal staf tidak dapat menghapus karena tidak ada grant `DELETE` untuk role mana pun. Jangan menambah grant `DELETE` hanya untuk runbook ini.
-- **Tidak ada audit otomatis untuk DELETE.** Trigger audit P3-004 dan P3-005 hanya mencatat `insert`/`update`; penghapusan tidak menghasilkan baris `audit_logs`. Karena itu catatan operasional langkah 3/6 adalah bukti retensi. Jangan mengarang entri audit.
+- **SQL cadangan tidak diaudit otomatis.** Trigger audit P3-004 dan P3-005 hanya mencatat `insert`/`update`; hanya penghapusan lewat portal (`purge_expired_pastoral_data()`) yang menulis audit. Untuk SQL cadangan, catatan operasional langkah 3/6 adalah bukti retensi. Jangan mengarang entri audit.
 - **Tidak ada foreign key ke ketiga tabel**, jadi penghapusan tidak memicu kegagalan relasi. `audit_logs.entity_id` menyimpan id lead sebagai nilai biasa tanpa foreign key; baris audit lama tetap ada dan hanya berisi status, bukan data pribadi.
 - **`form_rate_events` tidak perlu ditangani manual.** Rate limiter sudah menghapus event lebih tua dari 24 jam setiap kali form dipakai.
 - **Backup terenkripsi terpisah.** Lead yang sudah dihapus dari database masih ada di arsip backup sampai arsip itu dihapus. Arsip backup dihapus paling lama 90 hari setelah dibuat ([runbook backup](BACKUP-RESTORE-RUNBOOK.md#masa-simpan-arsip)); cut-off 24 bulan dikurangi 120 hari memastikan salinan terakhir hilang sebelum 24 bulan. Bila arsip disimpan lebih lama dari 90 hari, janji retensi tidak lagi terpenuhi.
-- **Restore mengembalikan data terhapus.** Setelah restore dari backup lama, ulangi langkah 1 sampai 5 agar janji retensi kembali benar.
+- **Restore mengembalikan data terhapus.** Setelah restore dari backup lama, jalankan lagi prosedur portal agar janji retensi kembali benar.
 
 ## Sumber
 

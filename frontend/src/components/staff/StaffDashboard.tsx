@@ -30,8 +30,8 @@ import { MediaManager } from "./MediaManager";
 import { SectionMediaManager } from "./SectionMediaManager";
 import { StaffManager, type StaffMember } from "./StaffManager";
 import { StudyInterestManager } from "./StudyInterestManager";
-import { PrayerRequestManager, VisitManager } from "./PastoralManagers";
-import type { PrayerRequest, StudyInterestLead, VisitSubmission } from "@/types/forms";
+import { PastoralRetentionPanel, PrayerRequestManager, VisitManager } from "./PastoralManagers";
+import type { PastoralCounts, PrayerRequest, StudyInterestLead, VisitSubmission } from "@/types/forms";
 import { AdventistSymbol } from "@/components/identity/AdventistSymbol";
 import type { ContentStatus } from "@/types/content";
 import type { MediaAsset, MediaAlbum } from "@/types/media";
@@ -64,6 +64,9 @@ interface StaffDashboardProps {
   prayerRequestsError?: string | null;
   initialVisits?: VisitSubmission[];
   visitsError?: string | null;
+  initialPastoralAccessLogs?: AuditEntry[];
+  expiredPastoralCounts?: PastoralCounts | null;
+  expiredPastoralError?: string | null;
 }
 
 export type TabType =
@@ -106,6 +109,9 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   prayerRequestsError,
   initialVisits = [],
   visitsError,
+  initialPastoralAccessLogs = [],
+  expiredPastoralCounts,
+  expiredPastoralError,
 }) => {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>(() => {
@@ -492,7 +498,10 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
           ) : activeTab === "visit" ? (
             role === "admin" ? <VisitManager rows={initialVisits} error={visitsError} /> : null
           ) : activeTab === "audit" ? (
-            role === "admin" ? <AuditLogViewer logs={initialAuditLogs} error={auditLogsError} /> : null
+            role === "admin" ? <>
+              <PastoralRetentionPanel counts={expiredPastoralCounts} error={expiredPastoralError} accessLogs={initialPastoralAccessLogs} />
+              <AuditLogViewer logs={initialAuditLogs} error={auditLogsError} />
+            </> : null
           ) : activeTab === "staff" ? (
             role === "admin" ? (
               <StaffManager

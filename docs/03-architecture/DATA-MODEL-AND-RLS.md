@@ -76,7 +76,7 @@ Migration: `20261025000000_p3_003_course_imports.sql`. Panduan operasi: [CONTENT
 Lead minat belajar dari form publik. Kolom: id, name (1-100), contact (1-254, email sederhana atau nomor telepon 8-15 digit), message (0-1000, default kosong), status (`new`/`contacted`/`closed`, default `new`), consent_version, consented_at, created_at, handled_by (FK `auth.users` ON DELETE SET NULL), handled_at. Teks terpangkas dibatasi constraint.
 
 - Ditulis hanya oleh route server `POST /api/minat-belajar` dengan server key; anon dan authenticated tidak punya grant insert.
-- RLS/grant: authenticated hanya select/update, keduanya untuk Admin aktif (`private.is_admin()`); tidak ada delete (retensi dan penghapusan di P3-006). Sampai P3-006 tersedia, penghapusan dijalankan manual lewat SQL oleh operator setiap minggu pada cut-off 24 bulan dikurangi 120 hari mengikuti [runbook retensi dan penghapusan lead](../04-delivery/RETENTION-DELETION-RUNBOOK.md).
+- RLS/grant: authenticated hanya select/update, keduanya untuk Admin aktif (`private.is_admin()`); tidak ada delete untuk role mana pun; baris hanya keluar lewat `purge_expired_pastoral_data()` (P3-006, lihat di bawah) atau SQL cadangan [runbook retensi dan penghapusan lead](../04-delivery/RETENTION-DELETION-RUNBOOK.md).
 - Trigger: insert memaksa `new` tanpa penanganan; update hanya boleh mengubah status dan mengisi handled_by/handled_at, selain itu `study_interest_immutable`; update yang mengirim ulang status yang sama (retry atau tampilan basi) mempertahankan handled_by/handled_at lama karena audit tidak mencatat update tanpa perubahan status; pembersihan ON DELETE SET NULL handled_by diizinkan. Audit `study_interest.created`/`study_interest.status_changed` hanya berisi status, tanpa nama, kontak, atau pesan.
 - `form_rate_events` (form, ip_hash, created_at) tanpa grant untuk role mana pun; diakses hanya lewat `public.check_form_rate(form, ip_hash, limit, window)` (SECURITY DEFINER, execute hanya service_role) yang menghapus event lebih tua dari 24 jam dan mengunci per hash. ip_hash adalah HMAC-SHA256 IP berkunci server (32 hex).
 
@@ -89,9 +89,20 @@ Migration: `20261026000000_p3_004_study_interest.sql`, `20261103000000_p3_004_st
 - Ditulis hanya oleh route `POST /api/doa` dan `POST /api/kunjungan` dengan server key. `service_role` hanya insert (hak default dicabut eksplisit); authenticated select/update untuk Admin aktif (`private.is_admin()`); tidak ada delete untuk role mana pun; anon dan Editor tanpa akses.
 - Trigger generik `private.prepare_pastoral_row(pesan)` memaksa `new` saat insert dan hanya mengizinkan perubahan status (`prayer_request_immutable`/`visitor_submission_immutable`), dengan pembersihan ON DELETE SET NULL yang sama. Mengirim ulang status yang sama mempertahankan handled_by/handled_at lama dan tidak menambah audit. `private.record_pastoral_audit(prefix)` mencatat `prayer_request.created`/`.status_changed` dan `visitor_submission.created`/`.status_changed` dengan status saja.
 - `form_rate_events.form` kini menerima `prayer`, `prayer_attempt`, `visit`, dan `visit_attempt`; `check_form_rate` tidak berubah.
-- Penghapusan manual mingguan pada cut-off 24 bulan dikurangi 120 hari mengikuti [runbook retensi](../04-delivery/RETENTION-DELETION-RUNBOOK.md) sampai P3-006 tersedia.
+- Penghapusan mingguan pada cut-off 24 bulan dikurangi 120 hari lewat fungsi P3-006 di bawah, dengan SQL [runbook retensi](../04-delivery/RETENTION-DELETION-RUNBOOK.md) sebagai cadangan.
 
 Migration: `20261102000000_p3_005_prayer_visit.sql`.
+
+### Retensi dan audit akses pastoral (P3-006)
+
+Tanpa tabel, kolom, atau grant `DELETE` baru. Ketiga fungsi publik memakai `SECURITY DEFINER`, `search_path` kosong, menolak non-Admin aktif dengan `42501` (`pastoral_admin_only`), execute dicabut dari `public`/`anon`/`service_role` dan diberikan hanya ke `authenticated`.
+
+- `private.pastoral_retention_cutoff()`: `now() - interval '24 months' + interval '120 days'`, satu-satunya sumber cut-off; tidak dapat dieksekusi role Data API.
+- `public.expired_pastoral_counts()`: jumlah baris `study_interest_leads`, `prayer_requests`, `visitor_submissions` sebelum cut-off.
+- `public.purge_expired_pastoral_data()`: menghapus semua baris sebelum cut-off di ketiga tabel dalam satu transaksi dan mencatat `study_interest.purged`, `prayer_request.purged`, `visitor_submission.purged` (entity_type nama tabel, entity_id null, `{deleted, cutoff}`), termasuk bila 0.
+- `public.record_pastoral_access(int, int, int)`: satu `pastoral.viewed` (entity_type `pastoral_data`, entity_id null) berisi jumlah baris per tabel, masing-masing 0-50; nilai lain `23514` (`pastoral_access_count_invalid`). Portal memanggilnya setelah memuat data dan tidak menampilkan data bila gagal.
+
+Migration: `20261103010000_p3_006_pastoral_retention.sql`.
 
 ### events
 
@@ -174,7 +185,7 @@ Tambah indeks hanya sesudah melihat pola query dan EXPLAIN ANALYZE pada data rep
 
 ## Kontrak audit
 
-Audit mencatat action, actor_id, entity_type, entity_id, occurred_at, request correlation ID, serta delta terredaksi. Jangan catat password, token, payload doa lengkap, nomor telepon lengkap, atau URL bertanda tangan di audit log.
+Audit mencatat action, actor_id, entity_type, entity_id, occurred_at, request correlation ID, serta delta terredaksi. Jangan catat password, token, payload doa lengkap, nomor telepon lengkap, atau URL bertanda tangan di audit log. Audit pastoral P3-006 (`pastoral.viewed`, `*.purged`) hanya berisi jumlah dan cut-off, tanpa id baris.
 
 ## Lifecycle staf P2-203
 

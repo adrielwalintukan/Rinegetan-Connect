@@ -3,7 +3,9 @@
 import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { clientErrorMessage } from "@/lib/api/errors";
-import type { PrayerRequest, PrayerRequestStatus, VisitStatus, VisitSubmission } from "@/types/forms";
+import { formatAuditTimestamp, type AuditEntry } from "@/lib/staff/audit";
+import type { PastoralCounts, PrayerRequest, PrayerRequestStatus, VisitStatus, VisitSubmission } from "@/types/forms";
+import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 
 const dateFormat = new Intl.DateTimeFormat("id-ID", { timeZone: "Asia/Makassar", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
 const visitDateFormat = new Intl.DateTimeFormat("id-ID", { timeZone: "UTC", weekday: "long", day: "numeric", month: "long", year: "numeric" });
@@ -86,4 +88,48 @@ export function VisitManager({ rows, error }: { rows: VisitSubmission[]; error?:
       </p>
       {row.message && <p className="mt-3 whitespace-pre-line text-sm text-slate-700">{row.message}</p>}
     </>} />;
+}
+
+const RETENTION_LABELS: [keyof PastoralCounts, string][] = [["study_interest_leads", "Minat belajar"], ["prayer_requests", "Doa"], ["visitor_submissions", "Kunjungan"]];
+
+// Weekly purge of rows past the cut-off (24 months minus 120 days) plus the count-only access audit.
+export function PastoralRetentionPanel({ counts, error, accessLogs = [] }: { counts?: PastoralCounts | null; error?: string | null; accessLogs?: AuditEntry[] }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [done, setDone] = useState("");
+  const total = counts ? RETENTION_LABELS.reduce((sum, [key]) => sum + Number(counts[key] || 0), 0) : 0;
+
+  async function purge() {
+    setDeleting(true); setDone("");
+    try {
+      const response = await fetch("/api/staff/pastoral-retention", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+      const json = await response.json() as { error?: string; data?: PastoralCounts };
+      if (!response.ok) throw new Error(json.error || "Data kedaluwarsa belum dapat dihapus.");
+      const deleted = json.data ? RETENTION_LABELS.reduce((sum, [key]) => sum + Number(json.data?.[key] || 0), 0) : 0;
+      setDone(`${deleted} data kedaluwarsa dihapus.`);
+      router.refresh();
+    } finally { setDeleting(false); }
+  }
+
+  return <section aria-labelledby="retention-heading" className="mb-6 min-w-0 space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 [overflow-wrap:anywhere]">
+    <h2 id="retention-heading" className="text-lg font-bold text-navy">Retensi data pastoral</h2>
+    <p className="text-sm text-slate-600">Data minat belajar, doa, dan kunjungan dihapus sebelum genap 24 bulan (batas 24 bulan dikurangi 120 hari) dan tidak dapat diperpanjang. Jalankan setiap minggu.</p>
+    {error ? <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</p> : <ul className="grid gap-2 text-sm text-slate-700 sm:grid-cols-3">
+      {RETENTION_LABELS.map(([key, label]) => <li key={key} className="rounded-lg border border-slate-200 p-3"><span className="font-semibold text-navy">{label}</span>: {Number(counts?.[key] || 0)} kedaluwarsa</li>)}
+    </ul>}
+    {done && <p role="status" className="text-sm font-semibold text-emerald-700">{done}</p>}
+    <button type="button" disabled={!!error || total === 0 || deleting} onClick={() => setOpen(true)}
+      className="min-h-11 rounded-xl bg-red-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-red-700 disabled:opacity-50">Hapus data kedaluwarsa</button>
+    <DeleteConfirmationDialog isOpen={open} onClose={() => setOpen(false)} onConfirm={purge} isDeleting={deleting}
+      itemTitle={`${total} data pastoral yang melewati batas retensi`} entityName="data pastoral" />
+    <h3 className="pt-2 text-xs font-bold uppercase tracking-wider text-slate-500">Akses data pastoral (20 terbaru)</h3>
+    {accessLogs.length === 0 ? <p className="text-sm text-slate-600">Belum ada akses tercatat.</p> : <ul className="divide-y divide-slate-100 text-xs text-slate-700">
+      {accessLogs.map((log) => <li key={log.id} className="py-2">
+        <span className="font-semibold text-navy">{formatAuditTimestamp(log.occurred_at)}</span>
+        {" · "}<span className="font-mono">{log.actor_id ? log.actor_id.slice(0, 8) + "..." : "Sistem"}</span>
+        {" · "}{RETENTION_LABELS.map(([key, label]) => `${label} ${Number(log.changes?.[key] ?? 0)}`).join(", ")}
+      </li>)}
+    </ul>}
+  </section>;
 }
