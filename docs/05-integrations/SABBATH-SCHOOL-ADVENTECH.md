@@ -63,6 +63,11 @@ Setelah gate lulus, catat pemegang izin, cakupan bahasa/kelas, tanggal berlaku, 
 
 ## Kegagalan dan privasi
 
+### Fondasi yang dapat direview sebelum aktivasi
+
+PR fondasi P4-001 membatasi implementasi pada normalizer metadata quarterly/lesson dan blok paragraph/heading, fetch server, cache PostgreSQL privat, serta penolakan akses ketika gate hak tertutup. Pemeriksaan integrasi lokal memakai Supabase/PostgREST dan akun sintetis anon, Editor, serta Admin; tes SQL mencakup penulisan/pembacaan dengan gate dibuka hanya dalam transaksi yang di-rollback. Ini belum menyediakan katalog/read model publik, renderer materi lengkap atau refresh berbasis TTL. Penerimaan penuh P4-001 tetap menunggu pemetaan kelas, TTL, format materi serta pengesahan hak; kesiapan review fondasi tidak berarti izin aktivasi.
+
+
 - Jangan menyimpan identitas atau progres pengguna di Supabase.
 - Jangan mengirim isi paket ke analytics.
 - Jika data upstream tidak lengkap atau gagal divalidasi, jangan terbitkan sebagai materi baru.
