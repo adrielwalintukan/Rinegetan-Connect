@@ -19,6 +19,8 @@ test("server entry remains closed and makes no source request", async () => {
   new Function("require", "exports", "fetch", compiled)(load, exports, async () => { requests++; throw new Error("must not fetch"); });
   assert.equal(Object.hasOwn(exports, "fetchQuarterlyFromAdventech"), false);
   assert.deepEqual(await exports.loadSabbathQuarterly("2026-01"), { status: "unavailable" });
+  assert.equal(typeof exports.loadSabbathCatalog, "function");
+  assert.deepEqual(await exports.loadSabbathCatalog(), { status: "unavailable", classes: [] });
   assert.equal(requests, 0);
   assert.equal(connections, 0);
 });

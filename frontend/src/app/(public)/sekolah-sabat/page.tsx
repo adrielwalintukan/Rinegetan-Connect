@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import SekolahSabatPage from "@/components/pages/SekolahSabatPage";
 import { getPublishedSchedules, getSiteSectionMedia } from "@/lib/public/queries";
+import { loadSabbathCatalog } from "@/lib/sabbath/server";
 
 export const revalidate = 60;
 
@@ -15,10 +16,11 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const [schedules, sectionMedia] = await Promise.all([
+  const [schedules, sectionMedia, catalog] = await Promise.all([
     getPublishedSchedules(),
     getSiteSectionMedia(),
+    loadSabbathCatalog(),
   ]);
-  return <SekolahSabatPage initialSchedules={schedules} sectionMedia={sectionMedia} />;
+  return <SekolahSabatPage initialSchedules={schedules} sectionMedia={sectionMedia} catalog={catalog} />;
 }
 

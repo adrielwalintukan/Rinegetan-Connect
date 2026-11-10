@@ -55,6 +55,29 @@ test("mobile navigation opens and closes with Escape", async ({ page }) => {
     await expect(page.getByTestId("mobile-menu")).toHaveCount(0);
 });
 
+for (const width of [320, 375, 768, 1024, 1440]) {
+    test(`Sabbath catalog stays closed and local classes remain readable at ${width}px`, async ({ page }) => {
+        await page.setViewportSize({ width, height: 900 });
+        await page.emulateMedia({ reducedMotion: "reduce" });
+        const sourceRequests: string[] = [];
+        page.on("request", (request) => {
+            if (new URL(request.url()).hostname === "sabbath-school.adventech.io") sourceRequests.push(request.url());
+        });
+        await openPublicRoute(page, "/sekolah-sabat");
+        const materials = page.getByRole("region", { name: "Materi Sekolah Sabat" });
+        await expect(materials.getByRole("heading", { name: "Materi belum tersedia" })).toBeVisible();
+        await expect(materials.locator("a, button, img, [role=tab]")).toHaveCount(0);
+        await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+        for (let i = 0; i < 4; i++) {
+            const card = page.getByTestId(`ss-class-${i}`);
+            await expect(card).toBeVisible();
+            await expect(card).toContainText("08.45 WITA");
+        }
+        expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+        expect(sourceRequests).toEqual([]);
+    });
+}
+
 test("skip link transfers focus to the primary content", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await openPublicRoute(page, "/");

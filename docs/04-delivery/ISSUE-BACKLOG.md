@@ -47,7 +47,9 @@ P3-003 (#46): PR #86 merge ke `development` pada 2026-10-25 (`6dc89ed`), CI hasi
 
 Urutan dependensi: P4-001 (adapter server) → P4-002/P4-003 (katalog dan reader online) → P4-004 (mekanisme paket lokal) → P4-005 (gate izin). Batas izin yang disepakati tetap berlaku: tidak ada cache/offline materi sebelum izin tertulis pemegang hak dicatat dan disetujui. Mekanisme teknis P4-001–P4-004 boleh dibangun, tetapi cache materi dan unduhan/offline tidak diaktifkan untuk publik sebelum P4-005 lulus. Keputusan pemilik yang masih terbuka: apakah cache server untuk penayangan online (acceptance P4-001) memerlukan izin tertulis yang sama dengan paket offline; sampai diputuskan, berlaku batas yang lebih ketat ini. Lihat [gate lisensi Adventech](../05-integrations/SABBATH-SCHOOL-ADVENTECH.md#gate-lisensi-wajib).
 
-P4-001: fondasi gate tertutup, validasi sintetis dan koneksi cache PostgreSQL dikerjakan pada branch fitur; kedua gate tetap menolak akses, kontrak seluruh kelas/blok dan cakupan izin belum terbukti. Issue #50 tetap terbuka dan fondasi ini tidak berarti siap diaktifkan atau dirilis. Bukti: [catatan P4-001](records/P4-001-ANALYSIS-2026-11-07.md).
+P4-001: fondasi gate tertutup, validasi sintetis dan koneksi cache PostgreSQL sudah terintegrasi ke development melalui PR #92/#94. Issue #50 ditutup secara administratif atas permintaan pemilik; kedua gate tetap menolak akses, kontrak seluruh kelas/blok, TTL dan cakupan izin belum terbukti. Penutupan ini bukan pemenuhan seluruh acceptance atau izin aktivasi/rilis. Bukti: [catatan P4-001](records/P4-001-ANALYSIS-2026-11-07.md).
+
+P4-002: pilihan A disetujui pemilik pada 2026-11-10: mekanisme seleksi katalog dengan fixture sintetis, bagian materi terpisah dan penataan kelas jemaat mobile-first. Loader publik tetap unavailable tanpa fetch/koneksi cache; tidak ada pemetaan upstream atau materi nyata yang diaktifkan. Issue #51 tetap terbuka sampai dependensi sumber/izin dan acceptance integrasi nyata terbukti. Bukti: [catatan P4-002](records/P4-002-2026-11-10.md).
 
 | ID | Issue | Acceptance ringkas | Dependensi |
 | --- | --- | --- | --- |

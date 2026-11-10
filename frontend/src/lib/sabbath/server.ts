@@ -37,6 +37,10 @@ async function fetchQuarterlyFromAdventech(quarterId: string, fetcher: typeof fe
 }
 
 // Both server and database rights gates remain closed until P4-005 is approved.
+export async function loadSabbathCatalog() {
+  return { status: "unavailable" as const, classes: [] };
+}
+
 export async function loadSabbathQuarterly(quarterId: string) {
   return refreshQuarterly(`id-${quarterId}`, {
     authorized: async () => false,

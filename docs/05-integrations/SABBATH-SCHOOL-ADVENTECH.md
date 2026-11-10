@@ -33,6 +33,8 @@ Target UI hanya Bahasa Indonesia. Urutan kelas yang diinginkan:
 
 Kelas tampil hanya bila sumber benar-benar menyediakan versi Bahasa Indonesia yang valid. Bila materi anak/remaja Indonesia tidak ada, antarmuka menampilkan Dewasa Indonesia saja tanpa tab kosong dan tanpa mengganti bahasa secara diam-diam.
 
+Mekanisme P4-002 memakai pemetaan kelas eksplisit dari lapisan tepercaya, bukan tebakan suffix ID sumber. Input invalid, kelas tak dikenal dan kelas duplikat/ambigu diabaikan; kegagalan satu kelas tidak menyembunyikan kelas lain yang valid. Bila Dewasa juga invalid, jangan mengarang fallback. Fixture seluruh kelas hanya menguji aturan seleksi, bukan membuktikan ketersediaan upstream. Loader katalog server tetap mengembalikan unavailable dengan daftar kosong sampai pemetaan dan cakupan izin disahkan; belum ada jalur aktivasi atau read model cache publik. Halaman mempertahankan informasi kelas jemaat lokal yang tidak bergantung ketersediaan materi, dan menampilkan bagian materi terpisah tanpa cover upstream atau tombol baca yang belum berfungsi. Lihat [bukti P4-002](../04-delivery/records/P4-002-2026-11-10.md).
+
 ## Cache dan update
 
 - Fetch hanya dari server; browser tidak mengakses upstream langsung.
