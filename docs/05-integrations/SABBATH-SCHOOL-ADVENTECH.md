@@ -37,6 +37,20 @@ Mekanisme P4-002 memakai pemetaan kelas eksplisit dari lapisan tepercaya, bukan 
 
 ## Cache dan update
 
+### Aktivasi katalog online (konfirmasi 2026-11-10)
+
+Pemilik mengonfirmasi izin pemegang hak untuk fetch, penayangan dan cache server materi Indonesia, lalu menyetujui [rencana integrasi nyata](../superpowers/plans/2026-11-10-p4-002-live-catalog.md). Keputusan ini menggantikan asumsi gate katalog sintetis tertutup di atas. Dokumen izin privat tidak disalin ke repository; rincian pemegang izin/cakupan/tanggal dan penanggung jawab tetap dicatat dalam register operasional gereja. Izin offline tidak disimpulkan dari konfirmasi ini.
+
+API Indonesia yang diverifikasi adalah `https://sabbath-school.adventech.io/api/v2/in/quarterlies/index.json`, bukan `/id/` (yang mengembalikan HTML SPA dengan status 200). Source identity `in-…` dipertahankan; label bahasa aplikasi tetap Indonesia (`id`). Seri quarterly standar Indonesia terverifikasi sebagai Dewasa; tidak ada pemetaan anak/remaja yang ditebak dari suffix. Katalog memilih hanya satu periode aktif berdasarkan tanggal sumber dan zona Asia/Makassar, tanpa fallback triwulan lama/mendatang atau bahasa lain.
+
+Loader online memakai cache hasil tervalidasi Next.js selama satu jam, dipisah menurut tanggal WITA agar pergantian periode tidak memakai entri hari sebelumnya. Fetch tidak memakai cache respons mentah. HTML, redirect, JSON rusak, payload melebihi 2 MiB, sumber tanpa version, identitas/tanggal silang dan metadata invalid ditolak sebelum hasil disimpan. Kegagalan dilempar dari fungsi cache, lalu diterjemahkan menjadi unavailable di luar cache. Revalidasi Next.js dapat menyajikan hasil terakhir yang valid selama penyegaran latar belakang; waktu fetch ditampilkan pada UI. Snapshot yang kedaluwarsa pada pergantian hari tidak dibaca sebagai fallback lintas hari.
+
+Probe 2026-11-10 menghasilkan “Karunia Nubuat”, periode 26/09/2026–25/12/2026, 13 pelajaran, `in-2026-04`. Metadata triwulan ini tidak menyertakan credits dan berkas credits bahasa resmi memiliki nilai kosong; UI menyebut Adventech sebagai sumber teknis, bukan mengarang penulis/penerbit atau mengambil credits triwulan lain. Credits yang disediakan harus valid dan dirender sebagai teks. UI menampilkan tautan ke materi situs resmi, bukan reader internal palsu; browser tidak fetch API/cover Adventech. Empat kelas jemaat lokal tetap terpisah.
+
+RPC PostgreSQL privat tetap khusus Admin dengan gate tertutup. Aktivasi online tidak mengubah grant/RLS, tidak menyimpan progres/identitas pengunjung, dan tidak mengaktifkan paket offline, reader internal atau download.
+
+Route Sekolah Sabat melewati boundary `connection()` sebelum memuat katalog sehingga Full Route Cache ISR tidak membekukan tanggal WITA; cache data katalog eksplisit tetap berlaku.
+
 - Fetch hanya dari server; browser tidak mengakses upstream langsung.
 - Simpan source identifier/version, fetched_at, checksum/etag bila tersedia, dan status validasi.
 - Tetapkan TTL dan refresh on-demand/terjadwal sesuai batas penyedia serta kapasitas pilot.
@@ -59,7 +73,7 @@ Sebelum gate lulus:
 - Tombol offline/download harus nonaktif atau tidak dirilis.
 - Jangan mengasumsikan lisensi repository untuk kode otomatis memberi hak menggandakan isi pelajaran.
 
-Wording backlog P4-005 lebih ketat: tidak ada cache/offline materi sebelum izin tertulis. Batas itu yang berlaku sampai pemilik memutuskan apakah cache server untuk penayangan online memerlukan izin yang sama (keputusan terbuka, dicatat 2026-10-23). Urutan dependensi: adapter server → katalog/reader online → mekanisme paket lokal → gate izin; mekanisme boleh dibangun tanpa diaktifkan untuk publik.
+Wording backlog P4-005 lebih ketat: tidak ada cache/offline materi sebelum izin tertulis. Pemilik mengonfirmasi izin fetch/display/cache server online pada 2026-11-10, sebagaimana bagian aktivasi di atas; offline tetap memerlukan pengesahan cakupan tersendiri. Urutan dependensi: adapter server → katalog/reader online → mekanisme paket lokal → gate izin.
 
 Setelah gate lulus, catat pemegang izin, cakupan bahasa/kelas, tanggal berlaku, batas perubahan/distribusi, dan orang penanggung jawab dalam register operasional gereja.
 

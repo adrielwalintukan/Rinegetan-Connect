@@ -1,16 +1,22 @@
 import "server-only";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createPostgresCache, refreshQuarterly } from "./adventech.mjs";
+import { unstable_cache } from "next/cache";
+import { selectActiveAdultQuarter, selectSabbathCatalog } from "./catalog.mjs";
 
 async function fetchQuarterlyFromAdventech(quarterId: string, fetcher: typeof fetch = fetch) {
   if (typeof quarterId !== "string" || !/^\d{4}-0[1-4](?:-[a-z0-9]+)?$/.test(quarterId)) {
     throw new Error("Invalid quarterly identifier");
   }
+  return fetchAdventechJson(`${quarterId}/index.json`, fetcher);
+}
+
+async function fetchAdventechJson(path: string, fetcher: typeof fetch = fetch) {
   const response = await fetcher(
-    `https://sabbath-school.adventech.io/api/v2/id/quarterlies/${quarterId}/index.json`,
+    `https://sabbath-school.adventech.io/api/v2/in/quarterlies/${path}`,
     { redirect: "error", cache: "no-store", signal: AbortSignal.timeout(10_000) },
   );
-  if (!response.ok || !/^application\/json(?:\s*;|$)/i.test(response.headers.get("content-type") || "") || !response.body) {
+  if (!response.ok || response.redirected || !/^application\/json(?:\s*;|$)/i.test(response.headers.get("content-type") || "") || !response.body) {
     throw new Error("Invalid upstream response");
   }
   const etag = response.headers.get("etag");
@@ -36,9 +42,30 @@ async function fetchQuarterlyFromAdventech(quarterId: string, fetcher: typeof fe
   return { payload: JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)), sourceVersion, etag };
 }
 
-// Both server and database rights gates remain closed until P4-005 is approved.
+async function fetchCatalog(day: string) {
+  const now = new Date(`${day}T04:00:00Z`);
+  const list = await fetchAdventechJson("index.json");
+  const active = selectActiveAdultQuarter(list.payload, now);
+  if (!active) throw new Error("No verified current Indonesian adult quarterly");
+  const detail = await fetchQuarterlyFromAdventech(active.id);
+  const q = detail.payload?.quarterly;
+  if (q?.id !== active.id || q?.index !== active.index || q?.start_date !== active.start_date ||
+      q?.end_date !== active.end_date || !selectActiveAdultQuarter([q], now)) throw new Error("Invalid quarterly source");
+  const classes = selectSabbathCatalog([{ classId: "adult", payload: detail.payload }]);
+  if (classes.length !== 1) throw new Error("Invalid quarterly metadata");
+  return { status: "available" as const, classes: classes.map((entry) => ({ ...entry,
+    period: `${q.start_date}–${q.end_date}`, sourceUrl: `https://sabbath-school.adventech.io/in/${active.id}`,
+    sourceVersion: detail.sourceVersion, fetchedAt: new Date().toISOString(),
+  })) };
+}
+
+// Confirmed online/cache permission; PostgreSQL rights and offline remain separate.
+const cachedCatalog = unstable_cache(fetchCatalog, ["sabbath-indonesian-catalog-v1"], { revalidate: 3600 });
+
 export async function loadSabbathCatalog() {
-  return { status: "unavailable" as const, classes: [] };
+  const day = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Makassar" }).format(new Date());
+  try { return await cachedCatalog(day); }
+  catch { return { status: "unavailable" as const, classes: [] }; }
 }
 
 export async function loadSabbathQuarterly(quarterId: string) {

@@ -96,13 +96,15 @@ export function normalizeLesson(input) {
 
 export function normalizeQuarterly(input) {
   const quarterly = input?.quarterly;
-  if (quarterly?.lang !== "id" || !Array.isArray(quarterly.credits) || quarterly.credits.length === 0 ||
+  if (!["id", "in"].includes(quarterly?.lang) ||
+      (quarterly.lang === "id" && (!Array.isArray(quarterly.credits) || quarterly.credits.length === 0)) ||
+      (quarterly.credits !== undefined && !Array.isArray(quarterly.credits)) ||
       !Array.isArray(input?.lessons) || input.lessons.length === 0) {
     throw new Error("Invalid Adventech metadata");
   }
   const id = requiredText(quarterly.id);
   const index = requiredText(quarterly.index);
-  if (index !== `id-${id}`) throw new Error("Invalid Adventech metadata");
+  if (!/^\d{4}-0[1-4](?:-[a-z0-9]+)?$/.test(id) || index !== `${quarterly.lang}-${id}`) throw new Error("Invalid Adventech metadata");
 
   let cover;
   try { cover = new URL(requiredText(quarterly.cover)); } catch { throw new Error("Invalid Adventech metadata"); }
@@ -115,7 +117,7 @@ export function normalizeQuarterly(input) {
   const lessons = input.lessons.map((lesson, index) => {
     const id = requiredText(lesson?.id);
     const lessonIndex = requiredText(lesson?.index);
-    if (seen.has(lessonIndex) || ids.has(id)) throw new Error("Invalid Adventech metadata");
+    if (seen.has(lessonIndex) || ids.has(id) || lessonIndex !== `${quarterly.index}-${id}`) throw new Error("Invalid Adventech metadata");
     seen.add(lessonIndex);
     ids.add(id);
     return { id, index: lessonIndex, title: requiredText(lesson?.title), position: index + 1 };
@@ -124,7 +126,7 @@ export function normalizeQuarterly(input) {
   return {
     id, index, language: "id",
     title: requiredText(quarterly.title), cover: cover.href,
-    credits: quarterly.credits.map((credit) => ({ name: requiredText(credit?.name), value: requiredText(credit?.value) })),
+    credits: (quarterly.credits ?? []).map((credit) => ({ name: requiredText(credit?.name), value: requiredText(credit?.value) })),
     lessons,
   };
 }

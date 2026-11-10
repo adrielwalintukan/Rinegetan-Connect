@@ -1,4 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
+import { execFileSync } from "node:child_process";
+
+const sabbathFixtures = [false, true].map((available) => execFileSync(process.execPath,
+    ["--input-type=module", "-e", `import { renderSabbathFixture } from './tests/helpers/sabbath-page-fixture.mjs'; console.log(renderSabbathFixture(${available}));`],
+    { encoding: "utf8" }));
 
 const publicRoutes = [
     "/",
@@ -56,7 +61,7 @@ test("mobile navigation opens and closes with Escape", async ({ page }) => {
 });
 
 for (const width of [320, 375, 768, 1024, 1440]) {
-    test(`Sabbath catalog stays closed and local classes remain readable at ${width}px`, async ({ page }) => {
+    for (const available of [false, true]) test(`Sabbath catalog ${available ? "available long text" : "unavailable"} and local classes remain readable at ${width}px`, async ({ page }) => {
         await page.setViewportSize({ width, height: 900 });
         await page.emulateMedia({ reducedMotion: "reduce" });
         const sourceRequests: string[] = [];
@@ -64,9 +69,31 @@ for (const width of [320, 375, 768, 1024, 1440]) {
             if (new URL(request.url()).hostname === "sabbath-school.adventech.io") sourceRequests.push(request.url());
         });
         await openPublicRoute(page, "/sekolah-sabat");
+        // Real production CSS + actual server-rendered component; no production fixture route or upstream dependency.
+        const css = await page.locator('link[rel="stylesheet"]').evaluateAll((links) => links.map((link) => `<link rel="stylesheet" href="${(link as HTMLLinkElement).href}">`).join(""));
+        expect(css).not.toBe("");
+        // A fresh intercepted document avoids inheriting the app document's nonce-based CSP.
+        await page.route("**/sabbath-browser-fixture", (route) => route.fulfill({ contentType: "text/html",
+            body: `<html lang="id"><head>${css}</head><body>${sabbathFixtures[Number(available)]}</body></html>` }));
+        await page.goto("http://127.0.0.1:3412/sabbath-browser-fixture", { waitUntil: "load" });
+        await page.evaluate(async () => {
+            await Promise.all(Array.from(document.querySelectorAll('link[rel="stylesheet"]')).map((link) => {
+                if ((link as HTMLLinkElement).sheet) return Promise.resolve();
+                return new Promise<void>((resolve, reject) => { link.addEventListener("load", () => resolve(), { once: true }); link.addEventListener("error", () => reject(new Error("Fixture stylesheet failed")), { once: true }); });
+            }));
+            await document.fonts.ready;
+            document.querySelectorAll('[style*="opacity:0"]').forEach((el) => (el as HTMLElement).style.opacity = "1");
+        });
         const materials = page.getByRole("region", { name: "Materi Sekolah Sabat" });
-        await expect(materials.getByRole("heading", { name: "Materi belum tersedia" })).toBeVisible();
-        await expect(materials.locator("a, button, img, [role=tab]")).toHaveCount(0);
+        if (available) {
+            await expect(materials.getByRole("heading", { name: "Dewasa" })).toBeVisible();
+            await expect(materials.getByRole("link", { name: "Buka materi di Adventech" })).toHaveAttribute("href", "https://sabbath-school.adventech.io/in/2026-04");
+            await expect(materials.getByText("Atribusi sintetis", { exact: false })).toBeVisible();
+        } else {
+            await expect(materials.getByRole("heading", { name: "Materi belum tersedia" })).toBeVisible();
+            await expect(materials.locator("a")).toHaveCount(0);
+        }
+        await expect(materials.locator("button, img, [role=tab]")).toHaveCount(0);
         await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
         for (let i = 0; i < 4; i++) {
             const card = page.getByTestId(`ss-class-${i}`);

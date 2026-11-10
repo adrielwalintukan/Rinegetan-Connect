@@ -76,20 +76,28 @@ export default function SekolahSabatPage({ initialSchedules = null, sectionMedia
                             <h2 id="ss-materials-title" className="mt-2 text-2xl font-semibold text-navy">Materi Sekolah Sabat</h2>
                             {materials.length > 0 ? (
                                 <ul className="mt-5 divide-y divide-navy/10">
-                                    {materials.map(({ classId, label, quarterly }) => (
+                                    {materials.map(({ classId, label, quarterly, period, sourceUrl, fetchedAt }) => (
                                         <li key={classId} className="min-w-0 break-words py-5 first:pt-0 last:pb-0">
                                             <h3 className="text-lg font-semibold text-navy">{label}</h3>
                                             <p className="mt-2 text-base leading-relaxed text-slate-700">{quarterly.title}</p>
+                                            {period && <p className="mt-2 text-sm text-slate-600">{period} · {quarterly.lessons.length} pelajaran</p>}
                                             {quarterly.credits.map((credit, index) => (
                                                 <p key={index} className="mt-2 text-sm leading-relaxed text-slate-600">{credit.name}: {credit.value}</p>
                                             ))}
+                                            {sourceUrl === `https://sabbath-school.adventech.io/in/${quarterly.id}` && (
+                                                <div className="mt-4">
+                                                    <p className="text-sm text-slate-600">Sumber: Adventech · Bahasa Indonesia</p>
+                                                    {fetchedAt && <p className="mt-1 text-xs text-slate-600">Diperbarui <time dateTime={fetchedAt}>{new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Makassar" }).format(new Date(fetchedAt))} WITA</time></p>}
+                                                    <a href={sourceUrl} className="mt-3 inline-flex min-h-11 items-center rounded-md font-semibold text-navy underline decoration-sabbath-400 underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-navy">Buka materi di Adventech</a>
+                                                </div>
+                                            )}
                                         </li>
                                     ))}
                                 </ul>
                             ) : (
                                 <div className="mt-5 max-w-xl border-l-2 border-sabbath-400 pl-4">
                                     <h3 className="text-base font-semibold text-navy">Materi belum tersedia</h3>
-                                    <p className="mt-2 text-base leading-relaxed text-slate-600">Materi Bahasa Indonesia akan ditampilkan setelah sumber dan izin penggunaannya terverifikasi. Sementara itu, Anda tetap dapat mengikuti kelas di gereja setiap Sabtu.</p>
+                                    <p className="mt-2 text-base leading-relaxed text-slate-600">Materi Bahasa Indonesia belum dapat dimuat dari sumber. Coba lagi nanti. Kelas di gereja tetap berlangsung setiap Sabtu.</p>
                                 </div>
                             )}
                         </section>
