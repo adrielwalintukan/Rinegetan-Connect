@@ -5,7 +5,7 @@ import { normalizeQuarterly, normalizeLesson, normalizeSegment } from "../src/li
 const fixture = () => ({
   quarterly: {
     id: "2026-01", index: "id-2026-01", lang: "id", title: "Contoh",
-    cover: "https://example.invalid/cover.jpg",
+    cover: "https://sabbath-school.adventech.io/synthetic-cover.jpg",
     credits: [{ name: "Sumber", value: "Contoh penerbit" }],
   },
   lessons: [
@@ -60,7 +60,7 @@ test("rejects incomplete lesson days and paths that could escape the source", ()
 test("normalizes Indonesian quarterly metadata and preserves lesson order and attribution", () => {
   assert.deepEqual(normalizeQuarterly(fixture()), {
     id: "2026-01", index: "id-2026-01", language: "id", title: "Contoh",
-    cover: "https://example.invalid/cover.jpg",
+    cover: "https://sabbath-school.adventech.io/synthetic-cover.jpg",
     credits: [{ name: "Sumber", value: "Contoh penerbit" }],
     lessons: [
       { id: "01", index: "id-2026-01-01", title: "Satu", position: 1 },
@@ -69,9 +69,23 @@ test("normalizes Indonesian quarterly metadata and preserves lesson order and at
   });
 });
 
+test("quarterly covers reject unapproved origins and credentials", () => {
+  for (const cover of ["https://other-host.example/cover.jpg", "https://localhost/cover.jpg",
+    "https://sabbath-school.adventech.io.evil.example/cover.jpg", "http://sabbath-school.adventech.io/cover.jpg",
+    "https://sabbath-school.adventech.io:444/cover.jpg", "https://user@sabbath-school.adventech.io/cover.jpg"]) {
+    const input = fixture();
+    input.quarterly.cover = cover;
+    assert.throws(() => normalizeQuarterly(input), cover);
+  }
+  const input = fixture();
+  input.quarterly.cover = "https://sabbath-school.adventech.io:443/synthetic-cover.jpg";
+  assert.equal(normalizeQuarterly(input).cover, "https://sabbath-school.adventech.io/synthetic-cover.jpg");
+});
+
 test("rejects incomplete or untrusted quarterly metadata", () => {
   for (const change of [
     (x) => { x.quarterly.lang = "en"; },
+    (x) => { x.quarterly.id = "2026-02"; },
     (x) => { x.quarterly.credits = []; },
     (x) => { x.quarterly.cover = "javascript:alert(1)"; },
     (x) => { x.lessons[0].title = ""; },

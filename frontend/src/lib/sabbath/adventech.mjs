@@ -100,10 +100,15 @@ export function normalizeQuarterly(input) {
       !Array.isArray(input?.lessons) || input.lessons.length === 0) {
     throw new Error("Invalid Adventech metadata");
   }
+  const id = requiredText(quarterly.id);
+  const index = requiredText(quarterly.index);
+  if (index !== `id-${id}`) throw new Error("Invalid Adventech metadata");
 
   let cover;
   try { cover = new URL(requiredText(quarterly.cover)); } catch { throw new Error("Invalid Adventech metadata"); }
-  if (cover.protocol !== "https:" || cover.username || cover.password) throw new Error("Invalid Adventech metadata");
+  if (cover.origin !== "https://sabbath-school.adventech.io" || cover.username || cover.password) {
+    throw new Error("Invalid Adventech metadata");
+  }
 
   const seen = new Set();
   const ids = new Set();
@@ -117,7 +122,7 @@ export function normalizeQuarterly(input) {
   });
 
   return {
-    id: requiredText(quarterly.id), index: requiredText(quarterly.index), language: "id",
+    id, index, language: "id",
     title: requiredText(quarterly.title), cover: cover.href,
     credits: quarterly.credits.map((credit) => ({ name: requiredText(credit?.name), value: requiredText(credit?.value) })),
     lessons,

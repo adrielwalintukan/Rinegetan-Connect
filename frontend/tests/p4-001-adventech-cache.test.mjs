@@ -4,12 +4,12 @@ import { refreshQuarterly } from "../src/lib/sabbath/adventech.mjs";
 
 const input = () => ({
   quarterly: { id: "2026-01", index: "id-2026-01", lang: "id", title: "Contoh",
-    cover: "https://example.invalid/cover.jpg", credits: [{ name: "Sumber", value: "Penerbit" }] },
+    cover: "https://sabbath-school.adventech.io/synthetic-cover.jpg", credits: [{ name: "Sumber", value: "Penerbit" }] },
   lessons: [{ id: "01", index: "id-2026-01-01", title: "Satu" }],
 });
 const old = { sourceId: "id-2026-01", sourceVersion: "lama", fetchedAt: "2026-01-01T00:00:00.000Z", etag: null,
   payload: { id: "2026-01", index: "id-2026-01", language: "id", title: "Lama",
-    cover: "https://example.invalid/cover.jpg", credits: [{ name: "Sumber", value: "Penerbit" }],
+    cover: "https://sabbath-school.adventech.io/synthetic-cover.jpg", credits: [{ name: "Sumber", value: "Penerbit" }],
     lessons: [{ id: "01", index: "id-2026-01-01", title: "Satu", position: 1 }] } };
 const make = (overrides = {}) => {
   const calls = [];
@@ -45,6 +45,8 @@ test("invalid or failed source preserves the last cache", async () => {
     async () => { throw new Error("upstream"); },
     async () => ({ payload: { ...input(), lessons: [] }, sourceVersion: "v1", etag: null }),
     async () => ({ payload: input(), sourceVersion: "", etag: null }),
+    async () => ({ payload: { ...input(), quarterly: { ...input().quarterly, id: "2026-02" } }, sourceVersion: "v1", etag: null }),
+    async () => ({ payload: { ...input(), quarterly: { ...input().quarterly, cover: "https://other-host.example/cover.jpg" } }, sourceVersion: "v1", etag: null }),
   ]) {
     const { calls, dependencies } = make({ fetchQuarterly });
     assert.deepEqual(await refreshQuarterly("id-2026-01", dependencies), { status: "cached", data: old });
@@ -66,6 +68,8 @@ test("cache from a different source is never returned on failure", async () => {
 
 test("invalid or unvalidated cached snapshots never become fallback", async () => {
   for (const cached of [{ ...old, fetchedAt: "bad" }, { ...old, payload: { ...old.payload, credits: [] } },
+    { ...old, payload: { ...old.payload, id: "2026-02" } },
+    { ...old, payload: { ...old.payload, cover: "https://other-host.example/cover.jpg" } },
     { ...old, payload: { ...old.payload, index: "another-source" } }]) {
     const context = make({ fetchQuarterly: async () => { throw new Error("upstream"); }, readCache: async () => cached });
     assert.deepEqual(await refreshQuarterly("id-2026-01", context.dependencies), { status: "unavailable" });
