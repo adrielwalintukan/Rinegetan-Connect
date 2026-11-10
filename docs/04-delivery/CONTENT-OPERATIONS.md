@@ -30,6 +30,8 @@
 
 ## SOP galeri foto
 
+Inventaris awal konten operasional yang masih memerlukan pemeriksaan pemilik ada di [record P1-003](records/P1-003-2026-11-08.md). Record tersebut tidak memverifikasi pilihan media atau consent produksi.
+
 1. Tentukan album, kategori, tanggal kegiatan, dan departemen/event bila relevan.
 2. Pastikan setiap foto layak publik dan memiliki persetujuan. Foto anak wajib memiliki izin wali.
 3. Optimalkan ke JPEG derivative, bersihkan metadata EXIF/geolocation, isi alt text dan caption bila perlu.
