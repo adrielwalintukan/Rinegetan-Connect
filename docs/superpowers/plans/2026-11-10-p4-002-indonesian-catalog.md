@@ -10,6 +10,8 @@
 
 **Spec:** Issue #51; pilihan A disetujui pemilik dalam percakapan 2026-11-10; `docs/05-integrations/SABBATH-SCHOOL-ADVENTECH.md`; `docs/02-design/DESIGN-SYSTEM.md`.
 
+**Status historis:** Tahap sintetis selesai pada `c7957f3`, PR #95, CI [42832831005](https://github.com/adrielwalintukan/Rinegetan-Connect/actions/runs/42832831005) sukses pada SHA tersebut. Batas gate online dalam plan ini kemudian digantikan oleh [plan katalog nyata](2026-11-10-p4-002-live-catalog.md), bukan izin offline atau pembukaan RPC privat.
+
 ## Global Constraints
 
 - Tanpa worktree, clone, dependency baru, merge, atau perubahan pada `remotion/`.
@@ -57,5 +59,5 @@
 - [x] Jalankan regresi cache/RPC pada PostgreSQL disposable dengan fixture sintetis; tanpa reset database bersama. Jika lingkungan gagal, catat blocker, jangan klaim lulus.
 - [x] Jalankan `npm run test:all` serta Playwright publik/a11y relevan; catat hasil aktual. Pint/PHPStan/Vitest tidak berlaku karena tidak terpasang dan bukan stack produk.
 - [x] Dokumentasikan keputusan pemilik, RED/GREEN, batas pemetaan/izin, dan bedakan mekanisme dari aktivasi/acceptance. Perbaiki status administratif #50 tanpa menghapus gap. Jangan membuat User Issues/Stories pengganti yang tidak diminta.
-- [ ] Review `git diff` penuh termasuk file baru, cek grants tetap tertutup dan tidak ada data/tautan sumber nyata yang baru diambil. Stage hanya file task, commit, push, buat PR ke development tanpa klaim menutup seluruh #51.
-- [ ] Tunggu seluruh CI pada SHA HEAD PR yang tepat, tangani temuan, laporkan PR dan batas yang tersisa; tanpa merge.
+- [x] Review `git diff` penuh termasuk file baru, cek grants tetap tertutup dan tidak ada data/tautan sumber nyata yang baru diambil. Stage hanya file task, commit, push, buat PR ke development tanpa klaim menutup seluruh #51.
+- [x] Tunggu seluruh CI pada SHA HEAD PR yang tepat, tangani temuan, laporkan PR dan batas yang tersisa; tanpa merge.

@@ -33,7 +33,7 @@ Target UI hanya Bahasa Indonesia. Urutan kelas yang diinginkan:
 
 Kelas tampil hanya bila sumber benar-benar menyediakan versi Bahasa Indonesia yang valid. Bila materi anak/remaja Indonesia tidak ada, antarmuka menampilkan Dewasa Indonesia saja tanpa tab kosong dan tanpa mengganti bahasa secara diam-diam.
 
-Mekanisme P4-002 memakai pemetaan kelas eksplisit dari lapisan tepercaya, bukan tebakan suffix ID sumber. Input invalid, kelas tak dikenal dan kelas duplikat/ambigu diabaikan; kegagalan satu kelas tidak menyembunyikan kelas lain yang valid. Bila Dewasa juga invalid, jangan mengarang fallback. Fixture seluruh kelas hanya menguji aturan seleksi, bukan membuktikan ketersediaan upstream. Loader katalog server tetap mengembalikan unavailable dengan daftar kosong sampai pemetaan dan cakupan izin disahkan; belum ada jalur aktivasi atau read model cache publik. Halaman mempertahankan informasi kelas jemaat lokal yang tidak bergantung ketersediaan materi, dan menampilkan bagian materi terpisah tanpa cover upstream atau tombol baca yang belum berfungsi. Lihat [bukti P4-002](../04-delivery/records/P4-002-2026-11-10.md).
+Mekanisme P4-002 memakai pemetaan kelas eksplisit dari lapisan tepercaya, bukan tebakan suffix ID sumber. Input invalid, kelas tak dikenal dan kelas duplikat/ambigu diabaikan; kegagalan satu kelas tidak menyembunyikan kelas lain yang valid. Bila Dewasa juga invalid, jangan mengarang fallback. Fixture seluruh kelas hanya menguji aturan seleksi, bukan membuktikan ketersediaan upstream. Pada tahap sintetis sebelum aktivasi, loader selalu unavailable dan belum ada read model cache publik; status historis ini telah digantikan oleh aktivasi online di bawah. Loader kini menyediakan katalog Dewasa aktif tervalidasi dari `/in/` melalui cache Next.js tanpa sesi staf. Halaman mempertahankan kelas jemaat lokal terpisah, menampilkan atribusi dan tautan resmi, tanpa cover upstream atau reader internal. Lihat [bukti P4-002](../04-delivery/records/P4-002-2026-11-10.md).
 
 ## Cache dan update
 
@@ -73,7 +73,7 @@ Sebelum gate lulus:
 - Tombol offline/download harus nonaktif atau tidak dirilis.
 - Jangan mengasumsikan lisensi repository untuk kode otomatis memberi hak menggandakan isi pelajaran.
 
-Wording backlog P4-005 lebih ketat: tidak ada cache/offline materi sebelum izin tertulis. Pemilik mengonfirmasi izin fetch/display/cache server online pada 2026-11-10, sebagaimana bagian aktivasi di atas; offline tetap memerlukan pengesahan cakupan tersendiri. Urutan dependensi: adapter server → katalog/reader online → mekanisme paket lokal → gate izin.
+Batas awal P4-005 melarang cache/offline sebelum izin tertulis; keputusan cache server online telah diselesaikan melalui konfirmasi pemilik pada 2026-11-10 sebagaimana bagian aktivasi di atas. Offline/download tetap memerlukan izin tertulis dan pengesahan cakupan tersendiri; RPC privat tetap tertutup. Urutan dependensi: adapter server → katalog/reader online → mekanisme paket lokal → gate izin.
 
 Setelah gate lulus, catat pemegang izin, cakupan bahasa/kelas, tanggal berlaku, batas perubahan/distribusi, dan orang penanggung jawab dalam register operasional gereja.
 
