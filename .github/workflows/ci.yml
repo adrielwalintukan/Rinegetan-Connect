@@ -99,6 +99,8 @@ jobs:
             echo "NEXT_PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA"
           } >> "$GITHUB_ENV"
           rm "$RUNNER_TEMP/supabase-status.json"
+      - name: Sabbath cache PostgREST integration (closed rights gate)
+        run: node --test tests/integration/sabbath-postgres.test.mjs
       - name: Build production bundle
         id: build
         run: npm run build

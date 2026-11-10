@@ -9,7 +9,7 @@ Backlog ini adalah indeks issue tingkat produk. Issue Phase 2 yang aktif memilik
 | P1-001 | Pertahankan kontrak desain dan URL Phase 1 saat refactor. | Token, Creation Grid, simbol resmi, tujuh URL, serta perilaku mobile memiliki test kontrak sebelum cutover. | Selesai (PR #4) |
 | P1-002 | Validasi aksesibilitas dan performa website publik. | Keyboard, fokus, landmark, heading, alternatif gambar, dan performance budget diperiksa pada rute utama. | Selesai (PR #79, commit `186ea61`); budget performa menunggu keputusan pemilik ([record](records/P1-002-2026-10-23.md)) |
 | P1-003 | Ganti placeholder operasional. | Alamat, nomor, sosial, jadwal, dan foto diganti hanya setelah pemilik konten mengesahkan data serta consent dicatat. | Backlog operasional; [inventaris awal](records/P1-003-2026-11-08.md), menunggu pengesahan dan consent |
-| P1-004 | Buat baseline analitik privasi. | Tidak ada tracker non-esensial sebelum kebijakan cookie/consent disepakati. | Backlog |
+| P1-004 | Buat baseline analitik privasi. | Tidak ada tracker non-esensial sebelum kebijakan cookie/consent disepakati. | Backlog; [inventaris awal](records/P1-004-2026-11-08.md), kebijakan dan verifikasi lanjutan belum selesai |
 
 ## Phase 2 — CMS dan fondasi platform
 
@@ -46,6 +46,8 @@ P3-003 (#46): PR #86 merge ke `development` pada 2026-10-25 (`6dc89ed`), CI hasi
 ## Phase 4 — Sekolah Sabat Digital
 
 Urutan dependensi: P4-001 (adapter server) → P4-002/P4-003 (katalog dan reader online) → P4-004 (mekanisme paket lokal) → P4-005 (gate izin). Batas izin yang disepakati tetap berlaku: tidak ada cache/offline materi sebelum izin tertulis pemegang hak dicatat dan disetujui. Mekanisme teknis P4-001–P4-004 boleh dibangun, tetapi cache materi dan unduhan/offline tidak diaktifkan untuk publik sebelum P4-005 lulus. Keputusan pemilik yang masih terbuka: apakah cache server untuk penayangan online (acceptance P4-001) memerlukan izin tertulis yang sama dengan paket offline; sampai diputuskan, berlaku batas yang lebih ketat ini. Lihat [gate lisensi Adventech](../05-integrations/SABBATH-SCHOOL-ADVENTECH.md#gate-lisensi-wajib).
+
+P4-001: fondasi gate tertutup, validasi sintetis dan koneksi cache PostgreSQL dikerjakan pada branch fitur; kedua gate tetap menolak akses, kontrak seluruh kelas/blok dan cakupan izin belum terbukti. Issue #50 tetap terbuka dan fondasi ini tidak berarti siap diaktifkan atau dirilis. Bukti: [catatan P4-001](records/P4-001-ANALYSIS-2026-11-07.md).
 
 | ID | Issue | Acceptance ringkas | Dependensi |
 | --- | --- | --- | --- |

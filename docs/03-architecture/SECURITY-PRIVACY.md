@@ -85,6 +85,8 @@ Form doa dan kunjungan (P3-005) memakai alur yang sama lewat helper bersama `lib
 
 ## Gate sebelum produksi
 
+- Kebijakan cookie/consent dan penilaian koneksi pihak ketiga masih memerlukan keputusan gereja. [Inventaris awal P1-004](../04-delivery/records/P1-004-2026-11-08.md) mencatat batas pengujian serta dependensi eksternal; inventaris itu bukan persetujuan kebijakan atau bukti perilaku production.
+
 - Domain dan sender email resmi tersedia; SPF/DKIM/DMARC dinilai.
 - Project production/backup/restore telah diuji.
 - Privacy notice, consent copy, dan kontak pengelola data disetujui gereja.
