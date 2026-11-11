@@ -56,3 +56,12 @@ test("day sanitizer rejects unsafe links and handles malformed markup as inert t
     assert.throws(() => reader.normalizeReaderDay(input, lesson, "01"));
   }
 });
+
+const format = await import("../src/lib/sabbath/format.mjs").catch(() => ({}));
+
+test("reader dates show the Indonesian weekday and leave invalid input untouched", () => {
+  assert.equal(typeof format.formatSabbathDate, "function");
+  assert.equal(format.formatSabbathDate("07/11/2026"), "Sabtu, 7 November 2026");
+  assert.equal(format.formatSabbathDate("29/02/2026"), "29/02/2026");
+  assert.equal(format.formatSabbathDate("tanggal"), "tanggal");
+});

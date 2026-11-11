@@ -19,7 +19,9 @@ for (const width of [320, 375, 768, 1440]) test(`anonymous reader navigation, sa
     } else await route.continue();
   });
   await page.goto("/sekolah-sabat/2026-04", { waitUntil: "load" });
+  await expect(page.getByText("Pelajaran 1", { exact: true })).toBeVisible();
   await page.getByRole("link", { name: "Pelajaran sintetis", exact: true }).click();
+  await expect(page.getByText(/Sabtu, 7 November 2026/)).toBeVisible();
   await page.getByRole("link", { name: "Hari pertama", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Hari pertama", exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);

@@ -19,7 +19,7 @@ export function selectSabbathCatalog(entries) {
   });
 }
 
-function sourceDate(value) {
+export function sourceDate(value) {
   if (typeof value !== "string" || !/^\d{2}\/\d{2}\/\d{4}$/.test(value)) return null;
   const [day, month, year] = value.split("/");
   const iso = `${year}-${month}-${day}`;

@@ -51,6 +51,7 @@ test("verified live catalog shows period, source link and fetch time rather than
     fetchedAt: "2026-11-10T00:00:00Z" }] }));
   assert.match(section, /26\/09\/2026–25\/12\/2026/);
   assert.match(section, /href="https:\/\/sabbath-school.adventech.io\/in\/2026-04"/);
+  assert.match(section, /Lihat pelajaran Sekolah Sabat/);
   assert.match(section, /Buka materi di Adventech/);
   assert.match(section, /Sumber: Adventech/);
   assert.match(section, /datetime="2026-11-10T00:00:00Z"/i);

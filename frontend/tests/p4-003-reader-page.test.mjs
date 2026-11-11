@@ -15,6 +15,7 @@ function routes(result = snapshot) {
     "next/navigation": { notFound: () => { throw new Error("404"); } },
     "@/lib/sabbath/server": {
       loadSabbathCatalog: async () => { calls.push("catalog"); return { status: "available", classes: [{ classId: "adult", quarterly: quarter, ...snapshot }] }; },
+      loadSabbathQuarter: async () => { calls.push("quarter"); return result.status === "available" ? { status: "available", quarterly: quarter } : { status: result.status }; },
       loadSabbathLesson: async (...args) => { calls.push(args); return result.status === "available" ? { ...result, data: snapshot.lesson } : result; },
       loadSabbathDay: async (...args) => { calls.push(args); return result; },
     },
@@ -27,11 +28,12 @@ test("quarter and lesson routes render anonymous internal lists after request bo
   const quarterPage = load(`${root}/page.tsx`).default;
   const html = renderToStaticMarkup(await quarterPage({ params: Promise.resolve({ quarterId: "2026-04" }) }));
   assert.match(html, /href="\/sekolah-sabat\/2026-04\/07"/);
-  assert.deepEqual(calls.slice(0, 2), ["connection", "catalog"]);
+  assert.match(html, /Pelajaran 1/);
+  assert.deepEqual(calls.slice(0, 2), ["connection", "quarter"]);
   const lessonPage = load(`${root}/[lessonId]/page.tsx`).default;
   const lessonHtml = renderToStaticMarkup(await lessonPage({ params: Promise.resolve({ quarterId: "2026-04", lessonId: "07" }) }));
   assert.match(lessonHtml, /href="\/sekolah-sabat\/2026-04\/07\/01"/);
-  assert.match(lessonHtml, /07\/11\/2026/);
+  assert.match(lessonHtml, /Sabtu, 7 November 2026/);
 });
 
 test("daily route renders sanitized content with next/back, attribution and fetched time", async () => {
