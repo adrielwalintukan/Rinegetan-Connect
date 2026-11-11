@@ -43,13 +43,16 @@ export default function SabbathNotes({ quarterId, lessonId, dayId, dayTitle }) {
     }, 600);
   }, [key]);
 
+  // Used by every exit path: pagehide, visibilitychange, and unmount. The status must settle here
+  // too, otherwise a backgrounded tab comes back showing "Menyimpan…" for a note already on disk.
   const flush = useCallback(() => {
     if (pending.current === null) return;
     window.clearTimeout(timer.current);
     const value = pending.current;
     pending.current = null;
     const storage = browserStorage();
-    writeNotesState(storage, setNote(readNotesState(storage).state, key, value));
+    setPersistent(writeNotesState(storage, setNote(readNotesState(storage).state, key, value)));
+    setSaved(true);
   }, [key]);
 
   // The prev/next links in the reader are plain <a> elements, so leaving a day is a full-document

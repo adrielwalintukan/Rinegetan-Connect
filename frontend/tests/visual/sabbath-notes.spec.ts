@@ -76,6 +76,39 @@ test("a note survives a real full-document navigation that outruns the debounce"
   await expect(box(page)).toHaveValue("Diketik lalu langsung pindah hari.");
 });
 
+// Headless Chromium has no window, so every page reports visibilityState "visible" and switching
+// tabs never fires the event. Replay the exact pair a backgrounded tab produces instead.
+async function setVisibility(page: Page, state: "hidden" | "visible") {
+  await page.evaluate((value) => {
+    Object.defineProperty(document, "visibilityState", { configurable: true, get: () => value });
+    Object.defineProperty(document, "hidden", { configurable: true, get: () => value === "hidden" });
+    document.dispatchEvent(new Event("visibilitychange"));
+  }, state);
+}
+
+test("switching tabs saves the note and settles the status without a reload", async ({ page }) => {
+  await open(page);
+  await box(page).focus();
+
+  // Type and hide the tab immediately, so the flush on visibilitychange is what persists the text.
+  await page.evaluate(() => {
+    const textarea = document.querySelector<HTMLTextAreaElement>("#sabbath-note")!;
+    const setValue = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!;
+    setValue.call(textarea, "Diketik lalu pindah tab.");
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await expect(page.getByRole("status")).toHaveText("Menyimpan…");
+
+  // Nothing navigates here, so no pageshow follows; only the visibility path can save the note.
+  await setVisibility(page, "hidden");
+  await expect.poll(async () => (await stored(page)) ?? "", { timeout: 5000 }).toContain("pindah tab");
+
+  await setVisibility(page, "visible");
+
+  // The note is already on disk, so the indicator must agree instead of staying on "Menyimpan…".
+  await expect(page.getByRole("status")).toHaveText(/\d+\/4000 karakter/);
+});
+
 test("deleting clears the stored entry rather than saving an empty string", async ({ page }) => {
   await open(page);
   await box(page).fill("Catatan sementara.");
