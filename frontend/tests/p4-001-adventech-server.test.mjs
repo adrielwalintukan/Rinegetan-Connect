@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import ts from "typescript";
 import * as core from "../src/lib/sabbath/adventech.mjs";
 import * as catalog from "../src/lib/sabbath/catalog.mjs";
+import * as reader from "../src/lib/sabbath/reader.mjs";
 
 test("server entry remains closed and makes no source request", async () => {
   const source = readFileSync(new URL("../src/lib/sabbath/server.ts", import.meta.url), "utf8");
@@ -15,6 +16,7 @@ test("server entry remains closed and makes no source request", async () => {
     if (id === "server-only") return {};
     if (id === "next/cache") return { unstable_cache: (fn) => fn };
     if (id === "./catalog.mjs") return catalog;
+    if (id === "./reader.mjs") return reader;
     if (id === "@/lib/supabase/server") return { createServerSupabaseClient: async () => { connections++; throw new Error("must not connect"); } };
     if (id === "./adventech.mjs") return core;
     throw new Error("Unexpected import");

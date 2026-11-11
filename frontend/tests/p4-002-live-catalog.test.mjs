@@ -5,6 +5,7 @@ import * as catalog from "../src/lib/sabbath/catalog.mjs";
 import { readFileSync } from "node:fs";
 import ts from "typescript";
 import * as core from "../src/lib/sabbath/adventech.mjs";
+import * as reader from "../src/lib/sabbath/reader.mjs";
 
 const liveFixture = () => ({ quarterly: { id: "2026-04", index: "in-2026-04", lang: "in",
   title: "Judul sintetis", start_date: "26/09/2026", end_date: "25/12/2026", human_date: "Oktober–Desember 2026",
@@ -29,6 +30,7 @@ function server(fetcher) {
     if (id === "next/cache") return { unstable_cache: (fn) => fn };
     if (id === "./adventech.mjs") return core;
     if (id === "./catalog.mjs") return catalog;
+    if (id === "./reader.mjs") return reader;
     if (id === "@/lib/supabase/server") return { createServerSupabaseClient: () => { throw new Error("staff connection forbidden"); } };
     throw new Error(`Unexpected import ${id}`);
   }, exports, fetcher);

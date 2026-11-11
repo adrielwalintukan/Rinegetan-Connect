@@ -87,6 +87,7 @@ export default function SekolahSabatPage({ initialSchedules = null, sectionMedia
                                             {sourceUrl === `https://sabbath-school.adventech.io/in/${quarterly.id}` && (
                                                 <div className="mt-4">
                                                     <p className="text-sm text-slate-600">Sumber: Adventech · Bahasa Indonesia</p>
+                                                    <a href={`/sekolah-sabat/${quarterly.id}`} className="mt-3 flex min-h-11 items-center rounded-md font-semibold text-navy underline decoration-sabbath-400 underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-navy">Lihat pelajaran</a>
                                                     {fetchedAt && <p className="mt-1 text-xs text-slate-600">Diperbarui <time dateTime={fetchedAt}>{new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Makassar" }).format(new Date(fetchedAt))} WITA</time></p>}
                                                     <a href={sourceUrl} className="mt-3 inline-flex min-h-11 items-center rounded-md font-semibold text-navy underline decoration-sabbath-400 underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-navy">Buka materi di Adventech</a>
                                                 </div>
