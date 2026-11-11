@@ -2,7 +2,7 @@
 // renders and hydrates without any network access. Product code is untouched; only the test process
 // swaps globalThis.fetch before Next boots.
 import { spawn, spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, rmSync } from "node:fs";
 import { resolve } from "node:path";
 
 const frontend = resolve(import.meta.dirname, "../..");
@@ -11,6 +11,11 @@ const stub = resolve(import.meta.dirname, "adventech-stub.cjs");
 // Passing --require as an argv entry avoids NODE_OPTIONS quoting, which breaks on paths with spaces.
 const preload = ["--require", stub];
 const env = { ...process.env, NEXT_TELEMETRY_DISABLED: "1" };
+
+// unstable_cache keeps Adventech responses for an hour, keyed by URL. A suite that ran earlier in the
+// same job against the real network would leave that cache behind, so the stub would never be asked
+// and this suite would silently test real content. Start from an empty fetch cache.
+rmSync(resolve(frontend, ".next/cache/fetch-cache"), { recursive: true, force: true });
 
 // CI builds once before the browser suites; build here only when no bundle exists yet.
 if (!existsSync(resolve(frontend, ".next/BUILD_ID"))) {

@@ -13,6 +13,9 @@ const stored = (page: Page) => page.evaluate(k => localStorage.getItem(k), KEY);
 // Hydration replaces the server markup, so wait for the client to own the panel before interacting.
 async function open(page: Page, url = day05) {
   await page.goto(url, { waitUntil: "load" });
+  // Guard: a stale unstable_cache entry would serve real Adventech content here instead of the stub,
+  // and the panel would simply be missing. Fail with the actual reason instead.
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/^Hari (pertama|kedua)$/);
   await expect(toggle(page)).toHaveAttribute("aria-expanded", "false");
   await toggle(page).click();
   await expect(box(page)).toBeEnabled();
@@ -95,6 +98,7 @@ test("a browser that refuses storage says so instead of failing silently", async
     Object.defineProperty(window, "localStorage", { get() { throw new Error("synthetic storage unavailable"); } });
   });
   await page.goto(day05, { waitUntil: "load" });
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/^Hari pertama$/);
   await toggle(page).click();
   await expect(box(page)).toBeEnabled();
   await box(page).fill("Tidak akan tersimpan.");
