@@ -38,13 +38,17 @@ export function normalizeReaderDay(payload, lesson, dayId) {
   if (!parent || payload?.id !== dayId || payload.index !== parent.index || payload.date !== parent.date ||
       text(payload.title) !== parent.title) throw new Error("Invalid reader day");
   const html = sanitizeHtml(text(payload.content), {
-    allowedTags: ["p", "h2", "h3", "h4", "em", "strong", "ul", "ol", "li", "blockquote", "code", "br", "sup", "sub", "a"],
-    allowedAttributes: { a: ["href", "rel"] },
+    allowedTags: ["p", "h2", "h3", "h4", "em", "strong", "ul", "ol", "li", "blockquote", "code", "br", "sup", "sub", "a",
+      "table", "thead", "tbody", "tr", "th", "td"],
+    allowedAttributes: { a: ["href", "rel"], th: ["scope", "colspan", "rowspan"], td: ["colspan", "rowspan"] },
     allowedSchemes: ["https"], allowProtocolRelative: false,
     nonTextTags: ["script", "style", "textarea", "option", "iframe", "svg", "math"],
     exclusiveFilter: frame => frame.tag === "a" && !frame.attribs.href ? "excludeTag" : false,
     transformTags: {
       h1: "h2",
+      h2: "h2",
+      h3: "h2",
+      h4: "h3",
       a: (_tag, attributes) => {
         try {
           const url = new URL(attributes.href);

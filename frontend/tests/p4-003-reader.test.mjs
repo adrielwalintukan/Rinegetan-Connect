@@ -34,6 +34,15 @@ test("day content preserves readable semantic HTML without remote resources or a
   assert.equal(result.html, '<h2>Heading</h2><p>A &amp; B <strong>bold</strong> John 1</p><code>  keep\n space </code><a href="https://example.org/read" rel="noopener noreferrer">Source</a>');
 });
 
+test("day content preserves real study tables and a non-skipping heading outline", () => {
+  const lesson = reader.normalizeReaderLesson(fixture(), quarterly, "07");
+  const day = reader.normalizeReaderDay({ ...lesson.days[0], content:
+    '<h3>Bagian</h3><h4>Rincian</h4><table><thead><tr><th scope="col">Hari</th><th colspan="2">Tema</th></tr></thead>' +
+    '<tbody><tr><td rowspan="2">Senin</td><td>Doa</td><td>Firman</td></tr></tbody></table>' }, lesson, "01");
+  assert.equal(day.html, '<h2>Bagian</h2><h3>Rincian</h3><table><thead><tr><th scope="col">Hari</th><th colspan="2">Tema</th></tr></thead>' +
+    '<tbody><tr><td rowspan="2">Senin</td><td>Doa</td><td>Firman</td></tr></tbody></table>');
+});
+
 test("day sanitizer rejects unsafe links and handles malformed markup as inert text", () => {
   assert.equal(typeof reader.normalizeReaderDay, "function");
   const lesson = reader.normalizeReaderLesson(fixture(), quarterly, "07");
