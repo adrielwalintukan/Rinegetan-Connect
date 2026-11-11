@@ -56,6 +56,7 @@ Job `Browser regression (Playwright)` pada workflow CI. Pemilihan suite dan trig
 | --- | --- |
 | `public-routes.spec.ts` | Tujuh rute Phase 1 tanpa overflow horizontal pada 320/375/390/768/1440px, menu mobile ditutup dengan Escape, skip link memindahkan fokus |
 | `a11y-audit.spec.ts` | axe WCAG 2.2 AA dan struktur (satu `<main>`/`<h1>`, alt) pada sembilan rute di 320/1440px, fokus keyboard terlihat, perilaku reduced motion |
+| `sabbath-reader.spec.ts` | Reader Sekolah Sabat anonim: navigasi katalog → pelajaran → hari, HTML tersanitasi (tanpa script/gambar/iframe/SVG), tabel studi utuh, tanpa overflow di 320/375/768/1440px, fokus keyboard, axe WCAG 2.2 AA, dan fallback unavailable |
 | `bible-reader.spec.ts` | Reader anonim, progres/bookmark lokal, storage gagal, revisi/penarikan/penghapusan CMS tidak bocor walau ada sesi staf, target sentuh 44px, keyboard pada lima lebar |
 | `staff-courses.spec.ts` | Alur Admin/Editor nyata, batas Unicode, pagination >1.000 lesson, kegagalan jaringan/record hilang, konfirmasi hapus Admin, bottom sheet, keyboard pada lima lebar |
 
