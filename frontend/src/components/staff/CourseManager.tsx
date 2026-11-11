@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ContentFilterBar } from "./ContentFilterBar";
 import { ContentStatusBadge } from "./ContentStatusBadge";
 import { SelectDropdown } from "@/components/ui/SelectDropdown";
+import BackLink from "@/components/ui/BackLink";
 import { CourseMutationDialog } from "./CourseMutationDialog";
 import { CourseImportPanel } from "./CourseImportPanel";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
@@ -62,7 +63,7 @@ export function CourseManager({ courses, lessons, role, onNotification, error, i
   return <section aria-label="Pengelola Course dan Lesson" className="min-w-0 space-y-4">
     {readerRefreshPending && <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">{readerRefreshWarning}</p>}
     {selectedCourseId && !selected && <p role="alert" className="rounded-xl bg-amber-50 p-3 text-sm">Course tidak lagi tersedia. Daftar course telah diperbarui.</p>}
-    {selected && <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4"><button type="button" onClick={() => { setSelectedCourseId(null); setFilter("all"); setSearch(""); }} className={button}>Kembali ke daftar course</button><h2 className="break-words text-xl font-bold text-navy">{selected.title}</h2><ContentStatusBadge status={selected.status} /><p className="break-words text-sm text-slate-600">{selected.summary}</p>{selected.status !== "published" && <p role="status" className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Course induk belum Published. Lesson tidak terbaca publik, termasuk lesson yang sudah Published.</p>}</div>}
+    {selected && <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4"><BackLink onClick={() => { setSelectedCourseId(null); setFilter("all"); setSearch(""); }}>Kembali ke daftar course</BackLink><h2 className="break-words text-xl font-bold text-navy">{selected.title}</h2><ContentStatusBadge status={selected.status} /><p className="break-words text-sm text-slate-600">{selected.summary}</p>{selected.status !== "published" && <p role="status" className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Course induk belum Published. Lesson tidak terbaca publik, termasuk lesson yang sudah Published.</p>}</div>}
     {!selected && <CourseImportPanel imports={imports ?? []} role={role} error={importsError} onNotification={onNotification} />}
     <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-bold text-navy">{selected ? "Daftar lesson" : "Daftar course"}</h2><button type="button" disabled={busy} onClick={() => setDialog({ kind: selected ? "lesson" : "course" })} className={`${button} bg-navy text-white`}>Tambah {selected ? "Lesson" : "Course"}</button></div>
     {!selected && <p className="text-sm text-slate-600">Menerbitkan course akan menampilkan semua lesson Published di dalamnya. Menarik course ke Draft atau Arsip langsung menyembunyikan seluruh lesson.</p>}

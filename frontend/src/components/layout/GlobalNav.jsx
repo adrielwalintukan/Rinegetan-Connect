@@ -93,6 +93,7 @@ export const GlobalNav = () => {
                     <motion.div
                         id="mobile-menu"
                         data-testid="mobile-menu"
+                        data-lenis-prevent
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}

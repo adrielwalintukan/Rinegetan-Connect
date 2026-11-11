@@ -50,6 +50,18 @@ test('real catalogue reaches past 1000 rows',async()=>{
 test('desktop nav and Hero CTA point at reader and ministry cards link to live services',()=>{
  const load=tsxLoader({'next/navigation':{usePathname:()=>'/','useRouter':()=>({})},'next/link':{__esModule:true,default:({children,prefetch,...props})=>{void prefetch;return React.createElement('a',props,children);}}});
  const nav=render(React.createElement(load('src/components/layout/GlobalNav.jsx').GlobalNav));assert.match(nav,/<a[^>]*href="\/pelajari-alkitab"[^>]*data-testid="nav-cta-pelajari-alkitab"/);
- const hero=render(React.createElement(load('src/components/sections/Hero.jsx').Hero));assert.match(hero,/<a[^>]*href="\/pelajari-alkitab"[^>]*data-testid="hero-cta-pelajari-alkitab"/);
+ const hero=render(React.createElement(load('src/components/sections/Hero.jsx').Hero));
+ assert.match(hero,/<a[^>]*href="\/sekolah-sabat"[^>]*data-testid="hero-cta-sekolah-sabat"[^>]*>Pelajaran Sekolah Sabat</);
+ assert.match(hero,/<a[^>]*href="#sabat"[^>]*data-testid="hero-cta-jadwal-ibadah"/);
+ assert.match(hero,/Jumat matahari terbenam sampai Sabtu matahari terbenam/);
+ assert.doesNotMatch(hero,/Jumat petang/);
  const digital=render(React.createElement(load('src/components/sections/DigitalMinistrySection.jsx').DigitalMinistrySection));assert.match(digital,/href="\/pelajari-alkitab"/);assert.equal((digital.match(/Segera hadir/g)||[]).length,0);assert.match(digital,/href="\/kontak#permohonan-doa"/);assert.match(digital,/href="\/kontak#berkunjung"/);
+});
+test('home announcement uses the Pengumuman Jemaat wording and joins the navy marquee zone',()=>{
+ const load=tsxLoader();
+ const banner=render(React.createElement(load('src/components/sections/AnnouncementBanner.tsx').AnnouncementBanner,{announcements:[{id:'1',title:'Ibadah Doa',body:'MC: Ztr. A.',created_at:'2026-10-14T10:00:00Z'}]}));
+ assert.match(banner,/Pengumuman Jemaat/);assert.doesNotMatch(banner,/Warta/);
+ assert.match(banner,/aria-label="Pengumuman jemaat terbaru"/);assert.match(banner,/bg-navy/);
+ const marquee=render(React.createElement(load('src/components/sections/SabbathMarquee.jsx').SabbathMarquee));
+ assert.match(marquee,/aria-label="Pengumuman jemaat"/);assert.match(marquee,/bg-navy/);
 });

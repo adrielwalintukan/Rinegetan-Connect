@@ -121,6 +121,9 @@ jobs:
       - name: Staff course CMS flows (Admin/Editor, forms, mobile, keyboard)
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: npx playwright test -c tests/visual/staff-courses.config.ts
+      - name: Sabbath reader flows (anonymous, responsive, safe HTML, axe)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: npx playwright test tests/visual/sabbath-reader.spec.ts
       - name: Upload browser artifacts on failure
         if: ${{ failure() }}
         uses: actions/upload-artifact@v7

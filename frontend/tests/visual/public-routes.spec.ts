@@ -60,6 +60,28 @@ test("mobile navigation opens and closes with Escape", async ({ page }) => {
     await expect(page.getByTestId("mobile-menu")).toHaveCount(0);
 });
 
+// Lenis takes over wheel events for the whole document on public routes, so any nested scroll
+// container has to opt out. Without this the menu stayed still and the page behind scrolled.
+test("mobile navigation scrolls itself under smooth scrolling", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 620 });
+    await openPublicRoute(page, "/");
+    await page.getByTestId("mobile-menu-button").click();
+
+    const menu = page.getByTestId("mobile-menu");
+    await expect(menu).toBeVisible();
+    await expect(menu).toHaveAttribute("data-lenis-prevent", "true");
+
+    const before = await menu.evaluate(node => ({ menu: node.scrollTop, page: window.scrollY }));
+    const box = (await menu.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    for (let i = 0; i < 6; i += 1) await page.mouse.wheel(0, 120);
+    await page.waitForTimeout(600);
+    const after = await menu.evaluate(node => ({ menu: node.scrollTop, page: window.scrollY }));
+
+    expect(after.menu).toBeGreaterThan(before.menu);
+    expect(Math.abs(after.page - before.page)).toBeLessThan(1);
+});
+
 for (const width of [320, 375, 768, 1024, 1440]) {
     for (const available of [false, true]) test(`Sabbath catalog ${available ? "available long text" : "unavailable"} and local classes remain readable at ${width}px`, async ({ page }) => {
         await page.setViewportSize({ width, height: 900 });
