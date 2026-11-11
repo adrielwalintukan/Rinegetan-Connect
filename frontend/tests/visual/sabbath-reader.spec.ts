@@ -40,6 +40,7 @@ for (const width of [320, 375, 768, 1440]) test(`anonymous reader navigation, sa
   // Lenis hijacks page wheel events; without this the popup never scrolls and the page behind moves.
   await expect(dialog).toHaveAttribute("data-lenis-prevent", "true");
   // The note panel is client-only, so the static fixture only carries its collapsed shell.
+  // Live panel behaviour is covered by tests/visual/sabbath-notes.spec.ts against a hydrated page.
   await expect(page.getByRole("button", { name: /Catatan saya/ })).toHaveAttribute("aria-expanded", "false");
   expect(remote).toEqual([]);
   await page.addScriptTag({ content: axeSource });

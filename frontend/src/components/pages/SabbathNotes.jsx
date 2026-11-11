@@ -43,14 +43,30 @@ export default function SabbathNotes({ quarterId, lessonId, dayId, dayTitle }) {
     }, 600);
   }, [key]);
 
-  // Flush on unmount so navigating away mid-debounce cannot lose what was just typed.
-  useEffect(() => () => {
-    window.clearTimeout(timer.current);
+  const flush = useCallback(() => {
     if (pending.current === null) return;
-    const storage = browserStorage();
-    writeNotesState(storage, setNote(readNotesState(storage).state, key, pending.current));
+    window.clearTimeout(timer.current);
+    const value = pending.current;
     pending.current = null;
+    const storage = browserStorage();
+    writeNotesState(storage, setNote(readNotesState(storage).state, key, value));
   }, [key]);
+
+  // The prev/next links in the reader are plain <a> elements, so leaving a day is a full-document
+  // navigation: the browser tears the page down and React never runs its cleanup. pagehide is the
+  // event that still fires first, and visibilitychange covers a backgrounded tab being discarded.
+  // The unmount flush stays for client-side navigation, where pagehide does not fire.
+  useEffect(() => {
+    const hide = () => { if (document.visibilityState === "hidden") flush(); };
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", hide);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      document.removeEventListener("visibilitychange", hide);
+      window.clearTimeout(timer.current);
+      flush();
+    };
+  }, [flush]);
 
   const change = (event) => {
     const value = event.target.value;
