@@ -57,6 +57,28 @@ test("day sanitizer rejects unsafe links and handles malformed markup as inert t
   }
 });
 
+test("verse references with upstream verse text become popup buttons and unsafe verse markup is stripped", () => {
+  const lesson = reader.normalizeReaderLesson(fixture(), quarterly, "07");
+  const day = reader.normalizeReaderDay({ ...lesson.days[0],
+    bible: [{ name: "ALKITAB", verses: { Matt75: "<h2>Matius 7:5</h2> <sup>5</sup> Hai orang munafik.",
+      Evil1: '<p onclick="x()" style="color:red">Palsu</p><script>evil()</script><iframe src="https://evil.invalid"></iframe>' } }],
+    content: '<p>Baca <a class="verse" verse="Matt75">Mat. 7: 5</a>, <a class="verse" verse="Missing">Mrk 1: 1</a>, <a class="verse" verse="Evil1">Palsu</a>.</p>' }, lesson, "01");
+  assert.equal(day.html, '<p>Baca <button type="button" data-verse="Matt75">Mat. 7: 5</button>, Mrk 1: 1, <button type="button" data-verse="Evil1">Palsu</button>.</p>');
+  assert.deepEqual(Object.keys(day.verses).sort(), ["Evil1", "Matt75"]);
+  assert.equal(day.verses.Matt75, "<h2>Matius 7:5</h2> <sup>5</sup> Hai orang munafik.");
+  assert.equal(day.verses.Evil1, "<p>Palsu</p>");
+});
+
+test("days without usable verse text keep plain readable references", () => {
+  const lesson = reader.normalizeReaderLesson(fixture(), quarterly, "07");
+  for (const bible of [undefined, [], [{ name: "ALKITAB", verses: {} }], [{ name: "ALKITAB", verses: { Matt75: "<script>evil()</script>" } }]]) {
+    const day = reader.normalizeReaderDay({ ...lesson.days[0], bible,
+      content: '<p>Baca <a class="verse" verse="Matt75">Mat. 7: 5</a>.</p>' }, lesson, "01");
+    assert.equal(day.html, "<p>Baca Mat. 7: 5.</p>");
+    assert.deepEqual(day.verses, {});
+  }
+});
+
 const format = await import("../src/lib/sabbath/format.mjs").catch(() => ({}));
 
 test("reader dates show the Indonesian weekday and leave invalid input untouched", () => {

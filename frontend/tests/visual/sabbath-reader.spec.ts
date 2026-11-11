@@ -28,6 +28,15 @@ for (const width of [320, 375, 768, 1440]) test(`anonymous reader navigation, sa
   await expect(page.locator("article script, article img, article iframe, article svg")).toHaveCount(0);
   await expect(page.locator("article table")).toHaveCount(1);
   expect(await page.evaluate(() => (window as unknown as { readerXss?: boolean }).readerXss)).toBeUndefined();
+  // Fixtures are static HTML without the client bundle, so assert the server contract that makes
+  // the popup reachable; the click/keyboard behaviour is covered by the live check in the record.
+  const verse = page.getByRole("button", { name: "Mat. 7: 5", exact: true });
+  await expect(verse).toHaveAttribute("data-verse", "Matt75");
+  await expect(page.getByRole("button", { name: "Mrk 1: 1", exact: true })).toHaveCount(0);
+  await expect(page.getByText("Mrk 1: 1", { exact: false })).toBeVisible();
+  const dialog = page.locator("dialog");
+  await expect(dialog).toHaveCount(1);
+  await expect(dialog).not.toHaveAttribute("open", /.*/);
   expect(remote).toEqual([]);
   await page.addScriptTag({ content: axeSource });
   const audit = await page.evaluate(async () => {

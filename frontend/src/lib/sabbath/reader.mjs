@@ -33,33 +33,58 @@ export function normalizeReaderLesson(payload, quarterly, lessonId) {
   return { id: lessonId, index: parent.index, title: parent.title, startDate: lesson.start_date, endDate: lesson.end_date, days };
 }
 
+const CONTENT_TAGS = ["p", "h2", "h3", "h4", "em", "strong", "ul", "ol", "li", "blockquote", "code", "br", "sup", "sub", "a",
+  "table", "thead", "tbody", "tr", "th", "td", "button"];
+const VERSE_TAGS = CONTENT_TAGS.filter(tag => tag !== "button");
+const STRIP = { allowedTags: [], allowedAttributes: {} };
+
+// Adventech ships the verse text of a day alongside its content; only what is already readable stays.
+function normalizeVerses(payload) {
+  const entries = Array.isArray(payload?.bible) ? payload.bible : payload?.bible ? [payload.bible] : [];
+  const verses = {};
+  for (const entry of entries) {
+    if (!entry?.verses || typeof entry.verses !== "object" || Array.isArray(entry.verses)) continue;
+    for (const [reference, value] of Object.entries(entry.verses)) {
+      if (typeof value !== "string") continue;
+      const html = sanitizeHtml(value, { allowedTags: VERSE_TAGS, allowedAttributes: {}, allowProtocolRelative: false,
+        nonTextTags: ["script", "style", "textarea", "option", "iframe", "svg", "math"] }).trim();
+      if (sanitizeHtml(html, STRIP).replace(/&(?:nbsp|#160);/g, " ").trim()) verses[reference] = html;
+    }
+  }
+  return verses;
+}
+
 export function normalizeReaderDay(payload, lesson, dayId) {
   const parent = lesson?.days?.find(item => item.id === dayId);
   if (!parent || payload?.id !== dayId || payload.index !== parent.index || payload.date !== parent.date ||
       text(payload.title) !== parent.title) throw new Error("Invalid reader day");
+  const verses = normalizeVerses(payload);
   const html = sanitizeHtml(text(payload.content), {
-    allowedTags: ["p", "h2", "h3", "h4", "em", "strong", "ul", "ol", "li", "blockquote", "code", "br", "sup", "sub", "a",
-      "table", "thead", "tbody", "tr", "th", "td"],
-    allowedAttributes: { a: ["href", "rel"], th: ["scope", "colspan", "rowspan"], td: ["colspan", "rowspan"] },
+    allowedTags: CONTENT_TAGS,
+    allowedAttributes: { a: ["href", "rel"], button: ["type", "data-verse"], th: ["scope", "colspan", "rowspan"], td: ["colspan", "rowspan"] },
     allowedSchemes: ["https"], allowProtocolRelative: false,
     nonTextTags: ["script", "style", "textarea", "option", "iframe", "svg", "math"],
-    exclusiveFilter: frame => frame.tag === "a" && !frame.attribs.href ? "excludeTag" : false,
+    // Post-transform view: a verse reference is already a button here, so keep anything carrying data-verse.
+    exclusiveFilter: frame => frame.tag === "a" && !frame.attribs.href && !frame.attribs["data-verse"] ? "excludeTag" : false,
     transformTags: {
       h1: "h2",
       h2: "h2",
       h3: "h2",
       h4: "h3",
       a: (_tag, attributes) => {
+        if (typeof verses[attributes.verse] === "string") {
+          return { tagName: "button", attribs: { type: "button", "data-verse": attributes.verse } };
+        }
         try {
           const url = new URL(attributes.href);
           if (url.protocol === "https:" && !url.username && !url.password) {
             return { tagName: "a", attribs: { href: url.href, rel: "noopener noreferrer" } };
           }
-        } catch { /* Verse references without URLs remain readable text. */ }
+        } catch { /* Verse references without verse text remain readable text. */ }
         return { tagName: "a", attribs: {} };
       },
     },
   });
-  if (!sanitizeHtml(html, { allowedTags: [], allowedAttributes: {} }).replace(/&(?:nbsp|#160);/g, " ").trim()) throw new Error("Empty reader content");
-  return { ...parent, html };
+  if (!sanitizeHtml(html, STRIP).replace(/&(?:nbsp|#160);/g, " ").trim()) throw new Error("Empty reader content");
+  return { ...parent, html, verses };
 }
