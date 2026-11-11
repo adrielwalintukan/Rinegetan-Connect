@@ -58,15 +58,25 @@ export default function SabbathNotes({ quarterId, lessonId, dayId, dayTitle }) {
   // The unmount flush stays for client-side navigation, where pagehide does not fire.
   useEffect(() => {
     const hide = () => { if (document.visibilityState === "hidden") flush(); };
+    // A page restored from the back/forward cache keeps its React state, so the status could stay
+    // on "Menyimpan…" after a flush that already happened. Re-sync from storage on restore.
+    const show = (event) => {
+      if (!event.persisted) return;
+      const stored = readNotesState(browserStorage());
+      setNoteText(getNote(stored.state, key));
+      setSaved(true);
+    };
     window.addEventListener("pagehide", flush);
+    window.addEventListener("pageshow", show);
     document.addEventListener("visibilitychange", hide);
     return () => {
       window.removeEventListener("pagehide", flush);
+      window.removeEventListener("pageshow", show);
       document.removeEventListener("visibilitychange", hide);
       window.clearTimeout(timer.current);
       flush();
     };
-  }, [flush]);
+  }, [flush, key]);
 
   const change = (event) => {
     const value = event.target.value;
