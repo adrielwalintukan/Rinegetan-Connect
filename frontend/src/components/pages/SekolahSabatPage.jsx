@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element -- Phase 1 keeps external static fallback images. */
-import { BookOpen, Clock } from "lucide-react";
+import { Clock } from "lucide-react";
 import { ChapterHeading } from "@/components/sections/ChapterHeading";
 import { Reveal } from "@/components/motion/Reveal";
 import { CreationGrid, MainColumns, SabbathColumn } from "@/components/layout/CreationGrid";
@@ -17,9 +17,10 @@ const DAYS_ID = [
 ];
 
 /**
- * @param {{ initialSchedules?: any[] | null, sectionMedia?: any }} props
+ * @param {{ initialSchedules?: any[] | null, sectionMedia?: any, catalog?: any }} props
  */
-export default function SekolahSabatPage({ initialSchedules = null, sectionMedia = null }) {
+export default function SekolahSabatPage({ initialSchedules = null, sectionMedia = null, catalog = null }) {
+    const materials = catalog?.status === "available" && Array.isArray(catalog.classes) ? catalog.classes : [];
     const weekly = initialSchedules !== null
         ? initialSchedules.map((s) => ({
             day: s.day || (s.day_of_week !== undefined ? DAYS_ID[s.day_of_week] : "Sabat (Sabtu)"),
@@ -44,29 +45,62 @@ export default function SekolahSabatPage({ initialSchedules = null, sectionMedia
 
                 <CreationGrid className="mt-12">
                     <MainColumns>
-                        <div className="grid gap-4 sm:grid-cols-2">
+                        <section aria-labelledby="ss-local-title">
+                            <div className="mb-5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 border-b border-navy/15 pb-4">
+                                <h2 id="ss-local-title" className="text-xl font-semibold text-navy">Bertumbuh bersama di gereja</h2>
+                                <p className="text-sm text-sabbath-700">Setiap Sabtu · 08.45 WITA</p>
+                            </div>
+                        <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
                             {SABBATH_SCHOOL_CLASSES.map((kelas, i) => (
                                 <Reveal key={kelas.name} delay={0.08 * i}>
                                     <article
                                         data-testid={`ss-class-${i}`}
-                                        className="card-surface h-full p-6"
+                                        className="h-full rounded-[10px] border border-navy/10 bg-white p-5 sm:p-6"
                                     >
-                                        <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-navy text-sabbath-400">
-                                            <BookOpen className="h-5 w-5" aria-hidden="true" />
-                                        </span>
-                                        <h2 className="mt-4 text-lg font-semibold text-navy">
+                                        <p className="text-sm font-medium text-sabbath-700">{kelas.age}</p>
+                                        <h3 className="mt-2 text-xl font-semibold leading-snug text-navy">
                                             {kelas.name}
-                                        </h2>
-                                        <p className="mt-1 font-mono text-xs uppercase tracking-[0.14em] text-sabbath-700">
-                                            {kelas.age} · {kelas.time}
-                                        </p>
-                                        <p className="mt-3 text-sm leading-relaxed text-slate-600">
+                                        </h3>
+                                        <p className="mt-3 text-base leading-relaxed text-slate-600">
                                             {kelas.description}
                                         </p>
+                                        <p className="mt-4 border-t border-navy/[0.07] pt-3 text-sm text-slate-600">Sabtu · {kelas.time}</p>
                                     </article>
                                 </Reveal>
                             ))}
                         </div>
+                        </section>
+
+                        <section aria-labelledby="ss-materials-title" className="mt-10 border-y border-navy/15 py-7 sm:mt-12 sm:py-8">
+                            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-sabbath-700">Belajar dalam Bahasa Indonesia</p>
+                            <h2 id="ss-materials-title" className="mt-2 text-2xl font-semibold text-navy">Materi Sekolah Sabat</h2>
+                            {materials.length > 0 ? (
+                                <ul className="mt-5 divide-y divide-navy/10">
+                                    {materials.map(({ classId, label, quarterly, period, sourceUrl, fetchedAt }) => (
+                                        <li key={classId} className="min-w-0 break-words py-5 first:pt-0 last:pb-0">
+                                            <h3 className="text-lg font-semibold text-navy">{label}</h3>
+                                            <p className="mt-2 text-base leading-relaxed text-slate-700">{quarterly.title}</p>
+                                            {period && <p className="mt-2 text-sm text-slate-600">{period} · {quarterly.lessons.length} pelajaran</p>}
+                                            {quarterly.credits.map((credit, index) => (
+                                                <p key={index} className="mt-2 text-sm leading-relaxed text-slate-600">{credit.name}: {credit.value}</p>
+                                            ))}
+                                            {sourceUrl === `https://sabbath-school.adventech.io/in/${quarterly.id}` && (
+                                                <div className="mt-4">
+                                                    <p className="text-sm text-slate-600">Sumber: Adventech · Bahasa Indonesia</p>
+                                                    {fetchedAt && <p className="mt-1 text-xs text-slate-600">Diperbarui <time dateTime={fetchedAt}>{new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Makassar" }).format(new Date(fetchedAt))} WITA</time></p>}
+                                                    <a href={sourceUrl} className="mt-3 inline-flex min-h-11 items-center rounded-md font-semibold text-navy underline decoration-sabbath-400 underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-navy">Buka materi di Adventech</a>
+                                                </div>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <div className="mt-5 max-w-xl border-l-2 border-sabbath-400 pl-4">
+                                    <h3 className="text-base font-semibold text-navy">Materi belum tersedia</h3>
+                                    <p className="mt-2 text-base leading-relaxed text-slate-600">Materi Bahasa Indonesia belum dapat dimuat dari sumber. Coba lagi nanti. Kelas di gereja tetap berlangsung setiap Sabtu.</p>
+                                </div>
+                            )}
+                        </section>
 
                         <Reveal delay={0.15}>
                             <div
@@ -83,12 +117,12 @@ export default function SekolahSabatPage({ initialSchedules = null, sectionMedia
                                         {weekly.map((row, i) => (
                                             <li
                                                 key={i}
-                                                className="flex flex-wrap items-baseline justify-between gap-2 px-6 py-4"
+                                                className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 gap-y-1 px-5 py-4 sm:px-6"
                                             >
-                                                <span className="font-mono text-xs uppercase tracking-[0.14em] text-sabbath-700">
+                                                <span className="col-span-2 text-xs font-semibold uppercase tracking-[0.14em] text-sabbath-700">
                                                     {row.day}
                                                 </span>
-                                                <span className="flex-1 px-3 text-sm font-medium text-navy">
+                                                <span className="min-w-0 break-words text-sm font-medium text-navy">
                                                     {row.name}
                                                 </span>
                                                 <span className="flex items-center gap-1.5 text-sm text-slate-600">

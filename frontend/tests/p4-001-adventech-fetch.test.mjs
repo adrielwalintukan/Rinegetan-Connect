@@ -3,12 +3,15 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import ts from "typescript";
 import * as core from "../src/lib/sabbath/adventech.mjs";
+import * as catalog from "../src/lib/sabbath/catalog.mjs";
 
 const source = readFileSync(new URL("../src/lib/sabbath/server.ts", import.meta.url), "utf8");
 const compiled = ts.transpileModule(source + "\nexport { fetchQuarterlyFromAdventech };", { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
 const server = {};
 new Function("require", "exports", compiled)((id) => {
   if (id === "server-only") return {};
+  if (id === "next/cache") return { unstable_cache: (fn) => fn };
+  if (id === "./catalog.mjs") return catalog;
   if (id === "@/lib/supabase/server") return { createServerSupabaseClient: async () => { throw new Error("must not connect"); } };
   if (id === "./adventech.mjs") return core;
   throw new Error("Unexpected import");
@@ -21,7 +24,7 @@ test("uses the official fixed Indonesian endpoint without redirects and preserve
     request = { url, options };
     return new Response('{"synthetic":true}', { headers: { "content-type": "application/json", etag: '"v1"' } });
   });
-  assert.equal(request.url, "https://sabbath-school.adventech.io/api/v2/id/quarterlies/2026-01/index.json");
+  assert.equal(request.url, "https://sabbath-school.adventech.io/api/v2/in/quarterlies/2026-01/index.json");
   assert.equal(request.options.redirect, "error");
   assert.equal(request.options.cache, "no-store");
   assert.deepEqual(result, { payload: { synthetic: true }, sourceVersion: '"v1"', etag: '"v1"' });

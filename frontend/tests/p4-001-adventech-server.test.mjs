@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import ts from "typescript";
 import * as core from "../src/lib/sabbath/adventech.mjs";
+import * as catalog from "../src/lib/sabbath/catalog.mjs";
 
 test("server entry remains closed and makes no source request", async () => {
   const source = readFileSync(new URL("../src/lib/sabbath/server.ts", import.meta.url), "utf8");
@@ -12,6 +13,8 @@ test("server entry remains closed and makes no source request", async () => {
   const exports = {};
   const load = (id) => {
     if (id === "server-only") return {};
+    if (id === "next/cache") return { unstable_cache: (fn) => fn };
+    if (id === "./catalog.mjs") return catalog;
     if (id === "@/lib/supabase/server") return { createServerSupabaseClient: async () => { connections++; throw new Error("must not connect"); } };
     if (id === "./adventech.mjs") return core;
     throw new Error("Unexpected import");
@@ -19,6 +22,7 @@ test("server entry remains closed and makes no source request", async () => {
   new Function("require", "exports", "fetch", compiled)(load, exports, async () => { requests++; throw new Error("must not fetch"); });
   assert.equal(Object.hasOwn(exports, "fetchQuarterlyFromAdventech"), false);
   assert.deepEqual(await exports.loadSabbathQuarterly("2026-01"), { status: "unavailable" });
+  assert.equal(typeof exports.loadSabbathCatalog, "function");
   assert.equal(requests, 0);
   assert.equal(connections, 0);
 });

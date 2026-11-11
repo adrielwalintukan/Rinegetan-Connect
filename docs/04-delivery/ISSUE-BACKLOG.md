@@ -45,9 +45,13 @@ P3-003 (#46): PR #86 merge ke `development` pada 2026-10-25 (`6dc89ed`), CI hasi
 
 ## Phase 4 — Sekolah Sabat Digital
 
-Urutan dependensi: P4-001 (adapter server) → P4-002/P4-003 (katalog dan reader online) → P4-004 (mekanisme paket lokal) → P4-005 (gate izin). Batas izin yang disepakati tetap berlaku: tidak ada cache/offline materi sebelum izin tertulis pemegang hak dicatat dan disetujui. Mekanisme teknis P4-001–P4-004 boleh dibangun, tetapi cache materi dan unduhan/offline tidak diaktifkan untuk publik sebelum P4-005 lulus. Keputusan pemilik yang masih terbuka: apakah cache server untuk penayangan online (acceptance P4-001) memerlukan izin tertulis yang sama dengan paket offline; sampai diputuskan, berlaku batas yang lebih ketat ini. Lihat [gate lisensi Adventech](../05-integrations/SABBATH-SCHOOL-ADVENTECH.md#gate-lisensi-wajib).
+Pembaruan keputusan 2026-11-10: pemilik mengonfirmasi izin pemegang hak untuk fetch/display/cache server Indonesia dan menyetujui integrasi nyata katalog. Asumsi gate online tertutup pada catatan historis berikut telah digantikan untuk katalog HTTP; PostgreSQL privat dan offline tetap tertutup. Sumber memakai kode `in`, seri Dewasa aktif saja yang terverifikasi; lihat [aktivasi katalog](../05-integrations/SABBATH-SCHOOL-ADVENTECH.md#aktivasi-katalog-online-konfirmasi-2026-11-10). Reader internal/paket offline bukan bagian perubahan ini.
 
-P4-001: fondasi gate tertutup, validasi sintetis dan koneksi cache PostgreSQL dikerjakan pada branch fitur; kedua gate tetap menolak akses, kontrak seluruh kelas/blok dan cakupan izin belum terbukti. Issue #50 tetap terbuka dan fondasi ini tidak berarti siap diaktifkan atau dirilis. Bukti: [catatan P4-001](records/P4-001-ANALYSIS-2026-11-07.md).
+Urutan dependensi: P4-001 (adapter server) → P4-002/P4-003 (katalog dan reader online) → P4-004 (mekanisme paket lokal) → P4-005 (gate izin). Keputusan cache server online telah diselesaikan melalui konfirmasi pemilik 2026-11-10 di atas; katalog memakai cache Next.js sesuai cakupan tersebut. Unduhan/offline tetap tidak diaktifkan sebelum izin tertulis untuk cakupan itu dicatat dan disetujui melalui P4-005. RPC cache PostgreSQL privat tetap tertutup; izin katalog online tidak membukanya. Lihat [gate lisensi Adventech](../05-integrations/SABBATH-SCHOOL-ADVENTECH.md#gate-lisensi-wajib).
+
+P4-001: fondasi gate tertutup, validasi sintetis dan koneksi cache PostgreSQL sudah terintegrasi ke development melalui PR #92/#94. Issue #50 ditutup secara administratif atas permintaan pemilik; kedua gate tetap menolak akses, kontrak seluruh kelas/blok, TTL dan cakupan izin belum terbukti. Penutupan ini bukan pemenuhan seluruh acceptance atau izin aktivasi/rilis. Bukti: [catatan P4-001](records/P4-001-ANALYSIS-2026-11-07.md).
+
+P4-002: tahap awal pilihan A pada 2026-11-10 membangun seleksi katalog sintetis dengan loader unavailable. Status itu telah digantikan oleh integrasi nyata setelah konfirmasi izin online: loader publik mengambil seri Dewasa Indonesia aktif dari `/in/`, memvalidasi metadata dan memakai cache Next.js satu jam tanpa sesi staf. Kelas anak/remaja belum terbukti tersedia; empat kelas jemaat lokal tetap terpisah. Issue #51 tetap terbuka untuk acceptance pemilik; reader internal/offline dan RPC privat tidak diaktifkan. Bukti historis dan lanjutan: [catatan P4-002](records/P4-002-2026-11-10.md).
 
 | ID | Issue | Acceptance ringkas | Dependensi |
 | --- | --- | --- | --- |
@@ -55,7 +59,7 @@ P4-001: fondasi gate tertutup, validasi sintetis dan koneksi cache PostgreSQL di
 | P4-002 | Katalog kelas Bahasa Indonesia. | Tampilkan Kindergarten, Primary, PowerPoint, Cornerstone, Dewasa hanya bila materi Indonesia tersedia; fallback Dewasa. | P4-001 |
 | P4-003 | Reader dan preview pelajaran. | Materi terkini dapat dibaca tanpa akun; error sumber memiliki fallback yang jelas. | P4-001 |
 | P4-004 | Unduhan lokal dan update manifest. | Pengguna dapat memilih paket lokal, melihat versi/tanggal, dan memperbarui secara manual; progres tetap IndexedDB. | P4-003 |
-| P4-005 | Register hak dan release gate. | Tidak ada cache/offline materi sebelum izin tertulis pemegang hak dicatat dan disetujui. | P4-004 |
+| P4-005 | Register hak dan release gate. | Catat hak per cakupan; izin katalog/cache server online dikonfirmasi, offline/download tetap menunggu izin tertulis dan persetujuan tersendiri. | P4-004 |
 
 ## Phase 5 — PWA dan notifikasi
 
