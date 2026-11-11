@@ -150,5 +150,5 @@ for(const width of [320,375,768,1024,1440])test(`reader ${width}px: long text, t
   await page.evaluate(()=>window.scrollTo(0,0));await expect.poll(()=>page.evaluate(()=>window.scrollY)).toBe(0);
   await page.screenshot({path:info.outputPath(`reader-${width}.png`),fullPage:true});
   if(width<1280){await page.getByTestId('mobile-menu-button').click();await expect(page.getByTestId('mobile-cta-pelajari-alkitab')).toHaveAttribute('href','/pelajari-alkitab');await page.getByTestId('mobile-cta-pelajari-alkitab').click();await expect(page.getByTestId('mobile-menu')).toHaveCount(0);}else await expect(page.getByTestId('nav-cta-pelajari-alkitab')).toHaveAttribute('href','/pelajari-alkitab');
-  await page.goto('/');await expect(page.getByTestId('hero-cta-pelajari-alkitab')).toHaveAttribute('href','/pelajari-alkitab');
+  await page.goto('/');await expect(page.getByTestId('hero-cta-sekolah-sabat')).toHaveAttribute('href','/sekolah-sabat');
 });
