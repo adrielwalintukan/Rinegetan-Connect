@@ -93,3 +93,11 @@ Query memakai proyeksi publik tanpa actor, pagination 500 baris sampai lengkap, 
 Sesudah mutasi CMS committed, invalidator mengakhiri tag segera dan menginvalidasi katalog serta pola course/lesson. Kegagalan invalidasi mengembalikan sukses simpan dengan warning, tanpa mengulang mutasi. Perubahan langsung melalui Data API/SQL tidak memanggil hook CMS dan mengikuti kebijakan revalidasi 60 detik untuk cache; setiap query baru tetap tunduk RLS. Halaman yang sudah diterima/tab/riwayat browser tidak dapat ditarik kembali. Link reader menonaktifkan prefetch agar lesson yang belum dibuka tidak diambil lebih awal.
 
 Client Components hanya menyimpan ID progres lokal setelah mount. HTML awal berisi daftar lesson tanpa snapshot personal. Tidak ada mutasi progres ke server, konten offline, endpoint publik baru, schema, atau dependency baru.
+
+## Reader Sekolah Sabat P4-003
+
+Tiga rute publik `/sekolah-sabat/[quarterId]`, `/sekolah-sabat/[quarterId]/[lessonId]`, dan `/sekolah-sabat/[quarterId]/[lessonId]/[dayId]` adalah Server Components yang memanggil `connection()` sebelum loader. Katalog P4-002 menjadi daftar sumber tepercaya: triwulan dan pelajaran harus anggota katalog aktif, hari harus anggota lesson tervalidasi. Path upstream dikonstruksikan dari ID yang tervalidasi; URL dari payload tidak dipakai sebagai tujuan fetch.
+
+Isi harian berupa HTML disanitasi dengan `sanitize-html` sebelum dirender. Hanya tag semantik baca, `sup`/`sub`, dan tautan HTTPS tanpa kredensial yang dipertahankan; script, resource remote, event handler, style, class, dan id dibuang. `h1` diturunkan ke `h2` agar hierarki halaman tetap satu `h1`. Konten Alkitab popup, PDF, cover, dan unduhan tidak dirender.
+
+Hasil valid di-cache Next.js satu jam dengan key tanggal WITA; kegagalan upstream menjadi `unavailable` di luar cache, sedangkan identifier invalid atau bukan anggota menjadi `not-found`. Tidak ada sesi Supabase, penyimpanan progres/identitas, analytics isi, atau cache PostgreSQL privat pada jalur reader. Snapshot cache bersifat best-effort dan dapat hilang saat cache dingin atau deploy baru.
