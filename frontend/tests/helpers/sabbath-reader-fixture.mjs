@@ -15,7 +15,7 @@ export function renderReaderFixtures() {
     "/sekolah-sabat/2026-04": render({ snapshot, quarterly }),
     "/sekolah-sabat/2026-04/07": render({ snapshot: { ...snapshot, data: lesson }, lessonId: "07" }),
     ...Object.fromEntries(days.map(day => [`/sekolah-sabat/2026-04/07/${day.id}`, render({ lessonId: "07", snapshot: { ...snapshot, lesson,
-      data: normalizeReaderDay({ ...day, content: `<h1>Judul bacaan</h1><p>Teks sintetis &amp; arti.</p><code>${"katapanjang".repeat(50)}</code><a href="javascript:alert(1)">Ayat</a><script>window.readerXss=true</script><img src="https://evil.invalid/x" onerror="window.readerXss=true">` }, lesson, day.id) } })])),
+      data: normalizeReaderDay({ ...day, content: `<h1>Judul bacaan</h1><p>Teks sintetis &amp; arti.</p><table><thead><tr><th scope="col">Hari</th><th>Tema panjang ${"katapanjang".repeat(12)}</th></tr></thead><tbody><tr><td>Senin</td><td>Doa</td></tr></tbody></table><code>${"katapanjang".repeat(50)}</code><a href="javascript:alert(1)">Ayat</a><script>window.readerXss=true</script><img src="https://evil.invalid/x" onerror="window.readerXss=true">` }, lesson, day.id) } })])),
     "/reader-unavailable": render({ snapshot: { status: "unavailable" } }),
   };
 }

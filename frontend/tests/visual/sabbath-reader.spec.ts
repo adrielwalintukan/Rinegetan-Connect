@@ -24,6 +24,7 @@ for (const width of [320, 375, 768, 1440]) test(`anonymous reader navigation, sa
   await expect(page.getByRole("heading", { name: "Hari pertama", exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   await expect(page.locator("article script, article img, article iframe, article svg")).toHaveCount(0);
+  await expect(page.locator("article table")).toHaveCount(1);
   expect(await page.evaluate(() => (window as unknown as { readerXss?: boolean }).readerXss)).toBeUndefined();
   expect(remote).toEqual([]);
   await page.addScriptTag({ content: axeSource });
