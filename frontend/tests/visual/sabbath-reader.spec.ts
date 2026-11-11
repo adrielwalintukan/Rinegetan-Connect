@@ -37,6 +37,8 @@ for (const width of [320, 375, 768, 1440]) test(`anonymous reader navigation, sa
   const dialog = page.locator("dialog");
   await expect(dialog).toHaveCount(1);
   await expect(dialog).not.toHaveAttribute("open", /.*/);
+  // Lenis hijacks page wheel events; without this the popup never scrolls and the page behind moves.
+  await expect(dialog).toHaveAttribute("data-lenis-prevent", "true");
   expect(remote).toEqual([]);
   await page.addScriptTag({ content: axeSource });
   const audit = await page.evaluate(async () => {

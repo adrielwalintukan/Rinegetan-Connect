@@ -34,8 +34,10 @@ export default function SabbathArticle({ html, verses = {}, className = "" }) {
   return (
     <>
       <article data-testid="sabbath-reading" onClick={open} className={className} dangerouslySetInnerHTML={{ __html: html }} />
+      {/* Lenis hijacks wheel events on the page; opt this native scroll container out. */}
       <dialog
         ref={dialog}
+        data-lenis-prevent
         aria-label={verse ? `Ayat ${verse.label}` : undefined}
         onClose={() => setVerse(null)}
         onClick={event => { if (event.target === dialog.current) setVerse(null); }}
