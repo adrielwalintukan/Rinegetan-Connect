@@ -10,6 +10,14 @@ const Page = load("src/components/pages/SekolahSabatPage.jsx").default;
 const render = (catalog) => renderToStaticMarkup(React.createElement(Page, { catalog, initialSchedules: [] }));
 const materialSection = (markup) => markup.match(/<section[^>]*aria-labelledby="ss-materials-title"[\s\S]*?<\/section>/)?.[0] || "";
 
+test("reader materials lead the page and local classes follow them", () => {
+  const markup = render({ status: "available", classes: [] });
+  const materialsAt = markup.indexOf('aria-labelledby="ss-materials-title"');
+  const localAt = markup.indexOf('aria-labelledby="ss-local-title"');
+  assert.ok(materialsAt >= 0 && localAt >= 0);
+  assert.ok(materialsAt < localAt, "materials must precede local class cards");
+});
+
 test("closed catalog keeps local classes and separates unavailable materials without false actions", () => {
   const markup = render({ status: "unavailable", classes: [] });
   for (const name of ["Kelas Anak-Anak", "Kelas Remaja (Pathfinder)", "Kelas Pemuda", "Kelas Dewasa"])
