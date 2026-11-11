@@ -42,6 +42,9 @@ for (const width of [320, 375, 768, 1440]) test(`anonymous reader navigation, sa
   // The note panel is client-only, so the static fixture only carries its collapsed shell.
   // Live panel behaviour is covered by tests/visual/sabbath-notes.spec.ts against a hydrated page.
   await expect(page.getByRole("button", { name: /Catatan saya/ })).toHaveAttribute("aria-expanded", "false");
+  // P4-004: download/offline stays off until the P4-005 rights gate passes, so no such control may exist.
+  await expect(page.getByRole("button", { name: /[Uu]nduh|[Oo]ffline|[Ss]impan lokal/ })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /[Uu]nduh|[Oo]ffline|[Ss]impan lokal/ })).toHaveCount(0);
   expect(remote).toEqual([]);
   await page.addScriptTag({ content: axeSource });
   const audit = await page.evaluate(async () => {

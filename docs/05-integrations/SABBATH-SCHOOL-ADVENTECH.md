@@ -81,6 +81,18 @@ Route Sekolah Sabat melewati boundary `connection()` sebelum memuat katalog sehi
 
 Paket offline disimpan di IndexedDB/Cache Storage browser dan memuat manifest, teks yang diizinkan, serta asset yang diperlukan. Paket memiliki version, size estimate, created_at, dan tombol hapus lokal. Tidak ada sinkronisasi identitas atau server.
 
+### Kontrak manifest P4-004 (2026-11-11)
+
+`frontend/src/lib/sabbath/offline.mjs` menetapkan bagian kontrak yang sudah diputuskan issue #53, tanpa mengaktifkan fitur:
+
+- `createManifest()` membangun manifest dari ID triwulan/lesson yang lolos pola reader (`YYYY-0[1-4]`, lesson dua digit, tanpa duplikat) dan menolak metadata invalid dengan `null`, bukan manifest separuh jadi. Label yang terlihat diturunkan dari data (`2026-04 · 2 pelajaran · 1,0 MB`), bukan disimpan terpisah.
+- `parseManifest()` membangun ulang manifest dari storage. Manifest adalah trust boundary, jadi bentuk objeknya tidak dipercaya; label yang tersimpan harus sama dengan label hasil turunan, sehingga file yang disunting tangan ditolak.
+- `updateAvailable()` hanya membandingkan versi untuk paket triwulan yang sama. Ini menghasilkan pesan "Update tersedia"; tidak ada unduhan otomatis.
+- `carryProgress()` mempertahankan progres hanya untuk lesson yang masih ada di paket baru, memakai kunci `quarter/lesson/day` yang sudah dipakai catatan.
+
+**Belum dibuat, dan sengaja tidak ditebak:** format arsip/protokol paket beserta library-nya, skema IndexedDB, transport unduhan, dan UI unduhan. Issue #53 mencatat format arsip sebagai keputusan yang belum diambil, dan acceptance-nya melarang tombol download/offline dirilis sebelum gate P4-005 lulus. Karena format arsip belum ada, ukuran paket nyata dan isi paket belum bisa dihitung; `sizeBytes` di kontrak ini adalah masukan pemanggil, bukan hasil pengukuran.
+
+Gate tetap tertutup dan tidak dapat dibuka pemanggil: `OFFLINE_ENABLED` adalah konstanta modul, bukan parameter fungsi. Suite `sabbath-reader.spec.ts` menegaskan halaman reader tidak merender kontrol unduh/offline selama gate tertutup; asersi itu terbukti bisa gagal ketika tombol "Unduh paket" disuntikkan ke fixture.
 Fase 4 menyediakan mekanisme konten/paket. Fase 5 menambahkan shell PWA installable, strategi cache aplikasi, dan mekanisme update yang matang.
 
 ## Gate lisensi wajib
