@@ -5,6 +5,7 @@ import { getPublishedDepartments } from "@/lib/public/queries";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/pelayanan" },
   title: "Departemen & Pelayanan Jemaat",
   description:
     "Sembilan departemen pelayanan GMAHK Rinegetan: Diakon, Pelayanan Pemuda, Komunikasi, Pelayanan Pribadi, dan Pelayanan Anak.",
