@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { CHURCH } from "@/data/content";
 import "./globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gmahkrinegetan.web.id";
@@ -45,12 +46,78 @@ export const metadata: Metadata = {
   },
 };
 
+// Structured data for the church itself, rendered on every page so Google can
+// link the site to the congregation, its pin, and its weekly service times.
+// Only verified values from content.js are used: no phone, email, street number,
+// or closing time is invented.
+const [latitude, longitude] = String(CHURCH.mapsQuery)
+  .split(",")
+  .map((value) => Number(value.trim()));
+
+const geoCoordinates =
+  Number.isFinite(latitude) && Number.isFinite(longitude)
+    ? { "@type": "GeoCoordinates", latitude, longitude }
+    : undefined;
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "Church",
+  "@id": `${siteUrl}/#gereja`,
+  name: `${CHURCH.fullName} Jemaat Rinegetan`,
+  alternateName: [CHURCH.name, "Gereja Advent Rinegetan", "GMAHK Tondano"],
+  description:
+    "Website resmi Gereja Masehi Advent Hari Ketujuh Jemaat Rinegetan, Tondano, Kabupaten Minahasa, Sulawesi Utara. Jadwal Sekolah Sabat, ibadah Sabat, dan kegiatan jemaat.",
+  url: siteUrl,
+  logo: `${siteUrl}/icon.svg`,
+  image: `${siteUrl}/opengraph-image`,
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "Rinegetan",
+    addressLocality: "Tondano",
+    addressRegion: "Sulawesi Utara",
+    addressCountry: "ID",
+  },
+  geo: geoCoordinates,
+  hasMap: "https://maps.app.goo.gl/dUfu9roHcnH5pfdn8",
+  openingHoursSpecification: [
+    {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: "https://schema.org/Saturday",
+      opens: "08:45",
+    },
+    {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: "https://schema.org/Saturday",
+      opens: "10:15",
+    },
+    {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: "https://schema.org/Wednesday",
+      opens: "19:00",
+    },
+    {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: "https://schema.org/Friday",
+      opens: "18:30",
+    },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="id" className="h-full antialiased">
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        {children}
+        <script
+          type="application/ld+json"
+          // Static data only; escaping "<" keeps the payload safe inside HTML.
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
+          }}
+        />
+      </body>
     </html>
   );
 }
