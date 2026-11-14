@@ -25,7 +25,8 @@ export default defineConfig({
         },
     ],
     webServer: {
-        command: "npm run build && npm run start -- --port 3412",
+        // CI builds once with local Supabase settings before the browser suites; locally this builds itself.
+        command: process.env.CI ? "npm run start -- --port 3412" : "npm run build && npm run start -- --port 3412",
         url: "http://127.0.0.1:3412",
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,

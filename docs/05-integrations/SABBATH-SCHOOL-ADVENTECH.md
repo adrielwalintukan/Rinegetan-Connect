@@ -19,6 +19,8 @@ Adventech upstream
 
 Adapter memvalidasi bahasa, class, quarter, lesson ID, judul, urutan, isi, URL asset, attribution, dan version. Bila sumber gagal, UI menunjukkan status terakhir yang di-cache beserta waktu pembaruan, bukan mengarang konten.
 
+Fondasi P4-001 menyediakan normalisasi metadata dan segmen sintetis, mekanisme refresh/fallback, serta tabel cache privat tanpa grant tabel bagi aplikasi. RPC baca/tulis tersambung melalui sesi Supabase server, dengan pemeriksaan Admin aktif dan gate hak di database; gate database dan entri server tetap tertutup. Kode RPC diuji dengan fixture sintetis dan gate sementara dalam transaksi rollback. Saat fondasi ini dibuat, register hak, pemetaan seluruh kelas dan jenis blok, reader, serta aktivasi nyata belum tersedia; katalog dan reader online kemudian diaktifkan oleh P4-002/P4-003 di bawah. Lihat [catatan analisis P4-001](../04-delivery/records/P4-001-ANALYSIS-2026-11-07.md).
+
 ## Bahasa dan kelas
 
 Target UI hanya Bahasa Indonesia. Urutan kelas yang diinginkan:
@@ -31,12 +33,48 @@ Target UI hanya Bahasa Indonesia. Urutan kelas yang diinginkan:
 
 Kelas tampil hanya bila sumber benar-benar menyediakan versi Bahasa Indonesia yang valid. Bila materi anak/remaja Indonesia tidak ada, antarmuka menampilkan Dewasa Indonesia saja tanpa tab kosong dan tanpa mengganti bahasa secara diam-diam.
 
+Mekanisme P4-002 memakai pemetaan kelas eksplisit dari lapisan tepercaya, bukan tebakan suffix ID sumber. Input invalid, kelas tak dikenal dan kelas duplikat/ambigu diabaikan; kegagalan satu kelas tidak menyembunyikan kelas lain yang valid. Bila Dewasa juga invalid, jangan mengarang fallback. Fixture seluruh kelas hanya menguji aturan seleksi, bukan membuktikan ketersediaan upstream. Pada tahap sintetis sebelum aktivasi, loader selalu unavailable dan belum ada read model cache publik; status historis ini telah digantikan oleh aktivasi online di bawah. Loader kini menyediakan katalog Dewasa aktif tervalidasi dari `/in/` melalui cache Next.js tanpa sesi staf. Halaman mempertahankan kelas jemaat lokal terpisah, menampilkan atribusi dan tautan resmi, tanpa cover upstream. Tautan internal menuju daftar pelajaran disediakan oleh P4-003. Lihat [bukti P4-002](../04-delivery/records/P4-002-2026-11-10.md).
+
 ## Cache dan update
+
+### Aktivasi katalog online (konfirmasi 2026-11-10)
+
+Pemilik mengonfirmasi izin pemegang hak untuk fetch, penayangan dan cache server materi Indonesia, lalu menyetujui [rencana integrasi nyata](../superpowers/plans/2026-11-10-p4-002-live-catalog.md). Keputusan ini menggantikan asumsi gate katalog sintetis tertutup di atas. Dokumen izin privat tidak disalin ke repository; rincian pemegang izin/cakupan/tanggal dan penanggung jawab tetap dicatat dalam register operasional gereja. Izin offline tidak disimpulkan dari konfirmasi ini.
+
+API Indonesia yang diverifikasi adalah `https://sabbath-school.adventech.io/api/v2/in/quarterlies/index.json`, bukan `/id/` (yang mengembalikan HTML SPA dengan status 200). Source identity `in-…` dipertahankan; label bahasa aplikasi tetap Indonesia (`id`). Seri quarterly standar Indonesia terverifikasi sebagai Dewasa; tidak ada pemetaan anak/remaja yang ditebak dari suffix. Katalog memilih hanya satu periode aktif berdasarkan tanggal sumber dan zona Asia/Makassar, tanpa menebak triwulan mendatang atau bahasa lain. Reader tetap dapat membuka triwulan lampau yang URL-nya sudah diketahui melalui verifikasi langsung (lihat retensi di bawah).
+
+Loader online memakai cache hasil tervalidasi Next.js selama satu jam, dipisah menurut tanggal WITA agar pergantian periode tidak memakai entri hari sebelumnya. Fetch tidak memakai cache respons mentah. HTML, redirect, JSON rusak, payload melebihi 2 MiB, sumber tanpa version, identitas/tanggal silang dan metadata invalid ditolak sebelum hasil disimpan. Kegagalan dilempar dari fungsi cache, lalu diterjemahkan menjadi unavailable di luar cache. Revalidasi Next.js dapat menyajikan hasil terakhir yang valid selama penyegaran latar belakang; waktu fetch ditampilkan pada UI. Snapshot yang kedaluwarsa pada pergantian hari tidak dibaca sebagai fallback lintas hari.
+
+Probe 2026-11-10 menghasilkan “Karunia Nubuat”, periode 26/09/2026–25/12/2026, 13 pelajaran, `in-2026-04`. Metadata triwulan ini tidak menyertakan credits dan berkas credits bahasa resmi memiliki nilai kosong; UI menyebut Adventech sebagai sumber teknis, bukan mengarang penulis/penerbit atau mengambil credits triwulan lain. Credits yang disediakan harus valid dan dirender sebagai teks. Empat kelas jemaat lokal tetap terpisah.
+
+### Reader online P4-003 (2026-11-11)
+
+Reader memakai endpoint nyata yang diverifikasi: daftar pelajaran `…/2026-04/lessons/07/index.json` dan bacaan harian `…/2026-04/lessons/07/days/05/read/index.json`. Path `read.json` tanpa `/index.json` dan path lesson tanpa segmen `/lessons/` dapat mengembalikan HTML SPA berstatus 200; karena itu konten-type, redirect, ukuran, JSON dan version divalidasi sebelum hasil dipakai. Semua path fetch dikonstruksikan dari ID route yang tervalidasi; `read_path`/`full_read_path` upstream tidak pernah menjadi tujuan fetch.
+
+Validasi induk-anak mencakup: lesson harus anggota triwulan yang diminta dan sudah tervalidasi, `lesson.index` harus `in-<quarter>-<lesson>`, hari harus anggota lesson, `day.index` harus `<lesson.index>-<day>`, tanggal harus valid dan berada di dalam periode lesson, urutan tanggal menaik, serta `read_path` harus cocok dengan ID yang dikonstruksikan. Identifier invalid atau bukan anggota induk menghasilkan `not-found` (404); gangguan upstream menghasilkan `unavailable` dengan halaman fallback, bukan 404 palsu dan bukan materi karangan.
+
+Retensi triwulan: `loadSabbathQuarter()` memakai entri katalog aktif bila cocok. Jika tidak, ia mengambil `…/<quarterId>/index.json` langsung dan memvalidasi `id`, `index`, serta `start_date`/`end_date`; URL triwulan lampau tetap dapat dibaca setelah pergantian triwulan. Triwulan yang belum dimulai (`start_date` melewati tanggal WITA) dan triwulan yang tidak ada di sumber (HTTP 404) menjadi `not-found`; gangguan lain menjadi `unavailable`. Daftar pelajaran dan hari ikut memakai resolver ini, sehingga URL lama tidak mati saat katalog berpindah ke triwulan baru.
+
+Isi harian upstream adalah HTML, sehingga dirender hanya setelah disanitasi dengan `sanitize-html` (parser terpelihara). Tag yang diizinkan: `p`, `h2`–`h4`, `em`, `strong`, `ul`, `ol`, `li`, `blockquote`, `code`, `br`, `sup`, `sub`, `a`, serta `table`/`thead`/`tbody`/`tr`/`th`/`td`. Heading dinormalkan agar hierarki tidak melompat: `h1`/`h3` menjadi `h2`, `h4` menjadi `h3`. Tabel mempertahankan `scope`, `colspan`, `rowspan`; tabel lebar dapat digulir horizontal di dalam artikel. Semua atribut selain `href`/`rel` pada anchor dan atribut tabel tersebut dibuang; script/style/iframe/svg/img dan atribut event/style/class/id dihapus. Hanya tautan `https:` tanpa kredensial yang dipertahankan, dengan `rel="noopener noreferrer"`. PDF, cover, dan unduhan tidak dirender.
+
+### Popup ayat (2026-11-11)
+
+Respons bacaan harian juga memuat `bible` (array `{ name, verses }`), yaitu bunyi ayat untuk referensi yang dipakai hari itu. Bunyi tersebut tidak perlu di-fetch terpisah. `normalizeReaderDay` mengubah referensi ayat upstream (`<a class="verse" verse="Matt75">Mat. 7: 5</a>`) menjadi `<button type="button" data-verse="Matt75">` hanya bila referensi itu punya bunyi ayat yang lolos sanitasi; referensi tanpa bunyi ayat tetap teks biasa seperti sebelumnya, sehingga tidak ada tombol mati. `verses` disanitasi dengan daftar tag yang sama tanpa `a`/`button` dan tanpa atribut apa pun, lalu dikirim sebagai snapshot ke komponen klien.
+
+`SabbathArticle` (klien) menangani satu klik terdelegasi pada artikel dan membuka `<dialog>` native: focus trap, Escape, dan pengembalian fokus ke tombol asal ditangani browser, bukan kode sendiri. Dialog juga menutup saat backdrop diklik, menggulir isinya sendiri untuk referensi panjang, dan mengunci scroll halaman selama terbuka. Label dialog memakai teks referensi yang diklik (mis. “Ayat Mat. 7: 5”). Popup ini tidak menambah request jaringan: seluruh bunyi ayat sudah ada di HTML server.
+
+Cache hasil valid memakai Next.js `unstable_cache` satu jam dengan key tanggal WITA; katalog, triwulan, lesson, dan hari memiliki cache terpisah. Kegagalan dilempar di dalam cache lalu diterjemahkan menjadi `unavailable` di luar cache. Revalidasi latar belakang dapat menyajikan snapshot valid terakhir selama penyegaran; cache dingin atau deploy baru tidak menjamin snapshot lama tersedia. Cache ini bukan paket offline dan tidak membuka RPC PostgreSQL privat.
+
+Reader tidak meminta akun, tidak menyimpan identitas/progres di Supabase, tidak mengirim isi bacaan ke analytics, dan tidak menyediakan unduhan/offline. Navigasi hari sebelumnya/berikutnya dibatasi pada lesson yang sama. Lihat [catatan P4-003](../04-delivery/records/P4-003-2026-11-11.md).
+
+RPC PostgreSQL privat tetap khusus Admin dengan gate tertutup. Aktivasi katalog dan reader online tidak mengubah grant/RLS, tidak menyimpan progres/identitas pengunjung, dan tidak mengaktifkan paket offline atau download.
+
+Route Sekolah Sabat melewati boundary `connection()` sebelum memuat katalog sehingga Full Route Cache ISR tidak membekukan tanggal WITA; cache data katalog eksplisit tetap berlaku. Tautan kembali memakai komponen bersama `BackLink` (ikon panah dekoratif + teks), daftar pelajaran menampilkan label “Pelajaran N”, dan tanggal hari ditampilkan sebagai hari + tanggal Indonesia (mis. “Sabtu, 7 November 2026”).
 
 - Fetch hanya dari server; browser tidak mengakses upstream langsung.
 - Simpan source identifier/version, fetched_at, checksum/etag bila tersedia, dan status validasi.
 - Tetapkan TTL dan refresh on-demand/terjadwal sesuai batas penyedia serta kapasitas pilot.
-- Publik melihat pesan Update tersedia ketika manifest lokal lebih baru; pengguna memilih kapan mengunduh pembaruan.
+- Publik melihat pesan Update tersedia ketika manifest sumber di server lebih baru daripada versi paket lokal di browser; pengguna tetap memilih kapan mengunduh pembaruan secara manual.
 - Progres lokal memakai source/lesson ID stabil. Pembaruan konten tidak boleh menghapus progres bila lesson ID tetap ada.
 
 ## Offline
@@ -55,9 +93,16 @@ Sebelum gate lulus:
 - Tombol offline/download harus nonaktif atau tidak dirilis.
 - Jangan mengasumsikan lisensi repository untuk kode otomatis memberi hak menggandakan isi pelajaran.
 
+Batas awal P4-005 melarang cache/offline sebelum izin tertulis; keputusan cache server online telah diselesaikan melalui konfirmasi pemilik pada 2026-11-10 sebagaimana bagian aktivasi di atas. Offline/download tetap memerlukan izin tertulis dan pengesahan cakupan tersendiri; RPC privat tetap tertutup. Urutan dependensi: adapter server → katalog/reader online → mekanisme paket lokal → gate izin.
+
 Setelah gate lulus, catat pemegang izin, cakupan bahasa/kelas, tanggal berlaku, batas perubahan/distribusi, dan orang penanggung jawab dalam register operasional gereja.
 
 ## Kegagalan dan privasi
+
+### Fondasi yang dapat direview sebelum aktivasi
+
+PR fondasi P4-001 membatasi implementasi pada normalizer metadata quarterly/lesson dan blok paragraph/heading, fetch server, cache PostgreSQL privat, serta penolakan akses ketika gate hak tertutup. Pemeriksaan integrasi lokal memakai Supabase/PostgREST dan akun sintetis anon, Editor, serta Admin; tes SQL mencakup penulisan/pembacaan dengan gate dibuka hanya dalam transaksi yang di-rollback. Ini belum menyediakan katalog/read model publik, renderer materi lengkap atau refresh berbasis TTL. Penerimaan penuh P4-001 tetap menunggu pemetaan kelas, TTL, format materi serta pengesahan hak; kesiapan review fondasi tidak berarti izin aktivasi.
+
 
 - Jangan menyimpan identitas atau progres pengguna di Supabase.
 - Jangan mengirim isi paket ke analytics.

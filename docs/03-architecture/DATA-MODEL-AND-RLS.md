@@ -28,7 +28,7 @@
 
 ### Tabel Phase 3
 
-P3-001 menyediakan courses dan course_lessons. Berikutnya: course_imports, study_interest_leads, prayer_requests, visitor_submissions, consent_records, dan form_rate_events.
+P3-001 menyediakan courses dan course_lessons; P3-003 menambah course_imports; P3-004 menambah study_interest_leads dan form_rate_events; P3-005 menambah prayer_requests dan visitor_submissions (lihat bawah). Persetujuan lead disimpan di baris lead; `consent_records` tetap khusus persetujuan foto media.
 
 ### Tabel Phase 4–5
 
@@ -60,6 +60,50 @@ RLS lesson memeriksa status induk di database, termasuk lookup langsung melalui 
 
 Trigger terpisah `private.record_course_content_audit()` mencatat `content.created`, `content.updated`, `content.status_changed`, dan `content.deleted`, dengan entity_type `courses`/`course_lessons`, actor sesi, status, course_id dan posisi lama/baru yang relevan. Setiap UPDATE menyertakan array `changed_fields` terurut dari allowlist `title`, `slug`, `summary`, `status`, serta `body`, `position` khusus lesson; hanya nama field yang benar-benar berubah dicatat, tanpa menyalin isi summary/body lama atau baru. Metadata otomatis dan identifier tidak termasuk; no-op menghasilkan `[]`. Perubahan status bersamaan dengan field lain tetap memakai `content.status_changed`. Delete mencatat alasan standar `Penghapusan permanen course oleh Admin` atau `Penghapusan permanen lesson oleh Admin` dalam transaksi yang sama, tanpa RPC alasan terpisah. Audit tetap hanya dapat dibaca Admin dan tidak dapat ditulis langsung oleh role Data API. Kedua fungsi trigger memiliki search_path kosong dan executable grant dicabut dari PUBLIC/anon/authenticated; SECURITY DEFINER metadata hanya digunakan untuk pemeriksaan lifecycle FK Auth.
 
+### course_imports (P3-003)
+
+Staging impor course; hasil impor masuk `courses`/`course_lessons` hanya setelah Admin menyetujui. Kolom: id, status (`pending`/`approved`/`rejected`, default `pending`), payload (jsonb), course_title, course_slug, lesson_count (1-100), source_name/source_url/rights_holder, license_name/license_url/license_notes, created_by/created_at, reviewed_by/reviewed_at, review_note (wajib saat `rejected`), course_id (FK `courses` ON DELETE SET NULL, terisi saat `approved`).
+
+- Constraint: payload maksimal 2.097.152 byte, `payload->'lessons'` array 1-100 sama dengan lesson_count, slug dan title payload sama dengan `course_slug`/`course_title` (constraint `course_imports_course_match`); `course_imports_payload_contract` menegakkan kontrak parser di database (format, `language = id`, kunci yang diizinkan, panjang teks, slug, URL `https://`, posisi dan slug lesson unik) sehingga insert langsung lewat Data API tidak melewati validasi; partial unique index pada course_slug untuk `pending`.
+- Trigger insert memaksa `pending`, `created_by = auth.uid()`, mengosongkan field keputusan, dan menolak slug yang sudah ada di `courses`. Trigger update menolak perubahan payload, sumber/lisensi, metadata pembuat, dan transisi selain `pending` ke `approved`/`rejected`. Audit `course_import.created/approved/rejected` tanpa payload.
+- RLS/grant: anon tanpa akses; authenticated memiliki select/insert/update tanpa delete. Select dan insert untuk Editor/Admin; update hanya Admin dan hanya untuk penolakan (`rejected`, `review_note` terisi, `course_id` kosong).
+- `public.approve_course_import(p_import_id uuid) returns uuid`: SECURITY DEFINER, `search_path` kosong, execute hanya untuk authenticated, menolak non-Admin. Mengunci baris (`for update`), mensyaratkan `pending`, lalu dalam satu transaksi membuat course dan lesson Draft (hanya title, slug, summary, body, position) dan menandai impor `approved` dengan `course_id`. Pelanggaran slug membatalkan seluruh transaksi.
+
+Migration: `20261025000000_p3_003_course_imports.sql`. Panduan operasi: [CONTENT-OPERATIONS](../04-delivery/CONTENT-OPERATIONS.md).
+
+### study_interest_leads dan form_rate_events (P3-004)
+
+Lead minat belajar dari form publik. Kolom: id, name (1-100), contact (1-254, email sederhana atau nomor telepon 8-15 digit), message (0-1000, default kosong), status (`new`/`contacted`/`closed`, default `new`), consent_version, consented_at, created_at, handled_by (FK `auth.users` ON DELETE SET NULL), handled_at. Teks terpangkas dibatasi constraint.
+
+- Ditulis hanya oleh route server `POST /api/minat-belajar` dengan server key; anon dan authenticated tidak punya grant insert.
+- RLS/grant: authenticated hanya select/update, keduanya untuk Admin aktif (`private.is_admin()`); tidak ada delete untuk role mana pun; baris hanya keluar lewat `purge_expired_pastoral_data()` (P3-006, lihat di bawah) atau SQL cadangan [runbook retensi dan penghapusan lead](../04-delivery/RETENTION-DELETION-RUNBOOK.md).
+- Trigger: insert memaksa `new` tanpa penanganan; update hanya boleh mengubah status dan mengisi handled_by/handled_at, selain itu `study_interest_immutable`; update yang mengirim ulang status yang sama (retry atau tampilan basi) mempertahankan handled_by/handled_at lama karena audit tidak mencatat update tanpa perubahan status; pembersihan ON DELETE SET NULL handled_by diizinkan. Audit `study_interest.created`/`study_interest.status_changed` hanya berisi status, tanpa nama, kontak, atau pesan.
+- `form_rate_events` (form, ip_hash, created_at) tanpa grant untuk role mana pun; diakses hanya lewat `public.check_form_rate(form, ip_hash, limit, window)` (SECURITY DEFINER, execute hanya service_role) yang menghapus event lebih tua dari 24 jam dan mengunci per hash. ip_hash adalah HMAC-SHA256 IP berkunci server (32 hex).
+
+Migration: `20261026000000_p3_004_study_interest.sql`, `20261103000000_p3_004_study_interest_same_status.sql`.
+
+### prayer_requests dan visitor_submissions (P3-005)
+
+- `prayer_requests`: id, name (0-100, opsional), contact (0-254; bila diisi email sederhana atau telepon 8-15 digit), request (1-2000), wants_contact (hanya benar bila contact diisi, constraint `prayer_requests_contact_for_reply`), status (`new`/`prayed`/`closed`), consent_version, consented_at, created_at, handled_by (FK `auth.users` ON DELETE SET NULL), handled_at.
+- `visitor_submissions`: id, name (1-100), contact (1-254, format sama dengan P3-004), visit_date (date opsional; "tidak lampau" diperiksa route agar baris lama tetap valid), party_size (1-20 opsional), message (0-1000), status (`new`/`contacted`/`closed`), kolom consent dan penanganan yang sama.
+- Ditulis hanya oleh route `POST /api/doa` dan `POST /api/kunjungan` dengan server key. `service_role` hanya insert (hak default dicabut eksplisit); authenticated select/update untuk Admin aktif (`private.is_admin()`); tidak ada delete untuk role mana pun; anon dan Editor tanpa akses.
+- Trigger generik `private.prepare_pastoral_row(pesan)` memaksa `new` saat insert dan hanya mengizinkan perubahan status (`prayer_request_immutable`/`visitor_submission_immutable`), dengan pembersihan ON DELETE SET NULL yang sama. Mengirim ulang status yang sama mempertahankan handled_by/handled_at lama dan tidak menambah audit. `private.record_pastoral_audit(prefix)` mencatat `prayer_request.created`/`.status_changed` dan `visitor_submission.created`/`.status_changed` dengan status saja.
+- `form_rate_events.form` kini menerima `prayer`, `prayer_attempt`, `visit`, dan `visit_attempt`; `check_form_rate` tidak berubah.
+- Penghapusan mingguan pada cut-off 24 bulan dikurangi 120 hari lewat fungsi P3-006 di bawah, dengan SQL [runbook retensi](../04-delivery/RETENTION-DELETION-RUNBOOK.md) sebagai cadangan.
+
+Migration: `20261102000000_p3_005_prayer_visit.sql`.
+
+### Retensi dan audit akses pastoral (P3-006)
+
+Tanpa tabel, kolom, atau grant `DELETE` baru. Ketiga fungsi publik memakai `SECURITY DEFINER`, `search_path` kosong, menolak non-Admin aktif dengan `42501` (`pastoral_admin_only`), execute dicabut dari `public`/`anon`/`service_role` dan diberikan hanya ke `authenticated`.
+
+- `private.pastoral_retention_cutoff()`: `now() - interval '24 months' + interval '120 days'`, satu-satunya sumber cut-off; tidak dapat dieksekusi role Data API.
+- `public.expired_pastoral_counts()`: jumlah baris `study_interest_leads`, `prayer_requests`, `visitor_submissions` sebelum cut-off.
+- `public.purge_expired_pastoral_data()`: menghapus semua baris sebelum cut-off di ketiga tabel dalam satu transaksi dan mencatat `study_interest.purged`, `prayer_request.purged`, `visitor_submission.purged` (entity_type nama tabel, entity_id null, `{deleted, cutoff}`), termasuk bila 0.
+- `public.record_pastoral_access(int, int, int)`: satu `pastoral.viewed` (entity_type `pastoral_data`, entity_id null) berisi jumlah baris per tabel, masing-masing 0-50; nilai lain `23514` (`pastoral_access_count_invalid`). Portal memanggilnya setelah memuat data dan tidak menampilkan data bila gagal.
+
+Migration: `20261103010000_p3_006_pastoral_retention.sql`.
+
 ### events
 
 Memuat title, slug, summary, body, starts_at, ends_at, all_day, timezone, venue, department_id, cover_asset_id, status, published_at. Validasi: ends_at tidak boleh sebelum starts_at; timezone default Asia/Makassar.
@@ -90,6 +134,8 @@ departments ──0:N── media_albums
 media_albums ──N:M── media_assets melalui album_assets
 media_assets ──1:N── consent_records
 courses ──1:N── course_lessons (RESTRICT)
+course_imports ──0:1── courses (SET NULL)
+study_interest_leads ──0:1── auth.users melalui handled_by (SET NULL)
 ~~~
 
 Gunakan soft archive untuk konten. Penghapusan permanen melakukan pemeriksaan relasi, penghapusan object Storage yang aman, dan audit log; hanya Admin.
@@ -104,6 +150,7 @@ Gunakan soft archive untuk konten. Penghapusan permanen melakukan pemeriksaan re
 | profiles/staff_roles | Tidak | Baca profil sendiri minimum | Kelola staf/role |
 | audit_logs | Tidak | Tidak | SELECT |
 | schedules/settings publik | SELECT filter Published | CRUD relevan | CRUD |
+| course_imports | Tidak | SELECT/INSERT | SELECT/INSERT + tolak; setujui lewat fungsi approve |
 | prayer_requests/visitor_submissions/leads | Tidak | Tidak | CRUD/ekspor terkontrol |
 | storage object | Read jika metadata mengizinkan | Scoped upload/edit | Scoped full control |
 
@@ -138,7 +185,7 @@ Tambah indeks hanya sesudah melihat pola query dan EXPLAIN ANALYZE pada data rep
 
 ## Kontrak audit
 
-Audit mencatat action, actor_id, entity_type, entity_id, occurred_at, request correlation ID, serta delta terredaksi. Jangan catat password, token, payload doa lengkap, nomor telepon lengkap, atau URL bertanda tangan di audit log.
+Audit mencatat action, actor_id, entity_type, entity_id, occurred_at, request correlation ID, serta delta terredaksi. Jangan catat password, token, payload doa lengkap, nomor telepon lengkap, atau URL bertanda tangan di audit log. Audit pastoral P3-006 (`pastoral.viewed`, `*.purged`) hanya berisi jumlah dan cut-off, tanpa id baris.
 
 ## Lifecycle staf P2-203
 

@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import { GridGuides } from "@/components/layout/CreationGrid";
 import { LessonLearningActions } from "@/components/learning/LessonLearningActions";
+import BackLink from "@/components/ui/BackLink";
 import { getPublicCourse, getPublicCourseLessons, getPublicLesson } from "@/lib/courses/public-queries";
 
 type Props = { params: Promise<{ courseSlug: string; lessonSlug: string }> };
@@ -46,7 +47,8 @@ export default async function BibleLesson({ params }: Props) {
         <nav aria-label="Navigasi pelajaran" className="mt-8 flex flex-wrap gap-4 border-t border-navy/10 pt-6">
           {previous && <Link prefetch={false} href={`${courseUrl}/${previous.slug}`} className="btn-secondary min-h-11">Sebelumnya: {previous.title}</Link>}
           {next && <Link prefetch={false} href={`${courseUrl}/${next.slug}`} className="btn-primary min-h-11">Berikutnya: {next.title}</Link>}
-          <Link prefetch={false} href={courseUrl} className="inline-flex min-h-11 items-center text-sm font-semibold text-navy underline underline-offset-4">Kembali ke course</Link>
+          <BackLink href={courseUrl}>Kembali ke course</BackLink>
+          <Link prefetch={false} href="/pelajari-alkitab#ingin-belajar" className="inline-flex min-h-11 items-center text-sm font-semibold text-navy underline underline-offset-4">Ingin belajar bersama?</Link>
         </nav>
       </article>
     </div>

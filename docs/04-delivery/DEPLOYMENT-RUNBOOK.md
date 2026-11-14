@@ -33,7 +33,7 @@ Acuan resmi, diperiksa 18 Oktober 2026: [konfigurasi region fungsi Vercel](https
 
 ## Penanda rilis Phase 2
 
-Tag anotasi lokal `v2.0.0` dibuat pada commit rilis `main` `0615e638e902a310c9d7d5d61fc7876f51bb0ffb`. Tag lokal belum berarti tersedia di remote. Verifikasi dari root repository dengan PowerShell 5.1:
+Tag anotasi lokal `v2.0.0` dibuat pada commit rilis `main` `0615e638e902a310c9d7d5d61fc7876f51bb0ffb`. Tag lokal belum berarti tersedia di remote. Tag ini dipublikasikan ke remote pada 24 Oktober 2026 setelah persetujuan pemilik (OPS-005); langkah di bawah tetap menjadi acuan verifikasi. Verifikasi dari root repository dengan PowerShell 5.1:
 
 ```powershell
 $phase2ReleaseCommit = '0615e638e902a310c9d7d5d61fc7876f51bb0ffb'

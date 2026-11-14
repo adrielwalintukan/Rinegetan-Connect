@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowDown, ArrowUpRight } from "lucide-react";
+import { ArrowDown, BookOpen } from "lucide-react";
 import { KineticLines } from "@/components/motion/KineticLines";
 import { GridGuides } from "@/components/layout/CreationGrid";
 import { AdventistSymbol } from "@/components/identity/AdventistSymbol";
@@ -86,21 +86,21 @@ export const Hero = ({ sectionMedia = null }) => {
                         transition={{ duration: 0.8, delay: 0.85 }}
                         className="mt-9 flex flex-wrap items-center gap-3"
                     >
-                        <a href="#sabat" data-testid="hero-cta-jadwal-ibadah" className="btn-primary">
-                            Jadwal Ibadah
-                            <ArrowDown className="h-4 w-4" aria-hidden="true" />
-                        </a>
                         <Link
-                            prefetch={false} href="/pelajari-alkitab"
-                            data-testid="hero-cta-pelajari-alkitab"
-                            className="btn-secondary group"
+                            prefetch={false} href="/sekolah-sabat"
+                            data-testid="hero-cta-sekolah-sabat"
+                            className="btn-primary group"
                         >
-                            Pelajari Alkitab
-                            <ArrowUpRight
-                                className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                            Pelajaran Sekolah Sabat
+                            <BookOpen className="h-4 w-4" aria-hidden="true" />
+                        </Link>
+                        <a href="#sabat" data-testid="hero-cta-jadwal-ibadah" className="btn-secondary group">
+                            Jadwal Ibadah
+                            <ArrowDown
+                                className="h-4 w-4 transition-transform duration-300 group-hover:translate-y-0.5"
                                 aria-hidden="true"
                             />
-                        </Link>
+                        </a>
                     </motion.div>
 
                     <motion.div
@@ -115,7 +115,8 @@ export const Hero = ({ sectionMedia = null }) => {
                             src={heroSrc}
                             alt={heroAlt}
                             style={heroPosition === "contain" ? undefined : { y: imgY }}
-                            className={
+                            // Scroll-linked parallax is not an animation, so skipAnimations cannot stop it; CSS can.
+                            className={`motion-reduce:![transform:none] ${
                                 heroPosition === "contain"
                                     ? "h-full w-full object-contain"
                                     : heroPosition === "bottom"
@@ -123,7 +124,7 @@ export const Hero = ({ sectionMedia = null }) => {
                                     : heroPosition === "top"
                                     ? "h-full w-full object-cover object-top will-change-transform"
                                     : "h-[110%] w-full object-cover object-center will-change-transform"
-                            }
+                            }`}
                             fetchPriority="high"
                         />
                         <figcaption className="absolute bottom-4 left-4 flex items-center gap-2 rounded-full bg-navy/80 px-4 py-2 text-xs font-medium text-white backdrop-blur-md">
@@ -142,14 +143,15 @@ export const Hero = ({ sectionMedia = null }) => {
                     className="flex flex-row items-center justify-between gap-5 rounded-xl border border-sabbath-500/30 bg-sabbath-100/70 p-5 lg:col-span-1 lg:min-h-[32rem] lg:flex-col lg:items-center lg:justify-between lg:border-y-0 lg:border-l lg:border-r-0 lg:border-t-0 lg:bg-transparent lg:p-0 lg:pl-8"
                 >
                     <span className="font-mono text-[0.6875rem] font-medium uppercase tracking-[0.3em] text-sabbath-700 lg:[writing-mode:vertical-rl] lg:rotate-180">
-                        Sabat · Jumat petang – Sabtu petang
+                        Sabat · Jumat matahari terbenam sampai Sabtu matahari terbenam
                     </span>
-                    <div className="text-sabbath-600">
+                    {/* The church symbol keeps its original amber; logos are exempt from text contrast. */}
+                    <div className="text-[#C98F26]">
                         <AdventistSymbol className="h-12 w-12 lg:h-16 lg:w-16" />
                     </div>
                     <div className="hidden text-center lg:block">
                         <p className="font-serif text-lg italic text-navy">Sabtu</p>
-                        <p className="mt-1 font-mono text-xs text-slate-500">
+                        <p className="mt-1 font-mono text-xs text-slate-600">
                             {SABBATH.items[0].time}
                         </p>
                     </div>

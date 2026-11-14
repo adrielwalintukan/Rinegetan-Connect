@@ -56,3 +56,99 @@ Login staf serta smoke test dengan data nyata tetap dijalankan oleh pemilik; jan
 ## Konfirmasi pemilik yang masih diperlukan
 
 Pemilik menetapkan tujuan penyimpanan kedua, menunjuk pemegang key kedua, memastikan revoke key yang terekspos, dan menilai consent "Global Youth Day". Catat hasil dan tanggal tanpa nilai key, bukti consent berisi data pribadi, atau URL privat. Publikasi tag serta promote production mengikuti persetujuan eksplisit dan gate pada [runbook deployment](../DEPLOYMENT-RUNBOOK.md).
+
+## Pembaruan status — 2026-10-23
+
+Pembaruan ini menambahkan keputusan pemilik dan hasil rilis sesudah 18 Oktober. Tabel di atas dipertahankan sebagai riwayat.
+
+| # | Tindak lanjut | Status per 23 Oktober | Sumber |
+| --- | --- | --- | --- |
+| 1 | Salinan backup ke penyimpanan kedua | Deferred sampai akhir atas keputusan pemilik | OPS-003 (#63) |
+| 2 | Pemegang kunci `age` kedua | Deferred sampai akhir atas keputusan pemilik | OPS-004 (#64) |
+| 3 | Pencabutan key yang pernah terekspos | Selesai menurut konfirmasi pemilik 18 Oktober: secret key lama dihapus, secret key baru khusus Production, legacy API key dinonaktifkan. Agent tidak membaca atau mencoba nilai key. | PR #39 |
+| 4 | Leaked-password protection | Tidak berubah: tidak tersedia pada paket Free | — |
+| 5 | Region fungsi `sin1` | Diterapkan production 23 Oktober; rute dinamis teramati `sin1::sin1` | [OPS-001](OPS-001-2026-10-23.md) |
+| 6 | Cleanup Storage saat hard delete dan toggle unduhan album | Kode merge (PR #38) dan dirilis 23 Oktober; migration audit album diterapkan. Orphan historis kondisional: inventaris baca-saja dahulu, pembersihan hanya atas persetujuan | OPS-007 (#67) |
+| 7 | Consent media "Global Youth Day" | Sudah Draft sejak 18 Oktober; review bukti izin masih menunggu pemilik | OPS-006 (#66) |
+| 8 | Penomoran Sprint 5 | Tidak berubah: selaras dengan backlog | — |
+| 9 | Upgrade Supabase CLI | Opsional, tetap pin `2.117.0` | OPS-008 (#74) |
+| 10 | Tag rilis `v2.0.0` | Tag anotasi lokal ada; belum dipublikasikan ke remote | OPS-005 (#65) |
+
+Backup baru: dilewati untuk rilis 23 Oktober atas keputusan pemilik karena keempat migration aditif (pengecualian runbook, dicatat di OPS-001). Backup mutakhir dan cadence berikutnya deferred sampai akhir (OPS-002, #62). Backup terakhir tetap 15 Oktober.
+
+## Pembaruan 24 Oktober 2026 — publikasi tag `v2.0.0` (OPS-005, #65)
+
+Butir 10 selesai. Pemilik menyetujui publikasi secara eksplisit pada 24 Oktober sebelum push.
+
+| Pemeriksaan | Hasil |
+| --- | --- |
+| Tag lokal sebelum push | Tipe `tag` (anotasi), pesan `release: Phase 2 CMS dan fondasi platform`, menunjuk `0615e638e902a310c9d7d5d61fc7876f51bb0ffb` (ada di `main`). |
+| Remote sebelum push | Belum ada tag; tidak ada konflik target. |
+| Publikasi | `git push origin refs/tags/v2.0.0` tanpa force: `[new tag] v2.0.0`. |
+| Remote sesudah push | `refs/tags/v2.0.0` = objek tag `7aac1aaf646ff76a67faa20a029c8cb9ae9c5f25` (sama dengan lokal); `refs/tags/v2.0.0^{}` = `0615e638e902a310c9d7d5d61fc7876f51bb0ffb`. |
+
+GitHub Release tidak dibuat; di luar scope OPS-005.
+
+## Pembaruan 25 Oktober 2026 — inventaris orphan Storage (OPS-007, #67)
+
+Butir 6 (orphan historis) selesai tanpa cleanup: tidak ada orphan.
+
+Pemilik menjalankan query baca-saja di SQL Editor production (`begin read only` … `rollback`). Agent tidak mengakses production dan tidak memakai kredensial. Query hanya mengeluarkan jumlah, tanpa path atau metadata. Referensi yang dicocokkan adalah `media_assets.storage_path` terhadap objek bucket `media`, satu-satunya referensi Storage menurut migration dan kode. Objek berumur kurang dari 1 jam dihitung terpisah agar unggahan yang sedang berjalan tidak dianggap orphan. Query diuji lebih dulu pada Supabase lokal dengan data sintetis (satu objek terreferensi, satu orphan lama, satu orphan baru, satu baris tanpa objek); hasilnya sesuai, termasuk dalam transaksi `read only`.
+
+| Ukuran | Hasil production |
+| --- | --- |
+| Bucket | 1 (`media`) |
+| Objek di luar bucket `media` | 0 |
+| Objek bucket `media` | 5 |
+| Baris `media_assets` | 5 |
+| Objek orphan (≥ 1 jam) | 0 (0 byte) |
+| Objek tanpa baris (< 1 jam) | 0 |
+| Baris tanpa objek | 0 |
+
+Tidak ada penghapusan, sehingga tidak ada dampak rollback. Bila cleanup diperlukan di masa depan, rollback kode tidak memulihkan file yang telah dihapus; target tetap harus ditinjau dan disetujui pemilik lebih dahulu.
+
+<details>
+<summary>Query inventaris</summary>
+
+```sql
+begin read only;
+select
+  (select count(*) from storage.buckets) as total_bucket,
+  (select count(*) from storage.objects where bucket_id <> 'media') as objek_di_luar_bucket_media,
+  (select count(*) from storage.objects where bucket_id = 'media') as objek_media,
+  (select count(*) from public.media_assets) as baris_media_assets,
+  (select count(*) from storage.objects o
+     where o.bucket_id = 'media' and o.created_at < now() - interval '1 hour'
+       and not exists (select 1 from public.media_assets ma where ma.storage_path = o.name)) as objek_orphan,
+  (select coalesce(sum((o.metadata->>'size')::bigint), 0) from storage.objects o
+     where o.bucket_id = 'media' and o.created_at < now() - interval '1 hour'
+       and not exists (select 1 from public.media_assets ma where ma.storage_path = o.name)) as byte_orphan,
+  (select count(*) from storage.objects o
+     where o.bucket_id = 'media' and o.created_at >= now() - interval '1 hour'
+       and not exists (select 1 from public.media_assets ma where ma.storage_path = o.name)) as objek_tanpa_baris_lt_1_jam,
+  (select count(*) from public.media_assets ma
+     where not exists (select 1 from storage.objects o where o.bucket_id = 'media' and o.name = ma.storage_path)) as baris_tanpa_objek;
+rollback;
+```
+
+</details>
+
+## Pembaruan 25 Oktober 2026 — upgrade Supabase CLI ke 2.122.0 (OPS-008, #74)
+
+Butir 9 selesai. Pemilik memutuskan upgrade dari pin `2.117.0` ke `2.122.0`, rilis stable terbaru saat diperiksa 25 Oktober (dirilis 23 Oktober).
+
+**Alasan:** perbaikan stabilitas `supabase start`/`stop` di Podman (2.121–2.122), runtime lokal yang dipakai proyek ini, dan retry otomatis untuk pull image yang terkena rate limit (2.118), yang mengurangi risiko rate limit CI di [Strategi Pengujian](../../06-quality/TEST-STRATEGY.md#regresi-browser-di-ci). Tidak ada perubahan perilaku yang memengaruhi production; CLI hanya dipakai lokal dan di CI.
+
+**Perubahan:** devDependency `supabase` (package.json dan lockfile, hanya paket CLI), `supabase/setup-cli` di CI, tes kontrak `frontend/tests/supabase-foundation.test.mjs`, dan Strategi Pengujian dipin ke `2.122.0`. Rencana/spesifikasi lama di `docs/superpowers/` tetap mencatat `2.117.0` sebagai riwayat. Migration lama tidak diubah.
+
+| Verifikasi lokal (Podman, Windows) | Hasil |
+| --- | --- |
+| `supabase --version` | `2.122.0` |
+| Bootstrap database kosong (`stop --no-backup`, lalu `start` dengan layanan yang sama seperti CI) | Exit 0; 16 migration diterapkan |
+| `status -o json` | `API_URL` dan `ANON_KEY` yang dibaca CI tetap ada. Ada field tambahan (`linked_*`, `PUBLISHABLE_KEY`, `SECRET_KEY`); CI hanya mengambil dua kunci tadi lalu menghapus file. |
+| pgTAP (`supabase test db`) | 441 tes dalam 11 file lulus |
+| CI PR | Kelima job dijalankan dengan versi baru (lihat PR) |
+
+**Perubahan perilaku yang dicatat:** sejak 2.118 mesin stack lokal ditulis ulang (startup paralel, log layanan disimpan, perintah eksperimental `supabase stack`). Sejak 2.119 info koneksi dicetak saat start; CI tetap membuang stdout `start`.
+
+**Rollback:** kembalikan pin ke `2.117.0` di keempat tempat (package/lockfile lewat `npm install -D -E supabase@2.117.0`, CI, tes kontrak, Strategi Pengujian). Bila stack lokal gagal setelah ganti versi, `supabase stop --no-backup` lalu `start` membuat ulang database lokal dari migration. Production tidak disentuh.

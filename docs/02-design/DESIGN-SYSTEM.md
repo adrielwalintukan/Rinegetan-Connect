@@ -29,7 +29,10 @@ Setiap halaman baru wajib tetap nyaman pada lebar 320px, 375px, 768px, 1024px, d
 | --- | --- | --- |
 | Navy | #0A2540 | brand primer, heading, tombol primer |
 | Navy 700 | #0F2E4E | hover dan surface gelap |
-| Sabbath Amber | #E5A93C | fokus, CTA Sabat, kolom ketujuh |
+| Sabbath Amber | #E5A93C | CTA Sabat, kolom ketujuh, aksen non-teks |
+| Sabbath 600 | #8C621B | teks amber di latar terang, sabbath-50, dan sabbath-100 (≥4,5:1) |
+| Sabbath 700 | #785417 | teks amber kecil yang perlu kontras lebih tinggi (≥6:1 di latar terang) |
+| Focus ring | #92661C | outline `:focus-visible`; ≥3:1 di latar terang, sabbath-100, dan navy |
 | Gold | #D4AF37 | aksen terbatas |
 | Life Emerald | #0D9488 | status positif/kehidupan, bukan CTA utama |
 | Background | #FAFAFC | latar utama |
@@ -80,7 +83,7 @@ Setiap komponen interaktif memiliki hover, focus-visible, disabled, loading, err
 
 ## Gerak
 
-Gerak Phase 1 boleh dipertahankan: reveal ringkas, marquee lambat, dan transisi hover. Semua gerak wajib menghormati prefers-reduced-motion. Tidak ada autoplay video/audio, parallax berat, atau animasi yang mengganggu pembacaan.
+Gerak Phase 1 boleh dipertahankan: reveal ringkas, marquee lambat, dan transisi hover. Semua gerak wajib menghormati prefers-reduced-motion: saat aktif, animasi framer-motion (termasuk fade opacity dan delay) langsung ke keadaan akhir, parallax berhenti, dan animasi CSS dipersingkat. Tidak ada autoplay video/audio, parallax berat, atau animasi yang mengganggu pembacaan.
 
 ## Pemeriksaan desain sebelum merge
 

@@ -1,4 +1,5 @@
 import { test as base, expect, type Page, type Locator } from '@playwright/test';
+import { writeFileSync } from 'node:fs';
 import { fixture, loopback } from '../helpers/local-course-fixture.mjs';
 type LocalFixture = Awaited<ReturnType<typeof fixture>>;
 const test = base.extend<{ local: LocalFixture }>({
@@ -14,11 +15,16 @@ async function open(page: Page, local: LocalFixture, role: 'admin' | 'editor') {
   loopback(page.url());
   await expect(page.getByRole('button', { name:'Tambah Course',exact:true })).toBeVisible();
 }
+// The dialog moves focus to Judul one tick after opening; typing before that can land in Judul instead of the target field.
+async function openForm(button: Locator) {
+  await button.click();
+  await expect(button.page().getByRole('dialog').getByLabel('Judul',{exact:true})).toBeFocused();
+}
 const card = (page: Page, title: string) => page.getByRole('listitem').filter({ has:page.getByRole('heading',{name:title,exact:true}) });
 test('delayed refresh blocks reopening until the acknowledged revision reaches the form', async ({page,local}) => {
   await open(page,local,'editor');
   const item=card(page,`Course browser ${local.suffix}`);
-  await item.getByRole('button',{name:'Edit course',exact:true}).click();
+  await openForm(item.getByRole('button',{name:'Edit course',exact:true}));
   await page.getByRole('textbox',{name:'Ringkasan',exact:true}).fill('Revisi pertama tersimpan.');
   let release!:()=>void;
   const gate=new Promise<void>(resolve=>{release=resolve;});
@@ -37,7 +43,7 @@ test('delayed refresh blocks reopening until the acknowledged revision reaches t
     await edit.evaluate(button=>(button as HTMLButtonElement).click());
     await expect(page.getByRole('dialog')).toHaveCount(0);
     release(); await expect(edit).toBeEnabled();
-    await edit.click();
+    await openForm(edit);
     await expect(page.getByRole('textbox',{name:'Ringkasan',exact:true})).toHaveValue('Revisi pertama tersimpan.');
     await page.getByLabel('Judul',{exact:true}).fill(`Revisi kedua ${local.suffix}`);
     await submit(page);
@@ -47,7 +53,7 @@ test('delayed refresh blocks reopening until the acknowledged revision reaches t
 test('Unicode text boundaries preserve supplementary characters and explain overflow without saving', async ({page,local}) => {
   await open(page,local,'editor');
   await card(page,`Course browser ${local.suffix}`).getByRole('button',{name:'Kelola lesson'}).click();
-  await page.getByRole('button',{name:'Tambah Lesson',exact:true}).click();
+  await openForm(page.getByRole('button',{name:'Tambah Lesson',exact:true}));
   await page.getByLabel('Slug',{exact:true}).fill(`unicode-${local.suffix}`);
   const fields=[['Judul',199,'Judul'],['Ringkasan',499,'Ringkasan'],['Isi lesson',49999,'Isi lesson']] as const;
   for(const [name,count] of fields) {
@@ -57,7 +63,7 @@ test('Unicode text boundaries preserve supplementary characters and explain over
   }
   const saved=await submit(page);
   expect(Array.from(saved.data.title)).toHaveLength(200); expect(Array.from(saved.data.summary)).toHaveLength(500); expect(Array.from(saved.data.body)).toHaveLength(50000);
-  await page.getByRole('button',{name:'Edit lesson',exact:true}).click();
+  await openForm(page.getByRole('button',{name:'Edit lesson',exact:true}));
   let requests=0; const countRequest=(request: import('@playwright/test').Request)=>{if(new URL(request.url()).pathname==='/api/staff/courses') requests++;};
   page.on('request',countRequest);
   for(const [name,count,label] of fields) {
@@ -137,7 +143,7 @@ async function errorFocusWrap(page: Page, dialog: Locator, lastName: string, clo
 for (const role of ['admin','editor'] as const) test(`${role}: real draft, lesson ordering, publish, published edit and parent visibility`, async ({ page, local }) => {
   await open(page,local,role);
   const title=`Course alur ${local.suffix}`;
-  await page.getByRole('button',{name:'Tambah Course',exact:true}).click();
+  await openForm(page.getByRole('button',{name:'Tambah Course',exact:true}));
   await expect(page.getByLabel('Judul',{exact:true})).toBeFocused();
   await fillCourse(page,title,`alur-${local.suffix}`);
   const created = await submit(page);
@@ -149,7 +155,7 @@ for (const role of ['admin','editor'] as const) test(`${role}: real draft, lesso
   await parent.getByRole('button',{name:'Kelola lesson'}).click();
   await expect(page.getByRole('status')).toContainText('Course induk belum Published');
   const lessonTitle=`Lesson alur ${local.suffix}`;
-  await page.getByRole('button',{name:'Tambah Lesson',exact:true}).click();
+  await openForm(page.getByRole('button',{name:'Tambah Lesson',exact:true}));
   await fillCourse(page,lessonTitle,`lesson-${local.suffix}`);
   await page.getByLabel('Nomor urut',{exact:true}).fill('3');
   await page.getByRole('textbox',{name:'Isi lesson',exact:true}).fill('Paragraf pertama.\n\n<script>window.p3Injected=true</script>');
@@ -157,7 +163,7 @@ for (const role of ['admin','editor'] as const) test(`${role}: real draft, lesso
   let lesson=card(page,`3. ${lessonTitle}`); await expect(lesson).toBeVisible();
   await status(page,lesson,'Terbitkan');
   await expect.poll(() => local.publicRows(courseId)).toEqual([]);
-  await lesson.getByRole('button',{name:'Edit lesson',exact:true}).click();
+  await openForm(lesson.getByRole('button',{name:'Edit lesson',exact:true}));
   await expect(page.getByText('Perubahan langsung berlaku',{exact:false})).toBeVisible();
   await expect(page.getByLabel('Slug',{exact:true})).toBeDisabled();
   await page.getByLabel('Nomor urut',{exact:true}).fill('5');
@@ -165,7 +171,7 @@ for (const role of ['admin','editor'] as const) test(`${role}: real draft, lesso
   const revised=await submit(page); expect(revised.data.status).toBe('published'); expect(revised.data.position).toBe(5);
   lesson=card(page,`5. ${lessonTitle}`); await expect(lesson).toBeVisible();
   expect(await page.evaluate(() => (window as unknown as {p3Injected?:boolean}).p3Injected)).toBeUndefined();
-  await page.getByRole('button',{name:'Tambah Lesson',exact:true}).click();
+  await openForm(page.getByRole('button',{name:'Tambah Lesson',exact:true}));
   await fillCourse(page,'Konflik urutan',`konflik-${local.suffix}`);
   await page.getByLabel('Nomor urut',{exact:true}).fill('5');
   await page.getByRole('textbox',{name:'Isi lesson',exact:true}).fill('Isi konflik tetap tersimpan.');
@@ -180,7 +186,7 @@ for (const role of ['admin','editor'] as const) test(`${role}: real draft, lesso
   await page.getByRole('button',{name:'Kembali ke daftar course'}).click();
   await status(page,parent,'Terbitkan');
   await expect.poll(async () => (await local.publicRows(courseId)).length).toBe(1);
-  await parent.getByRole('button',{name:'Edit course',exact:true}).click();
+  await openForm(parent.getByRole('button',{name:'Edit course',exact:true}));
   await expect(page.getByLabel('Slug',{exact:true})).toBeDisabled();
   await page.getByRole('textbox',{name:'Ringkasan',exact:true}).fill('Revisi course Published langsung berlaku.');
   const parentRevision=await submit(page); expect(parentRevision.data.status).toBe('published');
@@ -199,7 +205,7 @@ for (const role of ['admin','editor'] as const) test(`${role}: real draft, lesso
 });
 test('network failure retains form, dirty discard is explicit, and repeated submit is blocked', async ({page,local}) => {
   await open(page,local,'editor');
-  await page.getByRole('button',{name:'Tambah Course',exact:true}).click();
+  await openForm(page.getByRole('button',{name:'Tambah Course',exact:true}));
   await fillCourse(page,`Gagal ${local.suffix}`,`gagal-${local.suffix}`);
   await page.route('**/api/staff/courses',route=>route.abort('failed'),{times:1});
   await page.getByRole('button',{name:'Simpan materi',exact:true}).click();
@@ -222,7 +228,7 @@ test('network failure retains form, dirty discard is explicit, and repeated subm
 });
 test('missing record fails safely without losing the edit', async ({page,local}) => {
   await open(page,local,'admin'); const item=card(page,`Course browser ${local.suffix}`);
-  await item.getByRole('button',{name:'Edit course',exact:true}).click();
+  await openForm(item.getByRole('button',{name:'Edit course',exact:true}));
   await page.getByRole('textbox',{name:'Ringkasan',exact:true}).fill('Revisi record yang hilang.');
   local.execute(`delete from public.courses where id='${local.course}';`);
   await submit(page,404);
@@ -266,7 +272,7 @@ for (const width of [320,375,768,1024,1440]) test(`responsive ${width}px: long t
   local.execute(`update public.courses set title='${longTitle}',slug='${'a'.repeat(220)}',summary='${'Ringkasan'.repeat(55)}' where id='${local.course}';`);
   await page.setViewportSize({width,height:900}); await open(page,local,'admin');
   await noOverflow(page); await targets(page.getByRole('region',{name:'Pengelola Course dan Lesson'}));
-  const item=card(page,longTitle); await item.getByRole('button',{name:'Edit course',exact:true}).click();
+  const item=card(page,longTitle); await openForm(item.getByRole('button',{name:'Edit course',exact:true}));
   await expect(page.getByLabel('Judul',{exact:true})).toBeFocused();
   await targets(page.getByRole('dialog')); await noOverflow(page);
   await page.getByRole('button',{name:'Simpan materi',exact:true}).focus(); await page.keyboard.press('Tab');
@@ -312,4 +318,295 @@ test('status dropdown supports keyboard selection, Escape preserves parent modal
   await page.keyboard.press('Escape');
   await expect(modal).toBeVisible(); await expect(modal.getByRole('listbox')).toHaveCount(0);
   await page.keyboard.press('Escape'); await expect(modal).toHaveCount(0);
+});
+
+const importFile = (suffix: string, slug: string) => ({
+  name: `${slug}.json`, mimeType: 'application/json',
+  buffer: Buffer.from(JSON.stringify({
+    format: 'rinegetan-course-import/1', language: 'id',
+    source: { name: 'Sumber sintetis', url: 'https://contoh.invalid/seri', rights_holder: 'Pemegang sintetis' },
+    license: { name: 'Izin sintetis', notes: 'Hanya untuk uji lokal.' },
+    course: { title: `Impor ${slug} ${suffix}`, slug: `${slug}-${suffix}`, summary: 'Ringkasan impor sintetis.' },
+    lessons: [
+      { position: 1, title: 'Lesson impor satu', slug: 'satu', summary: '', body: 'Paragraf pertama.\n\nParagraf kedua.' },
+      { position: 2, title: 'Lesson impor dua', slug: 'dua', summary: '', body: 'Isi kedua.' },
+    ],
+  })),
+});
+async function uploadImport(page: Page, file: ReturnType<typeof importFile>, title?: string) {
+  await page.getByRole('button', { name:'Impor JSON', exact:true }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByLabel('Berkas JSON')).toBeFocused();
+  await dialog.getByLabel('Berkas JSON').setInputFiles(file);
+  await dialog.getByRole('button', { name:'Unggah untuk ditinjau', exact:true }).click();
+  if (title) { await expect(dialog).toHaveCount(0); await expect(importItem(page, title)).toBeVisible(); }
+}
+const importItem = (page: Page, title: string) => page.getByRole('region', { name:'Impor course' }).getByRole('listitem').filter({ has: page.getByRole('heading', { name:title, exact:true }) });
+const noPageOverflow = async (page: Page) => {
+  const bounds = await page.evaluate(() => ({
+    viewport: innerWidth, document: document.documentElement.scrollWidth,
+    outside: [...document.querySelectorAll('main *')].filter(node => node.getBoundingClientRect().right > innerWidth + 0.5)
+      .map(node => ({ tag:node.tagName, id:node.id, width:Math.round(node.getBoundingClientRect().width), right:Math.round(node.getBoundingClientRect().right) })).slice(0,12),
+  }));
+  expect(bounds.document, JSON.stringify(bounds)).toBeLessThanOrEqual(bounds.viewport);
+};
+
+for (const width of [320, 375, 768, 1024, 1440]) test(`Kontak forms fit initial, widget, long text, error and success at ${width}px`, async ({ page }, testInfo) => {
+  await page.setViewportSize({ width, height:900 });
+  await page.emulateMedia({ reducedMotion:'reduce' });
+  let release!:()=>void;
+  const gate = new Promise<void>(resolve => { release=resolve; });
+  const measure = async (state: string) => {
+    const path=testInfo.outputPath(`${state}-bounds.json`);
+    writeFileSync(path, JSON.stringify(await page.evaluate(() => ({
+    viewport:innerWidth, document:document.documentElement.scrollWidth,
+    elements:[...document.querySelectorAll('[data-testid="prayer-request"], [data-testid="visit-info-card"], form, form > div, form iframe, #prayer-request, #visit-date')].map(node => {
+      const style=getComputedStyle(node), box=node.getBoundingClientRect();
+      return { tag:node.tagName, id:node.id, width:box.width, right:box.right, client:node.clientWidth, scroll:node.scrollWidth, padding:style.paddingInline, columns:style.gridTemplateColumns };
+    }),
+    }))));
+    await testInfo.attach(`${state}-bounds`, { contentType:'application/json', path });
+  };
+  await page.route('https://challenges.cloudflare.com/turnstile/v0/api.js?*', async route => { await gate; await route.continue(); });
+  try {
+    await page.goto('/kontak', { waitUntil:'domcontentloaded' });
+    await expect(page.getByRole('textbox', { name:'Permohonan doa', exact:true })).toBeVisible();
+    await measure('initial');
+    await noPageOverflow(page);
+  } finally { release(); }
+  const prayer = page.getByRole('region', { name:'Permohonan doa' });
+  const visit = page.getByRole('region', { name:'Saya ingin berkunjung' });
+  for (const form of [prayer, visit]) {
+    await form.scrollIntoViewIfNeeded();
+    await expect(form.locator('input[name="cf-turnstile-response"]')).not.toHaveValue('', { timeout:30_000 });
+  }
+  await measure('widget');
+  await noPageOverflow(page);
+  await page.screenshot({ path:testInfo.outputPath(`kontak-${width}-widget.png`), fullPage:true });
+  const longText='Sintetis'.repeat(100);
+  for (const [form, endpoint, button, field] of [
+    [prayer, '/api/doa', 'Kirim permohonan', 'request'],
+    [visit, '/api/kunjungan', 'Kirim', 'message'],
+  ] as const) {
+    await form.locator(`textarea[name="${field}"]`).fill(longText);
+    await form.getByRole('button', { name:button, exact:true }).click();
+    await expect(form.getByRole('alert')).toBeFocused();
+    await noPageOverflow(page);
+    await form.getByRole('checkbox', { name:/Saya setuju/ }).check();
+    await page.route(`**${endpoint}`, route => route.fulfill({ status:400, json:{ error:longText, field } }), { times:1 });
+    await form.getByRole('button', { name:button, exact:true }).click();
+    await expect(form.getByRole('alert')).toHaveText(longText);
+    await expect(form.getByRole('alert')).toBeFocused();
+    await noPageOverflow(page);
+    await page.route(`**${endpoint}`, route => route.fulfill({ json:{ success:true, message:longText } }), { times:1 });
+    await form.getByRole('button', { name:button, exact:true }).click();
+    await expect(form.getByRole('status')).toHaveText(longText);
+    await noPageOverflow(page);
+    await targets(form.locator('form > div').first());
+    const submitBox=await form.getByRole('button', { name:button, exact:true }).boundingBox();
+    expect(submitBox?.width).toBeGreaterThanOrEqual(44);
+    expect(submitBox?.height).toBeGreaterThanOrEqual(44);
+  }
+  await page.screenshot({ path:testInfo.outputPath(`kontak-${width}-success.png`), fullPage:true });
+});
+
+test('course import: Editor stages, Admin rejects and approves into Draft, public stays hidden', async ({ page, local, playwright, baseURL }) => {
+  try {
+    await open(page, local, 'editor');
+    // Invalid file shows a field error and creates nothing.
+    const bad = importFile(local.suffix, 'invalid');
+    bad.buffer = Buffer.from(bad.buffer.toString().replace('"language":"id"', '"language":"en"'));
+    await uploadImport(page, bad);
+    await expect(page.getByRole('dialog').getByRole('alert')).toContainText('language');
+    await page.getByRole('dialog').getByRole('button', { name:'Batal', exact:true }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    expect(local.execute(`select count(*) from public.course_imports where course_slug = 'invalid-${local.suffix}'`)).toBe('0');
+
+    await uploadImport(page, importFile(local.suffix, 'tolak'), `Impor tolak ${local.suffix}`);
+    await uploadImport(page, importFile(local.suffix, 'terima'), `Impor terima ${local.suffix}`);
+    const accepted = importItem(page, `Impor terima ${local.suffix}`);
+    await expect(accepted).toContainText('Menunggu persetujuan');
+    await expect(accepted.getByRole('button', { name:'Setujui' })).toHaveCount(0);
+    await expect(accepted.getByRole('button', { name:'Tolak' })).toHaveCount(0);
+    await accepted.getByRole('button', { name:'Lihat preview' }).click();
+    await expect(accepted.getByRole('heading', { name:'2. Lesson impor dua' })).toBeVisible();
+    await expect(accepted.getByText('Paragraf kedua.')).toBeVisible();
+
+    await page.context().clearCookies();
+    await open(page, local, 'admin');
+    const rejected = importItem(page, `Impor tolak ${local.suffix}`);
+    await rejected.getByRole('button', { name:'Tolak', exact:true }).click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByRole('button', { name:'Tolak impor', exact:true }).click();
+    await expect(dialog.getByRole('alert')).toContainText('Alasan penolakan wajib diisi');
+    // Keyboard only: textarea -> Batal -> Tolak impor -> Enter.
+    await dialog.getByLabel('Alasan penolakan').focus();
+    await page.keyboard.type('Izin belum lengkap.');
+    await page.keyboard.press('Tab'); await expect(dialog.getByRole('button', { name:'Batal', exact:true })).toBeFocused();
+    await page.keyboard.press('Tab'); await expect(dialog.getByRole('button', { name:'Tolak impor', exact:true })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(rejected).toContainText('Alasan penolakan: Izin belum lengkap.');
+    await expect(page.getByRole('heading', { name:'Impor course', exact:true })).toBeFocused();
+
+    const approve = importItem(page, `Impor terima ${local.suffix}`);
+    await approve.getByRole('button', { name:'Setujui', exact:true }).click();
+    await page.getByRole('dialog').getByRole('button', { name:'Setujui dan buat Draft', exact:true }).click();
+    await expect(approve).toContainText('Disetujui');
+    await expect(page.getByRole('heading', { name:'Impor course', exact:true })).toBeFocused();
+    // The import item shares the course title; the course card comes after the panel.
+    await expect(card(page, `Impor terima ${local.suffix}`).last()).toContainText('Draft');
+    await expect(approve).not.toContainText('Diunggah dan disetujui oleh orang yang sama');
+
+    // Anonymous visitor (no staff cookies) must not see the Draft course.
+    const anonymous = await playwright.request.newContext({ baseURL });
+    try {
+      const response = await anonymous.get(`/pelajari-alkitab/terima-${local.suffix}`);
+      expect(response.status()).toBe(404);
+      expect(await response.text()).not.toContain(`Impor terima ${local.suffix}`);
+    } finally { await anonymous.dispose(); }
+
+    await page.setViewportSize({ width: 320, height: 800 });
+    await expect(page.getByRole('region', { name:'Impor course' })).toBeVisible();
+    await noPageOverflow(page);
+    await approve.getByRole('button', { name:'Lihat preview' }).click();
+    await expect(approve.getByRole('heading', { name:'2. Lesson impor dua' })).toBeVisible();
+    await noPageOverflow(page);
+  } finally {
+    local.execute(`begin;
+      delete from public.course_lessons where course_id in (select id from public.courses where slug like '%-${local.suffix}');
+      delete from public.course_imports where course_slug like '%-${local.suffix}';
+      delete from public.courses where slug like '%-${local.suffix}'; commit;`);
+  }
+});
+test('study interest: visitor submits with consent, Admin handles, Editor cannot see', async ({ page, local, playwright, baseURL }) => {
+  const name = `Peminat ${local.suffix}`;
+  const lead = () => local.execute(`select count(*) from public.study_interest_leads where name = '${name}'`);
+  try {
+    await page.goto('/pelajari-alkitab#ingin-belajar');
+    const section = page.getByRole('region', { name:'Ingin belajar bersama?' });
+    await expect(section).toBeVisible();
+    await section.getByLabel('Nama', { exact:true }).fill(name);
+    await section.getByLabel('Nomor WhatsApp atau email').fill(`peminat-${local.suffix}@example.invalid`);
+    await section.getByLabel('Pesan (opsional)').fill('Ingin belajar bersama keluarga.');
+    // Consent is unchecked by default and required.
+    await expect(section.getByRole('checkbox')).not.toBeChecked();
+    await section.getByRole('button', { name:'Kirim', exact:true }).click();
+    await expect(section.getByRole('alert')).toBeFocused();
+    await expect(section).toContainText('Centang persetujuan untuk melanjutkan.');
+    expect(lead()).toBe('0');
+
+    await section.getByRole('checkbox').check();
+    // Cloudflare's always-pass test key fills the hidden response field once solved.
+    await expect(section.locator('input[name="cf-turnstile-response"]')).not.toHaveValue('', { timeout:30_000 });
+    await section.getByRole('button', { name:'Kirim', exact:true }).click();
+    await expect(section.getByRole('status')).toContainText('Terima kasih. Tim kami akan menghubungi Anda.');
+    expect(lead()).toBe('1');
+    const id = local.execute(`select id from public.study_interest_leads where name = '${name}'`);
+
+    await page.setViewportSize({ width: 320, height: 800 });
+    await noPageOverflow(page);
+    await page.setViewportSize({ width: 1280, height: 900 });
+
+    // Editor: no tab, and the status route refuses.
+    await local.login(page.context(), 'editor');
+    await page.goto('/staff?tab=interest');
+    await expect(page.getByRole('button', { name:'Minat belajar' })).toHaveCount(0);
+    await expect(page.getByText(name)).toHaveCount(0);
+    const refused = await page.request.patch(`/api/staff/study-interest/${id}`, { data:{ status:'closed' } });
+    expect(refused.status()).toBe(403);
+
+    // Anonymous visitors cannot change status either.
+    const anonymous = await playwright.request.newContext({ baseURL });
+    try { expect((await anonymous.patch(`/api/staff/study-interest/${id}`, { data:{ status:'closed' } })).status()).toBe(401); }
+    finally { await anonymous.dispose(); }
+
+    // Admin: sees the lead and marks it contacted.
+    await page.context().clearCookies();
+    await local.login(page.context(), 'admin');
+    await page.goto('/staff?tab=interest');
+    const item = page.getByRole('listitem').filter({ hasText:name });
+    await expect(item).toContainText(`peminat-${local.suffix}@example.invalid`);
+    await expect(item).toContainText('Ingin belajar bersama keluarga.');
+    await item.getByLabel('Status').selectOption('contacted');
+    await expect.poll(() => local.execute(`select status from public.study_interest_leads where id = '${id}'`)).toBe('contacted');
+    await page.setViewportSize({ width: 320, height: 800 });
+    await noPageOverflow(page);
+  } finally {
+    local.execute(`begin;
+      delete from public.audit_logs where entity_type = 'study_interest_leads' and entity_id in (select id from public.study_interest_leads where name = '${name}');
+      delete from public.study_interest_leads where name = '${name}';
+      delete from public.form_rate_events where created_at > now() - interval '1 hour'; commit;`);
+  }
+});
+
+test('prayer and visit forms: consent, Turnstile, Admin-only handling', async ({ page, local, playwright, baseURL }) => {
+  const prayerText = `Doa sintetis ${local.suffix}`;
+  const visitor = `Tamu ${local.suffix}`;
+  const count = (table: string, where: string) => local.execute(`select count(*) from public.${table} where ${where}`);
+  try {
+    await page.goto('/kontak#permohonan-doa');
+    const prayer = page.getByRole('region', { name:'Permohonan doa' });
+    await prayer.getByLabel('Permohonan doa').fill(prayerText);
+    await expect(prayer.getByRole('checkbox', { name:'Saya ingin dihubungi' })).toBeDisabled();
+    await prayer.getByRole('button', { name:'Kirim permohonan' }).click();
+    await expect(prayer.getByRole('alert')).toBeFocused();
+    expect(count('prayer_requests', `request = '${prayerText}'`)).toBe('0');
+    await prayer.getByRole('checkbox', { name:/Saya setuju/ }).check();
+    await expect(prayer.locator('input[name="cf-turnstile-response"]')).not.toHaveValue('', { timeout:30_000 });
+    await prayer.getByRole('button', { name:'Kirim permohonan' }).click();
+    await expect(prayer.getByRole('status')).toContainText('Permohonan doa Anda sudah kami terima.');
+    expect(count('prayer_requests', `request = '${prayerText}'`)).toBe('1');
+
+    const visit = page.getByRole('region', { name:'Saya ingin berkunjung' });
+    await visit.getByLabel('Nama', { exact:true }).fill(visitor);
+    await visit.getByLabel('Nomor WhatsApp atau email').fill(`tamu-${local.suffix}@example.invalid`);
+    await visit.getByLabel('Jumlah orang (opsional)').fill('3');
+    await visit.getByRole('checkbox', { name:/Saya setuju/ }).check();
+    await expect(visit.locator('input[name="cf-turnstile-response"]')).not.toHaveValue('', { timeout:30_000 });
+    await visit.getByRole('button', { name:'Kirim', exact:true }).click();
+    await expect(visit.getByRole('status')).toContainText('menyambut kunjungan Anda');
+    expect(count('visitor_submissions', `name = '${visitor}' and party_size = 3`)).toBe('1');
+
+    await page.setViewportSize({ width: 320, height: 800 });
+    await noPageOverflow(page);
+    await page.setViewportSize({ width: 1280, height: 900 });
+
+    const prayerId = local.execute(`select id from public.prayer_requests where request = '${prayerText}'`);
+    const visitId = local.execute(`select id from public.visitor_submissions where name = '${visitor}'`);
+
+    await local.login(page.context(), 'editor');
+    for (const tab of ['prayer', 'visit']) {
+      await page.goto(`/staff?tab=${tab}`);
+      await expect(page.getByRole('button', { name:'Doa', exact:true })).toHaveCount(0);
+      await expect(page.getByRole('button', { name:'Kunjungan', exact:true })).toHaveCount(0);
+    }
+    expect((await page.request.patch(`/api/staff/prayer-requests/${prayerId}`, { data:{ status:'closed' } })).status()).toBe(403);
+    expect((await page.request.patch(`/api/staff/visits/${visitId}`, { data:{ status:'closed' } })).status()).toBe(403);
+    const anonymous = await playwright.request.newContext({ baseURL });
+    try { expect((await anonymous.patch(`/api/staff/prayer-requests/${prayerId}`, { data:{ status:'closed' } })).status()).toBe(401); }
+    finally { await anonymous.dispose(); }
+
+    await page.context().clearCookies();
+    await local.login(page.context(), 'admin');
+    await page.goto('/staff?tab=prayer');
+    await page.setViewportSize({ width:320, height:800 });
+    const prayerItem = page.getByRole('listitem').filter({ hasText:prayerText });
+    await expect(prayerItem).toContainText('Tanpa nama');
+    await noPageOverflow(page);
+    await prayerItem.getByLabel('Status').selectOption('prayed');
+    await expect.poll(() => local.execute(`select status from public.prayer_requests where id = '${prayerId}'`)).toBe('prayed');
+    await page.goto('/staff?tab=visit');
+    const visitItem = page.getByRole('listitem').filter({ hasText:visitor });
+    await expect(visitItem).toContainText('3 orang');
+    await noPageOverflow(page);
+    await visitItem.getByLabel('Status').selectOption('contacted');
+    await expect.poll(() => local.execute(`select status from public.visitor_submissions where id = '${visitId}'`)).toBe('contacted');
+  } finally {
+    local.execute(`begin;
+      delete from public.audit_logs where entity_type = 'prayer_requests' and entity_id in (select id from public.prayer_requests where request = '${prayerText}');
+      delete from public.audit_logs where entity_type = 'visitor_submissions' and entity_id in (select id from public.visitor_submissions where name = '${visitor}');
+      delete from public.prayer_requests where request = '${prayerText}';
+      delete from public.visitor_submissions where name = '${visitor}';
+      delete from public.form_rate_events where created_at > now() - interval '1 hour'; commit;`);
+  }
 });

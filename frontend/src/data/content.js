@@ -93,13 +93,17 @@ export const MINISTRY_CARDS = [
         description:
             "Belajar Alkitab secara pribadi atau kelompok kecil, daring maupun tatap muka — gratis dan terbuka untuk semua.",
         icon: "book-open",
+        href: "/pelajari-alkitab",
+        cta: "Buka pelajaran",
     },
     {
         id: "permohonan-doa",
         title: "Permohonan Doa",
         description:
-            "Kirimkan pokok doa Anda — tim pendoa jemaat akan mendoakannya dalam kebaktian doa mingguan.",
+            "Kirimkan pokok doa Anda secara pribadi. Permohonan hanya dibaca Admin gereja dan tidak dipublikasikan.",
         icon: "hands-praying",
+        href: "/kontak#permohonan-doa",
+        cta: "Kirim permohonan",
     },
     {
         id: "pertama-kali-berkunjung",
@@ -107,6 +111,8 @@ export const MINISTRY_CARDS = [
         description:
             "Panduan ramah untuk kunjungan pertama: apa yang diharapkan, apa yang dikenakan, dan siapa yang akan menyambut Anda.",
         icon: "door-open",
+        href: "/kontak#berkunjung",
+        cta: "Rencanakan kunjungan",
     },
 ];
 

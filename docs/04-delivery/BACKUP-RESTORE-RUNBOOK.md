@@ -9,6 +9,7 @@ Backup melindungi data gereja, bukan sekadar database. Pemilik backup ditunjuk A
 | Waktu | Cakupan |
 | --- | --- |
 | Bulanan | Database dan manifest media/konfigurasi yang diperlukan |
+| Mingguan | Pembersihan arsip yang berumur 83 hari atau lebih ([masa simpan arsip](#masa-simpan-arsip)) |
 | Sebelum migration berisiko | Database penuh dan catatan versi aplikasi |
 | Sebelum hard delete material | Record relevan dan keputusan Admin |
 | Enam bulanan | Restore drill pada lingkungan nonproduksi |
@@ -21,6 +22,12 @@ Backup melindungi data gereja, bukan sekadar database. Pemilik backup ditunjuk A
 4. Enkripsi arsip sebelum meninggalkan lingkungan tepercaya. Password/encryption key hanya disimpan pada vault, tidak pada nama file atau repository.
 5. Simpan di lokasi yang dikelola gereja dengan akses terbatas dan redundansi yang disetujui.
 6. Catat checksum, lokasi logical, retensi, dan penanggung jawab. Jangan menyertakan doa/nomor kontak dalam catatan terbuka.
+
+## Masa simpan arsip
+
+- Arsip backup (termasuk salinan kedua) dihapus **paling lama 90 hari** setelah dibuat. Pembersihan arsip berjalan **setiap minggu**, terpisah dari backup bulanan dan bersamaan dengan [runbook retensi](RETENTION-DELETION-RUNBOOK.md): hapus setiap arsip yang berumur **83 hari atau lebih**, sehingga dengan jeda paling lama 7 hari antarpembersihan tidak ada arsip yang melewati 90 hari. Catat tanggal penghapusan, nama arsip, dan penanggung jawab tanpa path pribadi.
+- Batas ini menjaga janji copy consent lead minat belajar ("paling lama 24 bulan"): lead dihapus dari database pada cut-off 24 bulan dikurangi 120 hari ([runbook retensi](RETENTION-DELETION-RUNBOOK.md)), sehingga salinan terakhirnya di backup hilang sebelum 24 bulan. Menyimpan arsip lebih dari 90 hari memerlukan keputusan baru dan penyesuaian cut-off.
+- Dua arsip historis Oktober 2026 dibuat sebelum P3-004 dan tidak memuat lead; batas 90 hari berlaku untuk setiap arsip yang dibuat setelah migration P3-004 diterapkan di production.
 
 ## Salinan kedua arsip terenkripsi
 

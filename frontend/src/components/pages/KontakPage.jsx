@@ -1,15 +1,17 @@
 "use client";
 
-import { Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { ChapterHeading } from "@/components/sections/ChapterHeading";
 import { Reveal } from "@/components/motion/Reveal";
 import { CHURCH, SABBATH } from "@/data/content";
+import { PrayerRequestForm } from "@/components/forms/PrayerRequestForm";
+import { VisitForm } from "@/components/forms/VisitForm";
 
 export default function KontakPage() {
     return (
         <section data-testid="kontak-page" className="py-16 lg:py-24">
             <div className="container-site">
-                <ChapterHeading
+                <ChapterHeading as="h1"
                     number="01"
                     eyebrow="Kontak"
                     title={
@@ -23,19 +25,10 @@ export default function KontakPage() {
 
                 <div className="mt-12 grid grid-cols-1 gap-10 lg:grid-cols-7 lg:gap-12">
                     <Reveal className="lg:col-span-4">
-                        {/* Online messages are a Phase 3 feature; a form that pretends to send would lose prayer requests. */}
-                        <div data-testid="contact-in-person" className="card-surface p-6 sm:p-8">
-                            <h2 className="text-lg font-semibold text-navy">Sampaikan langsung saat Sabat</h2>
-                            <p className="mt-3 text-sm leading-relaxed text-slate-600">
-                                Formulir pesan daring sedang disiapkan. Untuk saat ini, pertanyaan tentang ibadah,
-                                pelajaran Alkitab, maupun permohonan doa dapat disampaikan langsung kepada pengurus
-                                jemaat ketika Anda hadir pada hari Sabat.
-                            </p>
-                            <p className="mt-5 flex items-center gap-2.5 text-sm font-semibold text-navy">
-                                <Clock className="h-4 w-4 text-sabbath-600" aria-hidden="true" />
-                                {SABBATH.items[0].name} · {SABBATH.items[0].time}
-                            </p>
-                        </div>
+                        <section id="permohonan-doa" aria-labelledby="permohonan-doa-heading" data-testid="prayer-request" className="card-surface scroll-mt-32 p-6 sm:p-8">
+                            <h2 id="permohonan-doa-heading" className="text-lg font-semibold text-navy">Permohonan doa</h2>
+                            <PrayerRequestForm />
+                        </section>
                     </Reveal>
 
                     <div className="space-y-4 lg:col-span-3">
@@ -53,10 +46,14 @@ export default function KontakPage() {
                                     {SABBATH.items[0].time}. Anda disambut sebagai tamu; tidak ada
                                     persiapan khusus yang perlu dilakukan.
                                 </p>
+                                <section aria-labelledby="kunjungan-form-heading" className="mt-6 border-t border-sabbath-500/20 pt-6">
+                                    <h3 id="kunjungan-form-heading" className="text-base font-semibold text-navy">Saya ingin berkunjung</h3>
+                                    <VisitForm />
+                                </section>
                             </div>
                         </Reveal>
                         <Reveal delay={0.15}>
-                            <address className="card-surface not-italic p-6">
+                            <address id="kontak-gereja" className="card-surface scroll-mt-32 not-italic p-6">
                                 <ul className="space-y-4 text-sm text-slate-600">
                                     <li className="flex gap-3">
                                         <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-sabbath-600" aria-hidden="true" />
