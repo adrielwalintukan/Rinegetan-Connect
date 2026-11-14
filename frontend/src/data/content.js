@@ -12,7 +12,13 @@ export const CHURCH = {
     email: null,
     // Exact pin of "GMAHK Jemaat Rinegetan" (https://maps.app.goo.gl/dUfu9roHcnH5pfdn8); a name search lands on the kelurahan boundary.
     mapsQuery: "1.2980427,124.9081001",
-    socials: [],
+    socials: [
+        {
+            label: "Facebook",
+            href: "https://www.facebook.com/RinegetanSDAC/",
+            icon: "facebook",
+        },
+    ],
 };
 
 export const NAV_LINKS = [

@@ -59,8 +59,9 @@ const geoCoordinates =
     ? { "@type": "GeoCoordinates", latitude, longitude }
     : undefined;
 
-const structuredData = {
-  "@context": "https://schema.org",
+const sameAs = CHURCH.socials.map((s) => s.href);
+
+const churchStructuredData = {
   "@type": "Church",
   "@id": `${siteUrl}/#gereja`,
   name: `${CHURCH.fullName} Jemaat Rinegetan`,
@@ -70,6 +71,7 @@ const structuredData = {
   url: siteUrl,
   logo: `${siteUrl}/icon.svg`,
   image: `${siteUrl}/opengraph-image`,
+  ...(sameAs.length > 0 ? { sameAs } : {}),
   address: {
     "@type": "PostalAddress",
     streetAddress: "Rinegetan",
@@ -101,6 +103,22 @@ const structuredData = {
       opens: "18:30",
     },
   ],
+};
+
+const webSiteStructuredData = {
+  "@type": "WebSite",
+  "@id": `${siteUrl}/#website`,
+  url: siteUrl,
+  name: CHURCH.name,
+  alternateName: ["Gereja Advent Rinegetan", `${CHURCH.fullName} Jemaat Rinegetan`],
+  publisher: {
+    "@id": `${siteUrl}/#gereja`,
+  },
+};
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [webSiteStructuredData, churchStructuredData],
 };
 
 export default function RootLayout({
