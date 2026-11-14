@@ -150,9 +150,17 @@ test("P2-304 site ships a favicon and Church structured data built from verified
   const rootLayoutSource = readFileSync(resolve(projectRoot, "src/app/layout.tsx"), "utf8");
   assert.ok(rootLayoutSource.includes('type="application/ld+json"'), "Root layout must emit JSON-LD");
   assert.ok(rootLayoutSource.includes('"@type": "Church"'), "JSON-LD must describe a Church");
+  assert.ok(rootLayoutSource.includes('"@type": "WebSite"'), "JSON-LD must declare WebSite in @graph");
+  assert.ok(rootLayoutSource.includes("sameAs"), "JSON-LD must link official social profiles via sameAs");
   assert.ok(rootLayoutSource.includes("openingHoursSpecification"), "JSON-LD must publish service times");
   assert.ok(rootLayoutSource.includes("CHURCH.mapsQuery"), "JSON-LD coordinates must come from CHURCH.mapsQuery");
   // Contact details stay unpublished until the church confirms them (see content.js).
   assert.ok(!rootLayoutSource.includes("telephone:"), "JSON-LD must not invent a phone number");
   assert.ok(!rootLayoutSource.includes("streetAddress: \"Jl"), "JSON-LD must not invent a street address");
+
+  const contentSource = readFileSync(resolve(projectRoot, "src/data/content.js"), "utf8");
+  assert.ok(
+    contentSource.includes("https://www.facebook.com/RinegetanSDAC/"),
+    "CHURCH.socials must include verified official Facebook page"
+  );
 });
