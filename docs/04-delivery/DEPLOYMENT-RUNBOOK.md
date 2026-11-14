@@ -65,6 +65,32 @@ if ($LASTEXITCODE -ne 0) { throw 'Publikasi tag belum terverifikasi di remote.' 
 - Media tanpa consent/yang di-hide tidak muncul, termasuk pada koleksi unduhan baru.
 - Tidak ada error yang menampilkan detail database atau rahasia.
 
+## SEO dan metadata
+
+Diperiksa setiap kali rilis, cukup dengan permintaan HTTP biasa:
+
+```powershell
+foreach ($p in @('/sitemap.xml','/robots.txt','/opengraph-image')) {
+  $r = Invoke-WebRequest "https://www.gmahkrinegetan.web.id$p" -UseBasicParsing
+  "$p -> $($r.StatusCode) $($r.Headers['Content-Type']) $($r.RawContentLength)"
+}
+```
+
+- `/sitemap.xml` harus 200 `application/xml`, seluruh `<loc>` memakai domain produksi, dan hanya memuat kursus/pelajaran berstatus Published.
+- `/robots.txt` harus 200 dan memuat baris `Sitemap:` yang benar.
+- `/opengraph-image` harus 200 `image/png` sekitar 60 KB.
+- Pada HTML setiap halaman publik, `rel="canonical"` harus sama persis dengan `og:url`, dan `og:image` harus menunjuk `/opengraph-image`.
+- `NEXT_PUBLIC_SITE_URL` di-inline saat build. Mengubahnya wajib diikuti redeploy, bukan sekadar disimpan di dashboard.
+
+Pengiriman sitemap ke Google Search Console (dilakukan pemilik, sekali per properti):
+
+1. Buka `search.google.com/search-console` dan pilih properti domain `gmahkrinegetan.web.id`.
+2. Menu **Indexing** lalu **Sitemaps**.
+3. Isi `sitemap.xml`, klik **Submit**.
+4. Status awal "Couldn't fetch" atau "Discovered" adalah normal; pemrosesan butuh beberapa jam sampai beberapa hari.
+
+Cache pratinjau tautan pada WhatsApp/Facebook dapat bertahan setelah `og:image` berubah. Untuk memaksa ambil ulang, gunakan Sharing Debugger Facebook atau kirim ulang tautan dengan parameter kueri baru.
+
 ## Rollback
 
 1. Jika masalah ada pada kode tanpa perubahan schema yang tidak kompatibel, rollback deployment Vercel ke commit sebelumnya (±2 detik pada drill P2-502; operator memilih deployment terverifikasi melalui alur rollback Vercel). Setelah rollback, Vercel berhenti auto-promote: deployment berikutnya wajib di-promote manual (`vercel promote`).
