@@ -12,7 +12,17 @@ export async function generateMetadata({ params }: Props) {
   const { courseSlug } = await params;
   const course = await getPublicCourse(courseSlug);
   if (!course) notFound();
-  return { title: course.title, description: course.summary, alternates: { canonical: `/pelajari-alkitab/${course.slug}` } };
+  return {
+    title: course.title,
+    description: course.summary,
+    alternates: { canonical: `/pelajari-alkitab/${course.slug}` },
+    openGraph: {
+      url: `/pelajari-alkitab/${course.slug}`,
+      images: ["/opengraph-image"],
+      title: `${course.title} | GMAHK Rinegetan`,
+      description: course.summary,
+    },
+  };
 }
 
 export default async function BibleCourse({ params }: Props) {

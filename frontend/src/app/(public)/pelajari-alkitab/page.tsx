@@ -6,7 +6,17 @@ import { StudyInterestForm } from "@/components/learning/StudyInterestForm";
 
 export async function generateMetadata() {
   await connection();
-  return { title: "Pelajari Alkitab", description: "Baca pelajaran Alkitab yang tersedia, tanpa akun.", alternates: { canonical: "/pelajari-alkitab" } };
+  return {
+    title: "Pelajari Alkitab",
+    description: "Baca pelajaran Alkitab yang tersedia, tanpa akun.",
+    alternates: { canonical: "/pelajari-alkitab" },
+    openGraph: {
+      url: "/pelajari-alkitab",
+      images: ["/opengraph-image"],
+      title: "Pelajari Alkitab | GMAHK Rinegetan",
+      description: "Baca pelajaran Alkitab yang tersedia, tanpa akun.",
+    },
+  };
 }
 
 export default async function BibleCatalogue() {

@@ -23,6 +23,12 @@ export async function generateMetadata({ params }: Props) {
     title: lesson.title,
     description: lesson.summary,
     alternates: { canonical: `/pelajari-alkitab/${course.slug}/${lesson.slug}` },
+    openGraph: {
+      url: `/pelajari-alkitab/${course.slug}/${lesson.slug}`,
+      images: ["/opengraph-image"],
+      title: `${lesson.title} | GMAHK Rinegetan`,
+      description: lesson.summary,
+    },
   };
 }
 
