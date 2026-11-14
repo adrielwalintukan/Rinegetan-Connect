@@ -11,6 +11,7 @@ import {
 export const revalidate = 60;
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/" },
   title: "Beranda",
   description:
     "Selamat datang di GMAHK Jemaat Rinegetan, Minahasa. Tempat bertumbuh dalam iman, melayani, dan bersekutu dalam kasih Kristus.",
