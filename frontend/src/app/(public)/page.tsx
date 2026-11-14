@@ -11,10 +11,13 @@ import {
 export const revalidate = 60;
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/" },
   title: "Beranda",
   description:
     "Selamat datang di GMAHK Jemaat Rinegetan, Minahasa. Tempat bertumbuh dalam iman, melayani, dan bersekutu dalam kasih Kristus.",
   openGraph: {
+    url: "/",
+    images: ["/opengraph-image"],
     title: "GMAHK Rinegetan — Tempat Bertumbuh dalam Iman, Melayani, dan Bersama",
     description: "Website resmi Gereja Masehi Advent Hari Ketujuh Jemaat Rinegetan, Minahasa.",
   },

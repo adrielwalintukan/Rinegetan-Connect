@@ -5,10 +5,13 @@ import { getPublishedEvents } from "@/lib/public/queries";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/kegiatan" },
   title: "Agenda & Kegiatan Jemaat",
   description:
     "Jadwal kegiatan jemaat GMAHK Rinegetan: ibadah Sabat, perkumpulan pemuda, pelayanan masyarakat, dan kelompok pendalaman Alkitab.",
   openGraph: {
+    url: "/kegiatan",
+    images: ["/opengraph-image"],
     title: "Agenda & Kegiatan Jemaat | GMAHK Rinegetan",
     description: "Temukan jadwal kegiatan dan persekutuan rohani di GMAHK Rinegetan.",
   },

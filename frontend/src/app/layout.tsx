@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://rinegetan-connect.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gmahkrinegetan.web.id";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -28,6 +28,7 @@ export const metadata: Metadata = {
     locale: "id_ID",
     url: siteUrl,
     siteName: "GMAHK Rinegetan",
+    images: ["/opengraph-image"],
     title: "GMAHK Rinegetan — Tempat Bertumbuh dalam Iman, Melayani, dan Bersama",
     description:
       "Website resmi Gereja Masehi Advent Hari Ketujuh Jemaat Rinegetan. Temukan jadwal ibadah Sabat, Sekolah Sabat, dan kegiatan jemaat.",
@@ -36,6 +37,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "GMAHK Rinegetan",
     description: "Website resmi Gereja Masehi Advent Hari Ketujuh Jemaat Rinegetan, Minahasa.",
+    images: ["/twitter-image"],
   },
   robots: {
     index: true,

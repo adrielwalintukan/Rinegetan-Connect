@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: Props) {
   const { courseSlug } = await params;
   const course = await getPublicCourse(courseSlug);
   if (!course) notFound();
-  return { title: course.title, description: course.summary };
+  return { title: course.title, description: course.summary, alternates: { canonical: `/pelajari-alkitab/${course.slug}` } };
 }
 
 export default async function BibleCourse({ params }: Props) {
