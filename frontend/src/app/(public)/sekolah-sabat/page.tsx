@@ -5,10 +5,13 @@ import { getPublishedSchedules, getSiteSectionMedia } from "@/lib/public/queries
 import { loadSabbathCatalog } from "@/lib/sabbath/server";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/sekolah-sabat" },
   title: "Sekolah Sabat & Jadwal Ibadah WITA",
   description:
     "Jadwal Sekolah Sabat setiap Sabtu pukul 08.45 WITA, kelas anak hingga dewasa, dan jadwal kebaktian mingguan jemaat GMAHK Rinegetan.",
   openGraph: {
+    url: "/sekolah-sabat",
+    images: ["/opengraph-image"],
     title: "Sekolah Sabat & Jadwal Ibadah | GMAHK Rinegetan",
     description: "Pendalaman Alkitab dan jadwal ibadah mingguan GMAHK Rinegetan.",
   },
