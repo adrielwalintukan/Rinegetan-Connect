@@ -17,8 +17,12 @@ async function publicLesson(params: Props["params"]) {
 }
 
 export async function generateMetadata({ params }: Props) {
-  const { lesson } = await publicLesson(params);
-  return { title: lesson.title, description: lesson.summary };
+  const { course, lesson } = await publicLesson(params);
+  return {
+    title: lesson.title,
+    description: lesson.summary,
+    alternates: { canonical: `/pelajari-alkitab/${course.slug}/${lesson.slug}` },
+  };
 }
 
 export default async function BibleLesson({ params }: Props) {
