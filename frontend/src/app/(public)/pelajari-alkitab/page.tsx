@@ -5,7 +5,7 @@ import { getPublicCourses } from "@/lib/courses/public-queries";
 
 export async function generateMetadata() {
   await connection();
-  return { title: "Pelajari Alkitab", description: "Baca pelajaran Alkitab yang tersedia, tanpa akun." };
+  return { title: "Pelajari Alkitab", description: "Baca pelajaran Alkitab yang tersedia, tanpa akun.", alternates: { canonical: "/pelajari-alkitab" } };
 }
 
 export default async function BibleCatalogue() {
