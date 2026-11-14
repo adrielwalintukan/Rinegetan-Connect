@@ -5,6 +5,7 @@ import { getPublishedSchedules, getSiteSectionMedia } from "@/lib/public/queries
 export const revalidate = 60;
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/sekolah-sabat" },
   title: "Sekolah Sabat & Jadwal Ibadah WITA",
   description:
     "Jadwal Sekolah Sabat setiap Sabtu pukul 08.45 WITA, kelas anak hingga dewasa, dan jadwal kebaktian mingguan jemaat GMAHK Rinegetan.",
