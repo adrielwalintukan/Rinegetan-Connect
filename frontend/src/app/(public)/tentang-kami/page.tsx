@@ -5,6 +5,7 @@ import { getSiteSectionMedia } from "@/lib/public/queries";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/tentang-kami" },
   title: "Tentang Kami — Sejarah & Visi Jemaat",
   description:
     "Sejarah berdirinya GMAHK Jemaat Rinegetan di Tondano, Minahasa, visi misi persekutuan, doktrin Alkitabiah, dan kepemimpinan gereja.",
