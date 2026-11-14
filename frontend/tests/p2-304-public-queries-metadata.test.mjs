@@ -127,3 +127,32 @@ test("P2-304 root layout declares metadataBase, title template, and OpenGraph", 
   assert.ok(rootLayoutSource.includes("openGraph:"), "Root layout must declare openGraph");
   assert.ok(rootLayoutSource.includes("id_ID"), "Root layout openGraph must specify id_ID locale");
 });
+
+test("P2-304 homepage title is descriptive and absolute so the site template does not prepend it", () => {
+  const homeSource = readFileSync(resolve(projectRoot, "src/app/(public)/page.tsx"), "utf8");
+
+  assert.match(
+    homeSource,
+    /title:\s*\{\s*absolute:\s*"[^"]*Gereja Advent[^"]*"/,
+    "Homepage must override the root template with a descriptive absolute title"
+  );
+  assert.ok(!homeSource.includes('title: "Beranda"'), "Homepage must not use the generic Beranda title");
+});
+
+test("P2-304 site ships a favicon and Church structured data built from verified content", () => {
+  const iconPath = resolve(projectRoot, "src/app/icon.svg");
+  assert.ok(existsSync(iconPath), "src/app/icon.svg must provide the browser tab icon");
+
+  const iconSource = readFileSync(iconPath, "utf8");
+  assert.ok(iconSource.includes('viewBox="0 0 512 512"'), "Icon must declare a 512 square viewBox");
+  assert.ok(iconSource.includes("<path"), "Icon must draw the church symbol, not an empty tile");
+
+  const rootLayoutSource = readFileSync(resolve(projectRoot, "src/app/layout.tsx"), "utf8");
+  assert.ok(rootLayoutSource.includes('type="application/ld+json"'), "Root layout must emit JSON-LD");
+  assert.ok(rootLayoutSource.includes('"@type": "Church"'), "JSON-LD must describe a Church");
+  assert.ok(rootLayoutSource.includes("openingHoursSpecification"), "JSON-LD must publish service times");
+  assert.ok(rootLayoutSource.includes("CHURCH.mapsQuery"), "JSON-LD coordinates must come from CHURCH.mapsQuery");
+  // Contact details stay unpublished until the church confirms them (see content.js).
+  assert.ok(!rootLayoutSource.includes("telephone:"), "JSON-LD must not invent a phone number");
+  assert.ok(!rootLayoutSource.includes("streetAddress: \"Jl"), "JSON-LD must not invent a street address");
+});
