@@ -8,6 +8,7 @@ import {
 export const revalidate = 60;
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/media" },
   title: "Media & Galeri Jemaat",
   description:
     "Dokumentasi foto kegiatan ibadah, pelayanan masyarakat, rekaman khotbah, dan warta multimedia GMAHK Jemaat Rinegetan.",
