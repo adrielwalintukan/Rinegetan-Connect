@@ -118,7 +118,7 @@ export default function MediaPage({
   return (
     <section data-testid="media-page" className="py-16 lg:py-24">
       <div className="container-site">
-        <ChapterHeading
+        <ChapterHeading as="h1"
           number="01"
           eyebrow="Dokumentasi & Galeri"
           title={

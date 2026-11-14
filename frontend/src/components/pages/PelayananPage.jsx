@@ -12,7 +12,7 @@ export default function PelayananPage({ initialDepartments = null }) {
         <>
             <section data-testid="pelayanan-intro" className="py-16 lg:py-24 lg:pb-8">
                 <div className="container-site">
-                    <ChapterHeading
+                    <ChapterHeading as="h1"
                         number="01"
                         eyebrow="Pelayanan"
                         title={

@@ -28,6 +28,21 @@ Semua form publik yang memproses data pastoral harus:
 4. Memakai rate limit, honeypot, dan respons generik agar tidak menjadi oracle spam.
 5. Tidak mengirim detail sensitif lewat email atau log. Email hanya memberi sinyal bahwa ada permintaan baru.
 
+Form minat belajar (P3-004) menerapkan ini sebagai berikut:
+
+- Route `POST /api/minat-belajar` mewajibkan `Content-Type: application/json`, body maksimal 8 KB UTF-8 ketat, dan daftar kunci yang diizinkan; checkbox persetujuan tidak tercentang default dan versi copy (`2026-10-29`) disimpan bersama lead.
+- Honeypot terisi mendapat respons sukses generik tanpa penyimpanan. Batas percobaan 20 per jam per hash IP sebelum Turnstile, lalu 5 submit tersimpan per jam setelah Turnstile.
+- Turnstile fail-closed: tanpa secret server route menjawab 503; verifikasi gagal atau timeout 5 detik ditolak.
+- Hash IP memakai HMAC-SHA256 berkunci server, bukan SHA-256 polos, dan event rate dihapus setelah 24 jam.
+- Isi form tidak masuk log, audit, atau email; tidak ada email notifikasi. Lead hanya terbaca Admin aktif.
+- Test key Turnstile Cloudflare hanya dipakai lokal/CI; key production diisi pemilik di Vercel.
+
+Form doa dan kunjungan (P3-005) memakai alur yang sama lewat helper bersama `lib/forms/public-form.mjs`:
+
+- Route `POST /api/doa` dan `POST /api/kunjungan` dengan aturan body, honeypot, Turnstile, dan HMAC IP yang sama. Rate limit terpisah per form: `prayer_attempt`/`prayer` dan `visit_attempt`/`visit`, masing-masing 20 percobaan dan 5 submit tersimpan per jam per hash IP.
+- Doa: nama dan kontak opsional; "Saya ingin dihubungi" hanya berlaku bila kontak diisi. Kunjungan: tanggal tidak boleh lewat menurut Asia/Makassar, jumlah orang 1-20.
+- Versi consent `draft-2026-11-02` disimpan per baris sampai copy disahkan gereja. Tidak ada email notifikasi; isi doa dan data kunjungan tidak masuk log atau audit dan hanya terbaca Admin aktif.
+
 ## Foto, anak, dan unduhan
 
 - Setiap aset menyimpan bukti/rujukan persetujuan sebelum Published.
@@ -36,6 +51,12 @@ Semua form publik yang memproses data pastoral harus:
 - Derivative publik adalah JPEG teroptimasi tanpa EXIF/geolocation. Original tidak disimpan pada pilot.
 - Unduhan satu aset, album, atau kategori hanya memasukkan aset Published + approved consent + public_download_enabled.
 - Job ZIP memiliki batas jumlah file/ukuran, rate limit, masa hidup singkat, dan URL bertanda tangan pendek bila Storage dipakai.
+
+## Impor course (P3-003)
+
+- Berkas impor diperlakukan sebagai input tak tepercaya: batas 2 MB dibaca secara streaming, UTF-8 ketat, daftar kunci yang diizinkan, dan URL hanya `https://` tanpa userinfo.
+- Kontrak yang sama ditegakkan di database (`course_imports_payload_contract`) sehingga insert langsung lewat Data API tidak melewati validasi.
+- Hasil impor hanya menjadi Draft setelah Admin meninjau sumber dan lisensi; audit tidak menyimpan payload. Anonim tidak dapat membaca staging maupun course Draft.
 
 ## RLS, key, dan secrets
 
@@ -48,7 +69,8 @@ Semua form publik yang memproses data pastoral harus:
 
 ## Retensi, backup, dan pemulihan
 
-- Doa, pengunjung, dan lead: review/hapus default setelah 24 bulan; Admin dapat mengubah retensi untuk kebutuhan pastoral yang terdokumentasi.
+- Doa, pengunjung, dan lead: retensi tetap paling lama 24 bulan; retensi data yang sudah dikumpulkan tidak dapat diubah atau diperpanjang. Lead minat belajar (consent `2026-10-29`, "paling lama 24 bulan") serta permohonan doa dan data kunjungan (copy "paling lama 24 bulan") dihapus pada cut-off tetap 24 bulan dikurangi 120 hari agar salinan backup (paling lama 90 hari) juga hilang sebelum 24 bulan ([runbook retensi](../04-delivery/RETENTION-DELETION-RUNBOOK.md)). Periode lain hanya berlaku untuk pengumpulan baru dengan copy dan versi consent baru yang disahkan, lewat issue terpisah. Sejak P3-006, Admin menjalankan penghapusan mingguan lewat tombol **Hapus data kedaluwarsa** di tab Log Audit; portal tidak menyediakan ubah retensi atau ekspor (keputusan pemilik 2026-11-03).
+- Akses data pastoral diaudit: setiap muat portal Admin menulis satu `pastoral.viewed` berisi jumlah baris per tabel, dan data tidak ditampilkan bila audit gagal. Audit penghapusan (`*.purged`) berisi jumlah dan cut-off saja.
 - Konten publik archived tetap dipertahankan hingga Admin melakukan penghapusan sesuai kebijakan.
 - Backup manual terenkripsi: bulanan dan sebelum migration yang mengubah struktur/data.
 - Backup dikuasai gereja pada lokasi akses-terbatas. Catat tanggal, cakupan, checksum, penyimpanan, dan penanggung jawab.
@@ -62,6 +84,8 @@ Semua form publik yang memproses data pastoral harus:
 4. Perbaiki policy/kode, tambahkan test regresi, lalu review ulang sebelum membuka layanan.
 
 ## Gate sebelum produksi
+
+- Kebijakan cookie/consent dan penilaian koneksi pihak ketiga masih memerlukan keputusan gereja. [Inventaris awal P1-004](../04-delivery/records/P1-004-2026-11-08.md) mencatat batas pengujian serta dependensi eksternal; inventaris itu bukan persetujuan kebijakan atau bukti perilaku production.
 
 - Domain dan sender email resmi tersedia; SPF/DKIM/DMARC dinilai.
 - Project production/backup/restore telah diuji.

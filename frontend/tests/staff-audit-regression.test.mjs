@@ -28,21 +28,33 @@ function loadTsx(path, boundaries = {}) {
     if (id in boundaries) return boundaries[id];
     if (id.startsWith("@/lib/staff/audit")) return require(resolve(root, "src/lib/staff/audit.mjs"));
     if (id === "@/lib/courses/queries") return require(resolve(root, "src/lib/courses/queries.mjs"));
+    if (id === "@/lib/courses/import-actions") return require(resolve(root, "src/lib/courses/import-actions.mjs"));
+    if (id === "@/lib/forms/study-interest-admin") return require(resolve(root, "src/lib/forms/study-interest-admin.mjs"));
+    if (id === "@/lib/forms/pastoral-admin") return require(resolve(root, "src/lib/forms/pastoral-admin.mjs"));
     return require(id);
   }, testModule, testModule.exports);
   return testModule.exports;
 }
 
-function database({ error = null, throws = false } = {}) {
+function database({ error = null, throws = false, accessError = null } = {}) {
   const queries = [];
+  const rpcs = [];
   return {
     queries,
+    rpcs,
+    rpc(name, args) {
+      rpcs.push([name, args]);
+      if (name === "record_pastoral_access") return Promise.resolve({ data: null, error: accessError });
+      return Promise.resolve({ data: [{ study_interest_leads: 0, prayer_requests: 0, visitor_submissions: 0 }], error: null });
+    },
     from(table) {
       const query = { table };
       queries.push(query);
       const builder = {
         select(columns) { query.columns = columns; return builder; },
         order(column, options) { query.order = [column, options]; return builder; },
+        neq(column, value) { query.neq = [column, value]; return builder; },
+        eq(column, value) { query.eq = [column, value]; return builder; },
         range() { return builder; },
         limit(limit) {
           query.limit = limit;
@@ -89,6 +101,8 @@ function dashboard(role, initialTab) {
     "./MediaManager": { MediaManager: nullComponent },
     "./SectionMediaManager": { SectionMediaManager: nullComponent },
     "./StaffManager": { StaffManager: nullComponent },
+    "./StudyInterestManager": { StudyInterestManager: nullComponent },
+    "./PastoralManagers": { PastoralRetentionPanel: nullComponent, PrayerRequestManager: nullComponent, VisitManager: nullComponent },
     "@/components/identity/AdventistSymbol": { AdventistSymbol: nullComponent },
     "@/lib/api/errors": require(resolve(root, "src/lib/api/errors.mjs")),
   });
@@ -102,7 +116,10 @@ test("audit page queries the actual occurred_at column newest first with a bound
   const db = database();
   const result = await pageResult("admin", db);
   assert.deepEqual(db.queries.find((query) => query.table === "audit_logs"), {
-    table: "audit_logs", columns: "*", order: ["occurred_at", { ascending: false }], limit: 50,
+    table: "audit_logs", columns: "*", neq: ["action", "pastoral.viewed"], order: ["occurred_at", { ascending: false }], limit: 50,
+  });
+  assert.deepEqual(db.queries.filter((query) => query.table === "audit_logs")[1], {
+    table: "audit_logs", columns: "*", eq: ["action", "pastoral.viewed"], order: ["occurred_at", { ascending: false }], limit: 20,
   });
   assert.deepEqual(result.props.initialAuditLogs, [auditEntry]);
 });
@@ -113,6 +130,76 @@ test("editor audit URL never queries audit data and falls back to content", asyn
   assert.equal(db.queries.some((query) => query.table === "audit_logs"), false);
   assert.deepEqual(result.props.initialAuditLogs, []);
   assert.equal(result.props.initialTab, "announcements");
+});
+
+test("admin private form queries start together before any private result resolves", async () => {
+  const db = database();
+  const originalFrom = db.from.bind(db);
+  const tables = ["study_interest_leads", "prayer_requests", "visitor_submissions"];
+  const started = [];
+  const releases = [];
+  db.from = (table) => {
+    if (!tables.includes(table)) return originalFrom(table);
+    const builder = {
+      select() { return builder; }, order() { return builder; },
+      limit() {
+        started.push(table);
+        return new Promise((resolve) => releases.push(() => resolve({ data: [{ id: table }], error: null })));
+      },
+    };
+    return builder;
+  };
+  const pending = pageResult("admin", db, "prayer");
+  // Yield to real page/loaders, but keep all database responses unresolved.
+  await new Promise((resolve) => setImmediate(resolve));
+  try {
+    assert.deepEqual([...started], tables);
+  } finally {
+    // Also drain the serial baseline on assertion failure so no work leaks.
+    for (let i = 0; i < tables.length; i++) {
+      releases.splice(0).forEach((release) => release());
+      await new Promise((resolve) => setImmediate(resolve));
+    }
+  }
+  const result = await pending;
+  assert.deepEqual(result.props.initialStudyInterest, [{ id: "study_interest_leads" }]);
+  assert.deepEqual(result.props.initialPrayerRequests, [{ id: "prayer_requests" }]);
+  assert.deepEqual(result.props.initialVisits, [{ id: "visitor_submissions" }]);
+});
+
+test("admin pastoral rows are withheld when the access audit cannot be written", async () => {
+  const db = database({ accessError: { code: "42501" } });
+  const result = await pageResult("admin", db, "prayer");
+  assert.deepEqual(db.rpcs.find(([name]) => name === "record_pastoral_access"),
+    ["record_pastoral_access", { p_study_interest: 1, p_prayer: 1, p_visit: 1 }]);
+  assert.deepEqual(result.props.initialStudyInterest, []);
+  assert.deepEqual(result.props.initialPrayerRequests, []);
+  assert.deepEqual(result.props.initialVisits, []);
+  assert.match(result.props.prayerRequestsError || "", /gagal dimuat/);
+  assert.match(result.props.visitsError || "", /gagal dimuat/);
+  assert.match(result.props.studyInterestError || "", /gagal dimuat/);
+});
+
+test("admin pastoral rows are shown after a count-only access audit", async () => {
+  const db = database();
+  const result = await pageResult("admin", db, "prayer");
+  assert.deepEqual(db.rpcs.map(([name]) => name).sort(), ["expired_pastoral_counts", "record_pastoral_access"]);
+  assert.deepEqual(result.props.initialPrayerRequests, [auditEntry]);
+  assert.equal(result.props.prayerRequestsError, null);
+  assert.deepEqual(result.props.expiredPastoralCounts, { study_interest_leads: 0, prayer_requests: 0, visitor_submissions: 0 });
+});
+
+test("editor pastoral URLs start zero private form queries", async () => {
+  for (const tab of ["interest", "prayer", "visit"]) {
+    const db = database();
+    const result = await pageResult("editor", db, tab);
+    assert.equal(db.queries.some(({ table }) => ["study_interest_leads", "prayer_requests", "visitor_submissions"].includes(table)), false);
+    assert.deepEqual(result.props.initialStudyInterest, []);
+    assert.deepEqual(result.props.initialPrayerRequests, []);
+    assert.deepEqual(result.props.initialVisits, []);
+    assert.equal(result.props.initialTab, "announcements");
+    assert.deepEqual(db.rpcs, []);
+  }
 });
 
 test("audit query failure reaches the UI as a friendly error, separate from an empty list", async () => {

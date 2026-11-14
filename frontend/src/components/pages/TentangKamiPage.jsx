@@ -37,7 +37,7 @@ export default function TentangKamiPage({ sectionMedia = null }) {
             <section data-testid="about-hero" className="relative overflow-hidden py-16 lg:py-24">
                 <div className="container-site grid grid-cols-1 gap-12 lg:grid-cols-7 lg:gap-12">
                     <div className="lg:col-span-5">
-                        <ChapterHeading
+                        <ChapterHeading as="h1"
                             number="01"
                             eyebrow="Tentang Kami"
                             title={
@@ -87,7 +87,7 @@ export default function TentangKamiPage({ sectionMedia = null }) {
                             <div className="rounded-xl bg-sabbath-50 p-6">
                                 <EntityLockup />
                             </div>
-                            <p className="font-mono text-[0.6875rem] uppercase tracking-[0.2em] text-slate-400">
+                            <p className="font-mono text-[0.6875rem] uppercase tracking-[0.2em] text-slate-500">
                                 Bagian dari GMAHK sedunia · ±22 juta anggota
                             </p>
                         </div>

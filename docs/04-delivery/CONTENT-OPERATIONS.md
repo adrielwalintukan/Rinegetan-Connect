@@ -11,7 +11,7 @@
 | Mengundang/menonaktifkan staf | Tidak | Ya |
 | Menghapus permanen | Tidak | Ya |
 | Membaca data doa, kunjungan, dan lead | Tidak | Ya |
-| Ekspor data privat | Tidak | Ya, dengan alasan/audit |
+| Ekspor data privat pastoral | Tidak tersedia | Tidak tersedia (keputusan P3-006) |
 
 ## Alur standar konten
 
@@ -29,6 +29,8 @@
 - Tulis waktu dalam konteks WITA pada input dan halaman publik. Sistem menyimpan timestamp sebagai UTC.
 
 ## SOP galeri foto
+
+Inventaris awal konten operasional yang masih memerlukan pemeriksaan pemilik ada di [record P1-003](records/P1-003-2026-11-08.md). Record tersebut tidak memverifikasi pilihan media atau consent produksi.
 
 1. Tentukan album, kategori, tanggal kegiatan, dan departemen/event bila relevan.
 2. Pastikan setiap foto layak publik dan memiliki persetujuan. Foto anak wajib memiliki izin wali.
@@ -50,8 +52,14 @@ Permohonan doa, informasi pengunjung, dan lead belajar bukan konten editorial. H
 
 - buka data melalui dashboard privat;
 - beri status penanganan tanpa memasukkan informasi pastoral sensitif ke audit/log;
-- ekspor hanya jika perlu, dengan alasan dan catatan audit;
-- review/hapus mengikuti periode retensi yang ditetapkan Admin.
+- ekspor data pastoral tidak tersedia (keputusan pemilik P3-006, 2026-11-03); data dibaca melalui portal;
+- review/hapus setiap minggu mengikuti cut-off tetap 24 bulan dikurangi 120 hari; retensi data yang sudah dikumpulkan tidak dapat diubah atau diperpanjang (lihat **Retensi (P3-006)** di bawah).
+
+**Minat belajar (P3-004).** Pengunjung mengisi form "Ingin belajar bersama?" di halaman Pelajari Alkitab. Admin aktif membuka tab **Minat belajar** di portal staf, menghubungi peminat lewat kontak yang diberikan, lalu mengubah status menjadi **Sudah dihubungi** atau **Selesai**. Editor tidak melihat tab ini. Daftar menampilkan 50 lead terbaru beserta tanggal masuk dan usia lead. Penghapusan mingguan dijalankan Admin lewat portal (lihat **Retensi (P3-006)** di bawah) mengikuti [runbook retensi dan penghapusan lead](RETENTION-DELETION-RUNBOOK.md); ekspor tidak tersedia. Jangan menyalin isi lead ke dokumen atau chat lain.
+
+**Doa dan kunjungan (P3-005).** Pengunjung mengirim **Permohonan doa** atau **Saya ingin berkunjung** di halaman Kontak. Admin aktif membuka tab **Doa** dan **Kunjungan** di portal staf. Status doa: **Baru**, **Sudah didoakan**, **Selesai**; status kunjungan: **Baru**, **Sudah dihubungi**, **Selesai**. Permohonan tanpa nama/kontak tampil sebagai "Tanpa nama"/"Tanpa kontak"; hubungi hanya pengirim yang menandai "Ingin dihubungi". Editor tidak melihat kedua tab. Isi doa tidak dibacakan, dipublikasikan, atau dibagikan di luar Admin, dan tidak disalin ke dokumen atau chat lain. Penghapusan mengikuti runbook retensi yang sama.
+
+**Retensi (P3-006).** Setiap minggu Admin membuka tab **Log Audit**. Panel **Retensi data pastoral** menampilkan jumlah data minat belajar, doa, dan kunjungan yang melewati cut-off 24 bulan dikurangi 120 hari. Tombol **Hapus data kedaluwarsa** menghapus semua data itu sekaligus setelah konfirmasi, dan database mencatat jumlahnya di audit (juga bila 0). Retensi tidak dapat diubah atau diperpanjang dari portal. Daftar **Akses data pastoral** menunjukkan kapan dan oleh siapa data pastoral dimuat, hanya berupa jumlah. Bila audit akses gagal ditulis, tab Minat belajar/Doa/Kunjungan menampilkan pesan gagal muat, bukan data.
 
 ## Course Alkitab dan lesson
 
@@ -67,19 +75,33 @@ Admin/Editor aktif memakai tab **Pelajari Alkitab** untuk membuat course, memili
 - Kegagalan simpan mempertahankan form. Menutup form yang berubah memerlukan konfirmasi buang perubahan. Data halaman disegarkan setelah server mengonfirmasi sukses.
 - Sesudah simpan, tindakan mutasi menunggu penyegaran daftar selesai sebelum edit dapat dibuka kembali. Daftar course/lesson dimuat sampai lengkap melampaui batas 1.000 baris Data API; kegagalan pemuatan menampilkan pesan aman dan tombol muat ulang.
 
-Reader publik P3-002 tersedia pada branch fitur; bukti dan status integrasi ada di [record P3-002](records/P3-002-2026-10-22.md). Migration P3-001 baru diterapkan lokal; penerapan production mengikuti proses rilis terpisah.
+Status 2026-10-23: CMS course/lesson (P3-001) dan reader publik (P3-002) sudah merge ke `development` dan dirilis ke production melalui PR #39; migration P3-001 diterapkan ke production. Bukti: [record P3-002](records/P3-002-2026-10-22.md) dan [record rilis OPS-001](records/OPS-001-2026-10-23.md).
 
-## Impor course (backlog P3-003)
+## Impor course (P3-003)
 
-Impor dari pihak ketiga belum tersedia. Saat diimplementasikan:
+Impor memasukkan satu course beserta lesson-nya dari berkas JSON yang disiapkan staf. Tidak ada koneksi ke situs atau API pihak ketiga, tidak ada auto-publish, dan tidak ada auto-sync. Status: selesai di branch fitur, menunggu merge ke `development`; belum dirilis ke production.
 
-1. Masuk ke staging/import record, bukan langsung ke course Published.
-2. Validasi skema, URL/asset, bahasa, duplikasi, dan lisensi.
-3. Editor meninjau preview dan memperbaiki konten.
-4. Publikasi memakai lifecycle biasa.
+**Peran.** Editor dan Admin dapat mengunggah dan melihat preview. Hanya Admin yang menyetujui atau menolak. Admin boleh menyetujui impornya sendiri; daftar memberi label "Diunggah dan disetujui oleh orang yang sama".
 
-Tidak ada auto-publish atau auto-sync sumber pihak ketiga.
+**Format dan batas.** Contoh lengkap: [course-import-example.json](templates/course-import-example.json) (data sintetis; ganti seluruh isinya).
 
+- `format` harus `rinegetan-course-import/1`, `language` harus `id`; kunci di luar format ditolak.
+- Berkas maksimal 2 MB; 1-100 lesson per course.
+- Judul 1-200 karakter, ringkasan maksimal 500, isi lesson 1-50.000 karakter (wajib terisi), slug maksimal 220 dengan pola yang sama seperti CMS. Nomor urut lesson bilangan bulat positif; slug dan nomor urut lesson unik dalam berkas.
+- `source.name`, `source.rights_holder`, dan `license.name` wajib (maksimal 200); `license.notes` opsional (maksimal 1.000). URL opsional dan hanya `https://`.
+- Slug course yang sudah dipakai course lain atau impor yang masih menunggu ditolak. Impor tidak pernah menimpa course yang ada.
+- Isi tampil sebagai teks berparagraf; HTML/Markdown tidak dirender.
+
+**Langkah.**
+
+1. Di portal staf, tab **Pelajari Alkitab**, pilih **Impor JSON** dan pilih berkas. Bila ada kesalahan, pesan menyebut field-nya (mis. `lessons[3].slug`); perbaiki berkas lalu unggah ulang. Berkas yang ditolak tidak menyisakan catatan impor.
+2. Berkas valid masuk daftar Impor berstatus menunggu, lengkap dengan sumber, pemegang hak, dan lisensi. Pilih **Lihat preview** untuk memeriksa course dan lesson. Bahasa tidak dideteksi otomatis; periksa sendiri di preview.
+3. Admin memeriksa sumber dan izin lisensi, lalu memilih **Setujui** (dengan konfirmasi) atau **Tolak** (alasan wajib, maksimal 500 karakter).
+4. Setelah disetujui, course dan semua lesson dibuat sebagai Draft dalam satu transaksi. Course muncul di daftar course; terbitkan lewat pengelola course seperti biasa. Hasil impor tidak pernah langsung Published.
+
+**Perbaikan isi.** Sebelum keputusan: unggah ulang berkas yang sudah diperbaiki (payload impor tidak dapat diedit; impor lama yang salah ditolak lebih dahulu agar slug bebas). Sesudah menjadi Draft: edit lewat CMS course/lesson P3-001.
+
+**Catatan.** Catatan impor, sumber, dan lisensi disimpan permanen dan tidak dapat dihapus dari aplikasi; payload ikut tersimpan. Tinjau pembersihan bila penyimpanan database mendekati kuota paket. Persetujuan dan penolakan tercatat di audit tanpa isi payload.
 
 ## Penggunaan reader P3-002
 
@@ -91,4 +113,4 @@ Pengunjung membuka **Pelajari Alkitab** dari CTA navigasi/Hero, card Alkitab, at
 - Untuk menarik materi, jadikan lesson atau induk Draft/Arsip melalui CMS. Request publik baru mengikuti invalidasi sesudah commit. Tab/riwayat yang telah menerima konten bukan salinan yang dapat ditarik kembali. Perubahan langsung di luar CMS mengikuti cache 60 detik.
 - Warning penyegaran publik sesudah simpan berarti mutasi sudah tersimpan. Periksa ulang tampilan publik beberapa saat lagi; jangan mengulangi simpan seolah database rollback.
 
-Impor, form minat/doa/kunjungan, retensi pastoral, offline/PWA, dan akun Member tetap backlog. Production belum diubah.
+Form minat/doa/kunjungan, retensi pastoral, dan offline/PWA tetap backlog. Akun Member tidak direncanakan.

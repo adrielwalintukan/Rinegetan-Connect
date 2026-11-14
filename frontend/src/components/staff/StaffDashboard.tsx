@@ -9,6 +9,9 @@ import {
   Clock,
   Building,
   History,
+  HeartHandshake,
+  HandHeart,
+  DoorOpen,
   Plus,
   LogOut,
   UserCheck,
@@ -17,7 +20,7 @@ import {
   Users,
 } from "lucide-react";
 import { CourseManager } from "./CourseManager";
-import type { Course, CourseLesson } from "@/types/courses";
+import type { Course, CourseImport, CourseLesson } from "@/types/courses";
 import { ContentFilterBar } from "./ContentFilterBar";
 import { ContentTable, type ContentItem } from "./ContentTable";
 import { ContentMutationDialog } from "./ContentMutationDialog";
@@ -26,6 +29,9 @@ import { AuditLogViewer, type AuditEntry } from "./AuditLogViewer";
 import { MediaManager } from "./MediaManager";
 import { SectionMediaManager } from "./SectionMediaManager";
 import { StaffManager, type StaffMember } from "./StaffManager";
+import { StudyInterestManager } from "./StudyInterestManager";
+import { PastoralRetentionPanel, PrayerRequestManager, VisitManager } from "./PastoralManagers";
+import type { PastoralCounts, PrayerRequest, StudyInterestLead, VisitSubmission } from "@/types/forms";
 import { AdventistSymbol } from "@/components/identity/AdventistSymbol";
 import type { ContentStatus } from "@/types/content";
 import type { MediaAsset, MediaAlbum } from "@/types/media";
@@ -49,7 +55,18 @@ interface StaffDashboardProps {
   initialTab?: TabType;
   initialCourses?: Course[];
   initialCourseLessons?: CourseLesson[];
+  initialCourseImports?: CourseImport[];
+  courseImportsError?: string | null;
   coursesError?: string | null;
+  initialStudyInterest?: StudyInterestLead[];
+  studyInterestError?: string | null;
+  initialPrayerRequests?: PrayerRequest[];
+  prayerRequestsError?: string | null;
+  initialVisits?: VisitSubmission[];
+  visitsError?: string | null;
+  initialPastoralAccessLogs?: AuditEntry[];
+  expiredPastoralCounts?: PastoralCounts | null;
+  expiredPastoralError?: string | null;
 }
 
 export type TabType =
@@ -61,6 +78,9 @@ export type TabType =
   | "media"
   | "banners"
   | "audit"
+  | "interest"
+  | "prayer"
+  | "visit"
   | "staff";
 
 export const StaffDashboard: React.FC<StaffDashboardProps> = ({
@@ -80,7 +100,18 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   initialTab,
   initialCourses = [],
   initialCourseLessons = [],
+  initialCourseImports = [],
+  courseImportsError,
   coursesError,
+  initialStudyInterest = [],
+  studyInterestError,
+  initialPrayerRequests = [],
+  prayerRequestsError,
+  initialVisits = [],
+  visitsError,
+  initialPastoralAccessLogs = [],
+  expiredPastoralCounts,
+  expiredPastoralError,
 }) => {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>(() => {
@@ -92,7 +123,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
       "departments",
       "media",
       "banners",
-      ...(role === "admin" ? (["audit", "staff"] as const) : []),
+      ...(role === "admin" ? (["interest", "prayer", "visit", "audit", "staff"] as const) : []),
     ];
     if (initialTab && validTabs.includes(initialTab)) return initialTab;
     if (typeof window !== "undefined") {
@@ -107,7 +138,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   });
 
   const handleTabChange = (tabId: TabType) => {
-    if ((tabId === "staff" || tabId === "audit") && role !== "admin") return;
+    if ((tabId === "staff" || tabId === "audit" || tabId === "interest" || tabId === "prayer" || tabId === "visit") && role !== "admin") return;
     if (tabId === "audit") router.refresh();
     setActiveTab(tabId);
     setCurrentFilter("all");
@@ -338,6 +369,9 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
     { id: "media" as TabType, label: "Media & Galeri", icon: ImageIcon },
     { id: "banners" as TabType, label: "Banner Halaman", icon: LayoutTemplate },
     ...(role === "admin" ? [
+      { id: "interest" as TabType, label: "Minat belajar", icon: HeartHandshake },
+      { id: "prayer" as TabType, label: "Doa", icon: HandHeart },
+      { id: "visit" as TabType, label: "Kunjungan", icon: DoorOpen },
       { id: "audit" as TabType, label: "Log Audit", icon: History },
       { id: "staff" as TabType, label: "Kelola Staf", icon: Users },
     ] : []),
@@ -438,7 +472,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
           </nav>
 
           {/* Create Button (only for content tabs) */}
-          {activeTab !== "courses" && activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && (
+          {activeTab !== "courses" && activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && activeTab !== "interest" && activeTab !== "prayer" && activeTab !== "visit" && (
             <button
               type="button"
               onClick={() => {
@@ -456,9 +490,18 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
         {/* Tab Content Section */}
         <div className="mt-6">
           {activeTab === "courses" ? (
-            <CourseManager courses={initialCourses} lessons={initialCourseLessons} role={role} onNotification={showNotification} error={coursesError} />
+            <CourseManager courses={initialCourses} lessons={initialCourseLessons} role={role} onNotification={showNotification} error={coursesError} imports={initialCourseImports} importsError={courseImportsError} />
+          ) : activeTab === "interest" ? (
+            role === "admin" ? <StudyInterestManager leads={initialStudyInterest} error={studyInterestError} /> : null
+          ) : activeTab === "prayer" ? (
+            role === "admin" ? <PrayerRequestManager rows={initialPrayerRequests} error={prayerRequestsError} /> : null
+          ) : activeTab === "visit" ? (
+            role === "admin" ? <VisitManager rows={initialVisits} error={visitsError} /> : null
           ) : activeTab === "audit" ? (
-            role === "admin" ? <AuditLogViewer logs={initialAuditLogs} error={auditLogsError} /> : null
+            role === "admin" ? <>
+              <PastoralRetentionPanel counts={expiredPastoralCounts} error={expiredPastoralError} accessLogs={initialPastoralAccessLogs} />
+              <AuditLogViewer logs={initialAuditLogs} error={auditLogsError} />
+            </> : null
           ) : activeTab === "staff" ? (
             role === "admin" ? (
               <StaffManager
@@ -514,7 +557,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
       </main>
 
       {/* Dialogs */}
-      {activeTab !== "courses" && activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && (
+      {activeTab !== "courses" && activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && activeTab !== "interest" && activeTab !== "prayer" && activeTab !== "visit" && (
         <ContentMutationDialog
           key={`${activeTab}_${editingItem?.id || "new"}`}
           isOpen={isMutationOpen}
@@ -530,7 +573,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
         />
       )}
 
-      {activeTab !== "courses" && activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && (
+      {activeTab !== "courses" && activeTab !== "audit" && activeTab !== "media" && activeTab !== "banners" && activeTab !== "staff" && activeTab !== "interest" && activeTab !== "prayer" && activeTab !== "visit" && (
         <DeleteConfirmationDialog
           isOpen={isDeleteOpen}
           onClose={() => {

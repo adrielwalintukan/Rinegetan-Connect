@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import SekolahSabatPage from "@/components/pages/SekolahSabatPage";
 import { getPublishedSchedules, getSiteSectionMedia } from "@/lib/public/queries";
-
-export const revalidate = 60;
+import { loadSabbathCatalog } from "@/lib/sabbath/server";
 
 export const metadata: Metadata = {
   title: "Sekolah Sabat & Jadwal Ibadah WITA",
@@ -15,10 +15,12 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const [schedules, sectionMedia] = await Promise.all([
+  await connection(); // Evaluate the WITA date per request; retain the explicit catalog data cache.
+  const [schedules, sectionMedia, catalog] = await Promise.all([
     getPublishedSchedules(),
     getSiteSectionMedia(),
+    loadSabbathCatalog(),
   ]);
-  return <SekolahSabatPage initialSchedules={schedules} sectionMedia={sectionMedia} />;
+  return <SekolahSabatPage initialSchedules={schedules} sectionMedia={sectionMedia} catalog={catalog} />;
 }
 

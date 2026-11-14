@@ -23,7 +23,7 @@ export const EntityLockup = ({ dark = false, compact = false, onClick }) => (
             <span
                 className={cn(
                     "text-[0.5625rem] font-semibold uppercase tracking-[0.22em]",
-                    dark ? "text-white/60" : "text-slate-500"
+                    dark ? "text-white/60" : "text-slate-600"
                 )}
             >
                 {CHURCH.fullName}

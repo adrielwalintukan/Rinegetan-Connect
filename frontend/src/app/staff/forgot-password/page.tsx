@@ -1,5 +1,6 @@
 import { AdventistSymbol } from "@/components/identity/AdventistSymbol";
 import ForgotPasswordForm from "./ForgotPasswordForm";
+import BackLink from "@/components/ui/BackLink";
 
 export default function ForgotPasswordPage() {
   return (
@@ -18,12 +19,7 @@ export default function ForgotPasswordPage() {
         <div className="mt-8">
           <ForgotPasswordForm />
         </div>
-        <a
-          className="mt-6 inline-flex text-sm font-semibold text-navy underline-offset-4 hover:underline"
-          href="/staff/login"
-        >
-          Kembali ke login
-        </a>
+        <BackLink href="/staff/login" className="mt-6 text-sm">Kembali ke login</BackLink>
       </section>
     </main>
   );
