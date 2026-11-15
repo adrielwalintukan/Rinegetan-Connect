@@ -21,6 +21,16 @@ export const metadata: Metadata = {
     "Ibadah Sabat",
     "Advent Sulawesi Utara",
   ],
+  // Google only shows a favicon in search results when it is square and a
+  // multiple of 48px, so the PNGs are declared explicitly next to the SVG.
+  icons: {
+    icon: [
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon-48.png", type: "image/png", sizes: "48x48" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/icon-48.png",
+  },
   authors: [{ name: "GMAHK Jemaat Rinegetan" }],
   creator: "GMAHK Jemaat Rinegetan",
   publisher: "GMAHK Jemaat Rinegetan",
