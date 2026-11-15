@@ -35,16 +35,16 @@ Cadence usulan adalah satu minggu fokus per sprint. Bila ada blocker konten, izi
 
 | Sprint | Sasaran dan keluaran | Status |
 | --- | --- | --- |
-| S4.0 | Buat adapter Adventech di server, normalisasi/validasi data, attribution, dan cache terukur. | Backlog |
-| S4.1 | Rilis reader Bahasa Indonesia dengan kelas Kindergarten, Primary, PowerPoint, Cornerstone, Dewasa hanya saat sumber Indonesia tersedia; fallback Dewasa. | Backlog |
-| S4.2 | Tambahkan preview dan paket unduh lokal berorientasi manifest, pengecekan update, serta progres IndexedDB tanpa akun. | Backlog |
+| S4.0 | Buat adapter Adventech di server, normalisasi/validasi data, attribution, dan cache terukur. | Selesai (P4-001) |
+| S4.1 | Rilis reader Bahasa Indonesia dengan kelas Kindergarten, Primary, PowerPoint, Cornerstone, Dewasa hanya saat sumber Indonesia tersedia; fallback Dewasa. | Selesai (P4-002, P4-003; production) |
+| S4.2 | Tambahkan preview dan paket unduh lokal berorientasi manifest, pengecekan update, serta progres IndexedDB tanpa akun. | Sebagian: kontrak manifest merge ke `development` (PR #98); format arsip, IndexedDB, transport, dan UI belum dibuat |
 | S4.3 | Aktifkan cache materi dan offline hanya setelah register menyimpan izin tertulis dari pemegang hak (P4-005); tanpa izin, reader tetap online-only. S4.0–S4.2 membangun mekanisme tanpa mengaktifkannya untuk publik. | Release gate |
 
 ## Phase 5 — PWA dan Notifikasi
 
 | Sprint | Sasaran dan keluaran | Status |
 | --- | --- | --- |
-| S5.0 | Tambahkan manifest, installability, offline application shell, dan strategi update/recovery yang aman. | Backlog |
+| S5.0 | Tambahkan manifest, installability, offline application shell, dan strategi update/recovery yang aman. | Sedang dikerjakan (P5-001, PR menunggu review) |
 | S5.1 | Tambahkan Web Push opt-in: kategori, frekuensi, preference centre, unsubscribe, dan observability pengiriman. | Backlog |
 | S5.2 | Lakukan security/privacy review, capacity review layanan gratis, dan release readiness untuk domain produksi. | Backlog |
 | S5.3 | Nilai adapter WhatsApp hanya jika ada consent, persetujuan anggaran, dan provider resmi; tidak termasuk pilot gratis. | Deferred |

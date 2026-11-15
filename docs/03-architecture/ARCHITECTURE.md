@@ -80,6 +80,18 @@ Tetapkan satu kontrak tipe untuk status konten, kategori, role, dan payload form
 - Semua mutasi mencatat actor, target, waktu, ringkasan sebelum/sesudah yang telah disanitasi.
 - Cache Adventech kelak bersifat server-side dengan TTL, version/etag bila tersedia, dan fallback tampilan terakhir yang legal.
 
+## PWA dan application shell (P5-001)
+
+`/manifest.webmanifest` dan service worker `public/sw.js` menjadikan situs dapat diinstal dan menyediakan shell publik saat offline. Worker tidak memakai library: kebijakannya ada di `src/lib/pwa/shell.mjs` dan `public/sw.js` dihasilkan dari modul itu oleh `scripts/generate-sw.mjs`, sehingga berkas yang dikirim ke browser tidak bisa berbeda dari yang diuji.
+
+Batas privasi ditegakkan sebagai daftar tolak di dalam worker, bukan sebagai akibat dari rute yang kebetulan tidak di-precache. `/staff`, `/api`, `/auth`, `/sekolah-sabat`, dan `/pelajari-alkitab` tidak pernah masuk cache dan tidak pernah dilayani dari cache. Hanya navigasi halaman (`request.mode === "navigate"`) ke rute shell yang di-cache; `fetch()` ke URL yang sama tidak disimpan.
+
+Worker didaftarkan hanya dari `src/app/(public)/layout.tsx`. Root layout tidak mendaftarkannya, karena root layout juga menaungi area staf dan mendaftarkannya di sana akan memberi halaman terautentikasi sebuah service worker.
+
+Versioning memakai build id dari commit (`generateBuildId`), bukan konstanta yang di-bump manual. Nama cache memuat build id, `activate` menghapus seluruh cache lain, dan `/sw.js` dikirim `no-cache` agar rilis tidak bisa dipaku pada shell lama. HTML memakai network-first supaya perubahan konten terlihat pada kunjungan berikutnya; `/_next/static/*` memakai cache-first karena namanya memuat hash isi.
+
+Offline materi tetap tertutup: reader Sekolah Sabat dan `/pelajari-alkitab` berada di daftar tolak, dan gate `OFFLINE_ENABLED` P4-004 tetap `false`. Pengelolaan data offline lanjutan adalah lingkup P5-002.
+
 ## Batas fase
 
 Phase 2 tidak menjalankan form pastoral, pelajaran Sekolah Sabat dari API, PWA, push, maupun WhatsApp. Batas ini mencegah fondasi CMS menjadi terlalu lebar sebelum keamanan, migrasi, dan operasi konten stabil.

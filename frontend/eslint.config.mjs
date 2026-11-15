@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated from src/lib/pwa/shell.mjs by scripts/generate-sw.mjs and asserted by
+    // tests/p5-001-pwa.test.mjs; linting the generated copy would only duplicate that check.
+    "public/sw.js",
   ]),
 ]);
 
