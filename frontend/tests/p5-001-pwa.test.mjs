@@ -187,3 +187,33 @@ test("P5-001 the banner uses those decisions instead of inlining its own", () =>
   assert.match(source, /SKIP_WAITING/, "applying the update must ask the worker to activate");
 });
 
+test("P5-001 the banner re-checks state instead of reading it once at updatefound", () => {
+  const source = read("src/components/runtime/ServiceWorkerUpdate.tsx");
+
+  // `updatefound` fires while the new worker is still "installing". Reading `worker.state` only
+  // there means the "installed" condition is never observed and the banner never appears. This is
+  // the second real defect found against the deployed site.
+  assert.match(
+    source,
+    /addEventListener\(\s*"statechange"/,
+    "the banner must listen for statechange, or it can never observe the installed state",
+  );
+});
+
+test("P5-001 applying an update targets the waiting worker, not the active one", () => {
+  const source = read("src/components/runtime/ServiceWorkerUpdate.tsx");
+
+  // Sending SKIP_WAITING to `navigator.serviceWorker.controller` messages the worker that is
+  // already running, which ignores it: no controllerchange follows and the button looks dead.
+  assert.doesNotMatch(
+    source,
+    /controller\?\.postMessage\(\s*\{\s*type:\s*"SKIP_WAITING"/,
+    "SKIP_WAITING must not be sent to the active controller",
+  );
+  assert.match(
+    source,
+    /waitingWorker\.current\?\.postMessage\(\s*\{\s*type:\s*"SKIP_WAITING"/,
+    "SKIP_WAITING must be sent to the waiting worker",
+  );
+});
+

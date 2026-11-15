@@ -11,6 +11,9 @@ const BUILD_ID = process.env.NEXT_PUBLIC_BUILD_ID || "dev";
 export function ServiceWorkerUpdate() {
   const [waiting, setWaiting] = useState(false);
   const reloading = useRef(false);
+  // The worker parked behind the active one. A ref, not state: it is used inside the click handler
+  // and must not trigger a render when the browser hands us a new worker object.
+  const waitingWorker = useRef<ServiceWorker | null>(null);
 
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return undefined;
@@ -23,16 +26,35 @@ export function ServiceWorkerUpdate() {
 
     const track = (worker: ServiceWorker | null) => {
       if (!worker || cancelled) return;
-      if (shouldAnnounceUpdate({ state: worker.state, hasController: Boolean(navigator.serviceWorker.controller) })) {
-        setWaiting(true);
-      }
+      // `updatefound` fires while the new worker is still installing, so this has to be re-checked
+      // on every state change. Evaluating only once would leave the banner permanently hidden:
+      // at `updatefound` the state is "installing", never "installed".
+      const check = () => {
+        if (cancelled) return;
+        if (
+          shouldAnnounceUpdate({
+            state: worker.state,
+            hasController: Boolean(navigator.serviceWorker.controller),
+          })
+        ) {
+          waitingWorker.current = worker;
+          setWaiting(true);
+        }
+      };
+      worker.addEventListener("statechange", check);
+      check();
     };
 
     navigator.serviceWorker
       .register(`/sw.js?v=${BUILD_ID}`, { scope: "/", updateViaCache: "none" })
       .then((registered) => {
         if (cancelled) return;
-        track(registered.waiting);
+        // A worker already parked in the waiting slot means a previous visit installed an update
+        // that was never applied.
+        if (registered.waiting) {
+          waitingWorker.current = registered.waiting;
+          track(registered.waiting);
+        }
         registered.addEventListener("updatefound", () => track(registered.installing));
       })
       .catch(() => {
@@ -55,7 +77,8 @@ export function ServiceWorkerUpdate() {
   }, []);
 
   const applyUpdate = () => {
-    navigator.serviceWorker.controller?.postMessage({ type: "SKIP_WAITING" });
+    // The waiting worker is the one that needs activating; the active worker has nothing to skip.
+    waitingWorker.current?.postMessage({ type: "SKIP_WAITING" });
     // `controllerchange` performs the reload; a second call here would reload twice.
     setWaiting(false);
   };

@@ -200,3 +200,52 @@ test("the update banner stays hidden while the running shell is current", async 
   // A banner on every visit would train visitors to ignore it, so it only appears on a real update.
   await expect(page.getByTestId("sw-update-banner")).toHaveCount(0);
 });
+
+test("a replaced worker shows the banner and the button applies it with one reload", async ({ page }) => {
+  // Count real document loads, not `framenavigated`: Next.js fires that event again for a
+  // same-document router update, so it reports two hits per single reload.
+  let loads = 0;
+  page.on("load", () => {
+    loads += 1;
+  });
+
+  await page.goto("/", { waitUntil: "load" });
+  await swReady(page);
+  // Reload so the page was served by the worker: a returning visitor, not a first visit.
+  await page.reload({ waitUntil: "load" });
+  await swReady(page);
+
+  // A release changes the worker URL because the build id travels in the query string. Registering
+  // the same scope under a different id is exactly what a deploy does to an already-open page: the
+  // browser installs the new worker and parks it in the waiting slot behind the running one.
+  await page.evaluate(async () => {
+    const registration = await navigator.serviceWorker.getRegistration();
+    const nextUrl = new URL(registration!.active!.scriptURL);
+    nextUrl.searchParams.set("v", "nextbuild0001");
+    await navigator.serviceWorker.register(`${nextUrl.pathname}${nextUrl.search}`, {
+      scope: "/",
+      updateViaCache: "none",
+    });
+  });
+
+  const banner = page.getByTestId("sw-update-banner");
+  // `updatefound` fires while the new worker is still installing. The banner must wait for the
+  // worker to reach `installed`, so this assertion fails if nothing listens for `statechange`.
+  await expect(banner).toBeVisible({ timeout: 30_000 });
+  await expect(banner).toContainText("Versi baru situs ini sudah tersedia");
+
+  // Applying the update is the visitor's decision, so nothing reloads before the click.
+  const loadsBeforeClick = loads;
+
+  await banner.getByRole("button", { name: "Muat ulang" }).click();
+
+  // Exactly one reload. `SKIP_WAITING` must reach the *waiting* worker; sent to the active one it
+  // would do nothing, no `controllerchange` would follow, and the button would appear dead.
+  await expect.poll(() => loads, { timeout: 30_000 }).toBe(loadsBeforeClick + 1);
+  await page.waitForTimeout(3_000);
+  expect(loads).toBe(loadsBeforeClick + 1);
+
+  // The new worker is the one serving the page after the reload.
+  const controller = await page.evaluate(() => navigator.serviceWorker.controller?.scriptURL ?? null);
+  expect(controller).toContain("nextbuild0001");
+});
