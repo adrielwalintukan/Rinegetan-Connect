@@ -86,6 +86,18 @@ foreach ($p in @('/sitemap.xml','/robots.txt','/opengraph-image','/icon.svg','/i
 - Setiap halaman harus memuat satu blok `application/ld+json` bertipe `Church` berisi `address`, `geo`, `hasMap`, dan `openingHoursSpecification`. Blok ini tidak boleh memuat `telephone`, `email`, atau nomor jalan sampai gereja mengonfirmasinya.
 - `NEXT_PUBLIC_SITE_URL` di-inline saat build. Mengubahnya wajib diikuti redeploy, bukan sekadar disimpan di dashboard.
 
+### Pemeriksaan rilis PWA (P5-001)
+
+- `/manifest.webmanifest` harus 200 `application/manifest+json` dan memuat `start_url: "/"`, `display: "standalone"`, serta ikon 192 `any`, 512 `any`, dan 512 `maskable`.
+- `/icon-512.png`, `/icon-maskable-512.png`, dan `/apple-icon-180.png` harus 200 dengan ukuran persis sesuai namanya. Ketiganya dihasilkan dari `public/icon.svg` lewat `node scripts/generate-pwa-icons.mjs`; jangan menyunting PNG-nya langsung.
+- `/sw.js` harus 200 dengan `Cache-Control: no-cache` dan `Service-Worker-Allowed: /`. Skrip worker yang ter-cache akan memaku pengunjung pada shell lama.
+- `/offline` harus 200 dan tidak boleh `noindex`-nya hilang.
+- Setelah rilis, buka situs di peramban yang mendukung PWA: service worker harus berstatus `activated` dan prompt instalasi tersedia. `node tests/helpers/check-installability.mjs <origin>` mencetak penilaian Chrome (`INSTALLABLE: yes`) tanpa perlu UI.
+- Muat ulang halaman sekali dan pastikan tidak ada banner "Versi baru" pada kunjungan biasa; banner hanya boleh muncul setelah build baru benar-benar terpasang.
+- Jika shell rusak di lapangan, jalur pemulihannya adalah `RESET_CACHE` (menghapus semua cache) lalu muat ulang. Cache juga diberi nama menurut build id, sehingga rilis berikutnya menghapus cache lama secara otomatis.
+- Batas: cache tidak boleh memuat `/staff`, `/api`, `/auth`, `/sekolah-sabat`, atau `/pelajari-alkitab`. Uji ini otomatis di `tests/visual/pwa.spec.ts`, tetapi periksa juga setelah mengubah daftar rute.
+
+
 Pemeriksaan cepat structured data setelah rilis:
 
 ```powershell

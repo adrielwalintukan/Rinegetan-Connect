@@ -52,8 +52,16 @@ Form doa dan kunjungan (P3-005) memakai alur yang sama lewat helper bersama `lib
 - Unduhan satu aset, album, atau kategori hanya memasukkan aset Published + approved consent + public_download_enabled.
 - Job ZIP memiliki batas jumlah file/ukuran, rate limit, masa hidup singkat, dan URL bertanda tangan pendek bila Storage dipakai.
 
-## Impor course (P3-003)
+## Cache perangkat dan service worker (P5-001)
 
+- Service worker hanya didaftarkan dari layout publik. Area staf tidak pernah memiliki service worker, sehingga halaman terautentikasi tidak dapat tersimpan di perangkat dan diputar ulang ke pengguna lain.
+- `/staff`, `/api`, `/auth`, `/sekolah-sabat`, dan `/pelajari-alkitab` ada di daftar tolak di dalam worker: tidak pernah ditulis ke cache dan tidak pernah dilayani dari cache. Daftar ini ditegakkan di dalam worker, bukan disimpulkan dari rute yang kebetulan tidak di-precache.
+- Hanya navigasi halaman ke rute shell publik yang di-cache. `fetch()` ke URL yang sama tidak disimpan, sehingga respons API tidak ikut terseret.
+- Cache perangkat tidak memuat PII, data pastoral, atau materi Sekolah Sabat. Offline materi tetap tertutup oleh gate P4-005.
+- Cache diberi nama menurut build id dan dihapus seluruhnya saat build baru aktif. Jalur pemulihan `RESET_CACHE` menghapus semua cache bila shell rusak.
+- Catatan pribadi Sekolah Sabat (P4-006) tetap berada di `window.localStorage`, bukan di cache service worker, dan tidak pernah dikirim ke server.
+
+## Impor course (P3-003)
 - Berkas impor diperlakukan sebagai input tak tepercaya: batas 2 MB dibaca secara streaming, UTF-8 ketat, daftar kunci yang diizinkan, dan URL hanya `https://` tanpa userinfo.
 - Kontrak yang sama ditegakkan di database (`course_imports_payload_contract`) sehingga insert langsung lewat Data API tidak melewati validasi.
 - Hasil impor hanya menjadi Draft setelah Admin meninjau sumber dan lisensi; audit tidak menyimpan payload. Anonim tidak dapat membaca staging maupun course Draft.

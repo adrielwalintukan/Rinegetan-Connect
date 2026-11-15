@@ -44,7 +44,7 @@ Cadence usulan adalah satu minggu fokus per sprint. Bila ada blocker konten, izi
 
 | Sprint | Sasaran dan keluaran | Status |
 | --- | --- | --- |
-| S5.0 | Tambahkan manifest, installability, offline application shell, dan strategi update/recovery yang aman. | Backlog |
+| S5.0 | Tambahkan manifest, installability, offline application shell, dan strategi update/recovery yang aman. | Sedang dikerjakan (P5-001, PR menunggu review) |
 | S5.1 | Tambahkan Web Push opt-in: kategori, frekuensi, preference centre, unsubscribe, dan observability pengiriman. | Backlog |
 | S5.2 | Lakukan security/privacy review, capacity review layanan gratis, dan release readiness untuk domain produksi. | Backlog |
 | S5.3 | Nilai adapter WhatsApp hanya jika ada consent, persetujuan anggaran, dan provider resmi; tidak termasuk pilot gratis. | Deferred |
