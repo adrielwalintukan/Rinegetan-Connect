@@ -93,6 +93,8 @@ foreach ($p in @('/sitemap.xml','/robots.txt','/opengraph-image','/icon.svg','/i
 - `/sw.js` harus 200 dengan `Cache-Control: no-cache` dan `Service-Worker-Allowed: /`. Skrip worker yang ter-cache akan memaku pengunjung pada shell lama.
 - `/offline` harus 200 dan tidak boleh `noindex`-nya hilang.
 - Setelah rilis, buka situs di peramban yang mendukung PWA: service worker harus berstatus `activated` dan prompt instalasi tersedia. `node tests/helpers/check-installability.mjs <origin>` mencetak penilaian Chrome (`INSTALLABLE: yes`) tanpa perlu UI.
+- `node tests/helpers/check-offline-shell.mjs <origin>` membuktikan shell bekerja offline di origin itu: tepat satu cache bernama build id, tidak ada entri `/staff`/`/api`/`/auth`/reader, halaman shell dirender dari cache saat jaringan diputus, dan `/staff` tidak pernah diputar dari cache.
+- `node tests/helpers/check-update-banner.mjs <origin>` membuktikan banner "Versi baru" muncul saat worker diganti dan tombol "Muat ulang" mengganti controller dengan tepat satu reload dokumen.
 - Muat ulang halaman sekali dan pastikan tidak ada banner "Versi baru" pada kunjungan biasa; banner hanya boleh muncul setelah build baru benar-benar terpasang.
 - Jika shell rusak di lapangan, jalur pemulihannya adalah `RESET_CACHE` (menghapus semua cache) lalu muat ulang. Cache juga diberi nama menurut build id, sehingga rilis berikutnya menghapus cache lama secara otomatis.
 - Batas: cache tidak boleh memuat `/staff`, `/api`, `/auth`, `/sekolah-sabat`, atau `/pelajari-alkitab`. Uji ini otomatis di `tests/visual/pwa.spec.ts`, tetapi periksa juga setelah mengubah daftar rute.
