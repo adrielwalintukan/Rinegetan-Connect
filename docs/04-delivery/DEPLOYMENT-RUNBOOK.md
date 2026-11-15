@@ -80,7 +80,8 @@ foreach ($p in @('/sitemap.xml','/robots.txt','/opengraph-image','/icon.svg','/i
 - `/robots.txt` harus 200 dan memuat baris `Sitemap:` yang benar.
 - `/opengraph-image` harus 200 `image/png` sekitar 60 KB.
 - `/icon-192.png` dan `/icon-48.png` harus 200 `image/png` dengan ukuran persis 192 dan 48 piksel. Keduanya persegi dan kelipatan 48, syarat ikon Google Search. `/icon.svg` harus 200 `image/svg+xml` untuk tab peramban dan `logo` structured data.
-- Pada HTML setiap halaman publik, `rel="canonical"` harus sama persis dengan `og:url`, dan `og:image` harus menunjuk `/opengraph-image`.
+- Pada HTML setiap halaman publik, `rel="canonical"` harus sama persis dengan `og:url`, dan `og:image` harus menunjuk `/opengraph-image`. Ini berlaku juga untuk rute dinamis reader Sekolah Sabat (`/sekolah-sabat/[quarterId]` dan turunannya); tanpa itu Google mengindeks materi reader di bawah URL beranda.
+- Rute dinamis dengan identifier invalid harus menjawab 404, dan metadata-nya tidak boleh memakai `canonical` yang bisa dirayapi.
 - Judul beranda harus deskriptif (`GMAHK Rinegetan — Gereja Advent Tondano, Minahasa`), bukan `Beranda | GMAHK Rinegetan`.
 - Setiap halaman harus memuat satu blok `application/ld+json` bertipe `Church` berisi `address`, `geo`, `hasMap`, dan `openingHoursSpecification`. Blok ini tidak boleh memuat `telephone`, `email`, atau nomor jalan sampai gereja mengonfirmasinya.
 - `NEXT_PUBLIC_SITE_URL` di-inline saat build. Mengubahnya wajib diikuti redeploy, bukan sekadar disimpan di dashboard.
