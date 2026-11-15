@@ -1,8 +1,14 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { CHURCH } from "@/data/content";
 import "./globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gmahkrinegetan.web.id";
+
+// P5-001: iOS uses its own icon slot and reads the browser chrome colour from here, not from
+// the manifest. Values match the manifest so the installed app looks the same on both platforms.
+export const viewport: Viewport = {
+  themeColor: "#0A2540",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -23,6 +29,7 @@ export const metadata: Metadata = {
   ],
   // Google only shows a favicon in search results when it is square and a
   // multiple of 48px, so the PNGs are declared explicitly next to the SVG.
+  // `apple` is separate: iOS ignores the manifest icons when adding to the home screen.
   icons: {
     icon: [
       { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
@@ -30,7 +37,9 @@ export const metadata: Metadata = {
       { url: "/icon.svg", type: "image/svg+xml" },
     ],
     shortcut: "/icon-48.png",
+    apple: [{ url: "/apple-icon-180.png", type: "image/png", sizes: "180x180" }],
   },
+  manifest: "/manifest.webmanifest",
   authors: [{ name: "GMAHK Jemaat Rinegetan" }],
   creator: "GMAHK Jemaat Rinegetan",
   publisher: "GMAHK Jemaat Rinegetan",

@@ -70,6 +70,8 @@ P4-004: kontrak manifest lokal dan gate tertutup disiapkan pada 2026-11-11 tanpa
 | ID | Issue | Acceptance ringkas | Dependensi |
 | --- | --- | --- | --- |
 | P5-001 | PWA foundation. | Manifest valid, aplikasi installable, dan cache application shell memiliki strategi versioning/recovery. | P2 release foundation |
+
+P5-001 dikerjakan 2026-11-16 pada branch `feature/p5-001-pwa-foundation`. Tiga hal yang issue ini sebut belum diputuskan (library service worker, cakupan cache, kebijakan pembaruan) diputuskan pemilik sebelum implementasi: worker tulis tangan tanpa dependency, cache hanya shell publik, dan banner update saat versi berubah. Cache perangkat tidak memuat halaman staf, API, auth, maupun materi Sekolah Sabat; offline materi tetap tertutup oleh P4-005. Bukti: [catatan P5-001](records/P5-001-PWA-2026-11-16.md).
 | P5-002 | Cache data dan pengelolaan update. | Konten cache tidak tampil usang tanpa penanda; pengguna dapat memperbarui dan pulih dari cache bermasalah. | P5-001 |
 | P5-003 | Preference centre notifikasi. | Opt-in per kategori, stop-all, perubahan preferensi, serta audit consent tersedia sebelum pengiriman. | P2 Auth/RLS |
 | P5-004 | Web Push delivery. | VAPID/secrets aman, frequency cap, unsubscribe, retry policy, dan observability diuji end-to-end. | P5-003 |
