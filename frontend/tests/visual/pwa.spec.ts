@@ -201,6 +201,17 @@ test("the update banner stays hidden while the running shell is current", async 
   await expect(page.getByTestId("sw-update-banner")).toHaveCount(0);
 });
 
+test("a first visit installs the worker without showing an update banner", async ({ page }) => {
+  // The first `clients.claim()` sets a controller on a page that has no previous shell. The banner
+  // must not treat that as an update, or every new visitor is told to reload for nothing.
+  await page.goto("/", { waitUntil: "load" });
+  await swReady(page);
+
+  // Give the install/activate/claim sequence time to finish, then confirm nothing was announced.
+  await page.waitForTimeout(2_000);
+  await expect(page.getByTestId("sw-update-banner")).toHaveCount(0);
+});
+
 test("a replaced worker shows the banner and the button applies it with one reload", async ({ page }) => {
   // Count real document loads, not `framenavigated`: Next.js fires that event again for a
   // same-document router update, so it reports two hits per single reload.
