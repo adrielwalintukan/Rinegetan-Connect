@@ -118,6 +118,32 @@ test("P2-304 all 7 public routes declare SEO metadata", () => {
   }
 });
 
+test("P2-304 every public page declares its own canonical and og:url", () => {
+  // Dynamic routes are included: a missing canonical there makes Google index the reader under
+  // the homepage URL, which is exactly what OPS-SEO requires us to prevent.
+  const publicRoutes = [
+    "src/app/(public)/page.tsx",
+    "src/app/(public)/tentang-kami/page.tsx",
+    "src/app/(public)/kegiatan/page.tsx",
+    "src/app/(public)/media/page.tsx",
+    "src/app/(public)/pelayanan/page.tsx",
+    "src/app/(public)/sekolah-sabat/page.tsx",
+    "src/app/(public)/kontak/page.tsx",
+    "src/app/(public)/pelajari-alkitab/page.tsx",
+    "src/app/(public)/pelajari-alkitab/[courseSlug]/page.tsx",
+    "src/app/(public)/pelajari-alkitab/[courseSlug]/[lessonSlug]/page.tsx",
+    "src/app/(public)/sekolah-sabat/[quarterId]/page.tsx",
+    "src/app/(public)/sekolah-sabat/[quarterId]/[lessonId]/page.tsx",
+    "src/app/(public)/sekolah-sabat/[quarterId]/[lessonId]/[dayId]/page.tsx",
+  ];
+
+  for (const relPath of publicRoutes) {
+    const source = readFileSync(resolve(projectRoot, relPath), "utf8");
+    assert.match(source, /canonical:/, `${relPath} must declare a canonical URL`);
+    assert.match(source, /openGraph:\s*\{[^}]*url:/s, `${relPath} must declare og:url`);
+  }
+});
+
 test("P2-304 root layout declares metadataBase, title template, and OpenGraph", () => {
   const rootLayoutPath = resolve(projectRoot, "src/app/layout.tsx");
   const rootLayoutSource = readFileSync(rootLayoutPath, "utf8");

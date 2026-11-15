@@ -101,3 +101,9 @@ Tiga rute publik `/sekolah-sabat/[quarterId]`, `/sekolah-sabat/[quarterId]/[less
 Isi harian berupa HTML disanitasi dengan `sanitize-html` sebelum dirender. Hanya tag semantik baca, `sup`/`sub`, dan tautan HTTPS tanpa kredensial yang dipertahankan; script, resource remote, event handler, style, class, dan id dibuang. `h1` diturunkan ke `h2` agar hierarki halaman tetap satu `h1`. Konten Alkitab popup, PDF, cover, dan unduhan tidak dirender.
 
 Hasil valid di-cache Next.js satu jam dengan key tanggal WITA; kegagalan upstream menjadi `unavailable` di luar cache, sedangkan identifier invalid atau bukan anggota menjadi `not-found`. Tidak ada sesi Supabase, penyimpanan progres/identitas, analytics isi, atau cache PostgreSQL privat pada jalur reader. Snapshot cache bersifat best-effort dan dapat hilang saat cache dingin atau deploy baru.
+
+## Kontrak paket lokal P4-004
+
+`frontend/src/lib/sabbath/offline.mjs` adalah modul murni tanpa I/O: tidak melakukan `fetch`, tidak membuka IndexedDB/Cache Storage, dan tidak menyentuh jaringan. Isinya kontrak manifest lokal (version, size estimate, created_at, label terlihat), perbandingan versi untuk pesan "Update tersedia", dan pemindahan progres berdasarkan lesson ID stabil.
+
+Gate aktivasi berupa konstanta modul `OFFLINE_ENABLED = false`, bukan parameter fungsi, sehingga tidak ada pemanggil yang dapat membukanya dengan argumen. Selama gate tertutup tidak ada UI unduh/offline, tidak ada paket yang dibangun, dan tidak ada route baru. Format arsip, skema IndexedDB, dan transport unduhan belum ditetapkan karena masih menunggu keputusan pemilik; lihat [catatan P4-004](../04-delivery/records/P4-004-OFFLINE-2026-11-11.md).
