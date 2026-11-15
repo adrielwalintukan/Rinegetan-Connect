@@ -140,14 +140,24 @@ test("P2-304 homepage title is descriptive and absolute so the site template doe
 });
 
 test("P2-304 site ships a favicon and Church structured data built from verified content", () => {
-  const iconPath = resolve(projectRoot, "src/app/icon.svg");
-  assert.ok(existsSync(iconPath), "src/app/icon.svg must provide the browser tab icon");
+  const iconPath = resolve(projectRoot, "public/icon.svg");
+  assert.ok(existsSync(iconPath), "public/icon.svg must provide the browser tab icon");
 
   const iconSource = readFileSync(iconPath, "utf8");
   assert.ok(iconSource.includes('viewBox="0 0 512 512"'), "Icon must declare a 512 square viewBox");
   assert.ok(iconSource.includes("<path"), "Icon must draw the church symbol, not an empty tile");
 
+  // Google picks the Search favicon from square, multiple-of-48px images.
+  for (const size of [48, 192]) {
+    const png = readFileSync(resolve(projectRoot, `public/icon-${size}.png`));
+    assert.equal(png.subarray(1, 4).toString(), "PNG", `icon-${size}.png must be a PNG`);
+    assert.equal(png.readUInt32BE(16), size, `icon-${size}.png must be ${size}px wide`);
+    assert.equal(png.readUInt32BE(20), size, `icon-${size}.png must be ${size}px tall`);
+  }
+
   const rootLayoutSource = readFileSync(resolve(projectRoot, "src/app/layout.tsx"), "utf8");
+  assert.ok(rootLayoutSource.includes('url: "/icon-192.png"'), "Layout must declare the 192px favicon");
+  assert.ok(rootLayoutSource.includes('url: "/icon-48.png"'), "Layout must declare the 48px favicon");
   assert.ok(rootLayoutSource.includes('type="application/ld+json"'), "Root layout must emit JSON-LD");
   assert.ok(rootLayoutSource.includes('"@type": "Church"'), "JSON-LD must describe a Church");
   assert.ok(rootLayoutSource.includes('"@type": "WebSite"'), "JSON-LD must declare WebSite in @graph");

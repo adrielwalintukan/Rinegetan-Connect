@@ -70,7 +70,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Publikasi tag belum terverifikasi di remote.' 
 Diperiksa setiap kali rilis, cukup dengan permintaan HTTP biasa:
 
 ```powershell
-foreach ($p in @('/sitemap.xml','/robots.txt','/opengraph-image','/icon.svg')) {
+foreach ($p in @('/sitemap.xml','/robots.txt','/opengraph-image','/icon.svg','/icon-192.png','/icon-48.png')) {
   $r = Invoke-WebRequest "https://www.gmahkrinegetan.web.id$p" -UseBasicParsing
   "$p -> $($r.StatusCode) $($r.Headers['Content-Type']) $($r.RawContentLength)"
 }
@@ -79,7 +79,7 @@ foreach ($p in @('/sitemap.xml','/robots.txt','/opengraph-image','/icon.svg')) {
 - `/sitemap.xml` harus 200 `application/xml`, seluruh `<loc>` memakai domain produksi, dan hanya memuat kursus/pelajaran berstatus Published.
 - `/robots.txt` harus 200 dan memuat baris `Sitemap:` yang benar.
 - `/opengraph-image` harus 200 `image/png` sekitar 60 KB.
-- `/icon.svg` harus 200 `image/svg+xml`; ikon ini yang tampil di tab peramban dan dipakai sebagai `logo` pada structured data.
+- `/icon-192.png` dan `/icon-48.png` harus 200 `image/png` dengan ukuran persis 192 dan 48 piksel. Keduanya persegi dan kelipatan 48, syarat ikon Google Search. `/icon.svg` harus 200 `image/svg+xml` untuk tab peramban dan `logo` structured data.
 - Pada HTML setiap halaman publik, `rel="canonical"` harus sama persis dengan `og:url`, dan `og:image` harus menunjuk `/opengraph-image`.
 - Judul beranda harus deskriptif (`GMAHK Rinegetan — Gereja Advent Tondano, Minahasa`), bukan `Beranda | GMAHK Rinegetan`.
 - Setiap halaman harus memuat satu blok `application/ld+json` bertipe `Church` berisi `address`, `geo`, `hasMap`, dan `openingHoursSpecification`. Blok ini tidak boleh memuat `telephone`, `email`, atau nomor jalan sampai gereja mengonfirmasinya.
