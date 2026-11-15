@@ -55,6 +55,8 @@ P4-002: tahap awal pilihan A pada 2026-11-10 membangun seleksi katalog sintetis 
 
 P4-003: reader anonim menambahkan daftar pelajaran triwulan, daftar hari, dan bacaan harian dari endpoint `/in/` dengan validasi induk-anak, sanitasi HTML, serta cache Next.js satu jam. Identifier invalid/bukan anggota menghasilkan 404; gangguan sumber menghasilkan halaman unavailable dengan atribusi dan tautan resmi. Tidak ada akun, progres Supabase, analytics isi, offline/download, atau pembukaan RPC privat. Issue #52 tetap terbuka untuk acceptance pemilik. Bukti: [catatan P4-003](records/P4-003-2026-11-11.md).
 
+P4-004: kontrak manifest lokal dan gate tertutup disiapkan pada 2026-11-11 tanpa mengaktifkan unduhan/offline. Modul `offline.mjs` menetapkan manifest (version, size estimate, created_at, label terlihat), pesan "Update tersedia" tanpa unduhan otomatis, serta pemindahan progres berdasarkan lesson ID stabil. Gate `OFFLINE_ENABLED` adalah konstanta modul sehingga tidak bisa dibuka pemanggil, dan halaman reader dibuktikan tidak merender kontrol unduh/offline. Format arsip, skema IndexedDB, transport unduhan, dan UI unduhan **belum dibuat** karena issue #53 mencatatnya sebagai keputusan yang belum diambil dan acceptance-nya melarang rilis sebelum gate P4-005 lulus. Issue #53 tetap terbuka. Bukti: [catatan P4-004](records/P4-004-OFFLINE-2026-11-11.md).
+
 | ID | Issue | Acceptance ringkas | Dependensi |
 | --- | --- | --- | --- |
 | P4-001 | Adapter Adventech server-side. | Sumber diambil lewat adapter, dinormalisasi, divalidasi, dicache, dan memiliki attribution. | P2 server foundation |
