@@ -210,10 +210,30 @@ test("P5-001 applying an update targets the waiting worker, not the active one",
     /controller\?\.postMessage\(\s*\{\s*type:\s*"SKIP_WAITING"/,
     "SKIP_WAITING must not be sent to the active controller",
   );
+  // The message goes to a target resolved from the waiting slot, never to the controller.
   assert.match(
     source,
-    /waitingWorker\.current\?\.postMessage\(\s*\{\s*type:\s*"SKIP_WAITING"/,
-    "SKIP_WAITING must be sent to the waiting worker",
+    /const target = [^;]*waiting[^;]*;[\s\S]{0,200}?target\?\.postMessage\(\s*\{\s*type:\s*"SKIP_WAITING"/,
+    "SKIP_WAITING must be sent to a worker resolved from the waiting slot",
+  );
+});
+
+test("P5-001 the apply button never messages a stale worker", () => {
+  const source = read("src/components/runtime/ServiceWorkerUpdate.tsx");
+
+  // Found on the live site during a deploy window: the banner was already on screen when the
+  // browser replaced the waiting worker. The ref still pointed at the superseded object, so
+  // SKIP_WAITING went nowhere, no controllerchange fired, and the button did nothing. The
+  // registration's current slot has to win, with the ref only as a fallback.
+  assert.match(
+    source,
+    /registrationRef\.current\?\.waiting\s*\?\?\s*waitingWorker\.current/,
+    "apply must read the live waiting slot first, falling back to the tracked worker",
+  );
+  assert.match(
+    source,
+    /registrationRef\.current\s*=\s*registered/,
+    "the registration must be captured so the click handler can read its waiting slot",
   );
 });
 
