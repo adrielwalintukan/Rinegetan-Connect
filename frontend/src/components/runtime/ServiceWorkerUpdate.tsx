@@ -14,6 +14,10 @@ export function ServiceWorkerUpdate() {
   // The worker parked behind the active one. A ref, not state: it is used inside the click handler
   // and must not trigger a render when the browser hands us a new worker object.
   const waitingWorker = useRef<ServiceWorker | null>(null);
+  // The live registration. A deploy can install a second worker over the first while the banner is
+  // already on screen, which leaves `waitingWorker` pointing at a worker that is no longer waiting.
+  // The registration's own slot is the source of truth at click time.
+  const registrationRef = useRef<ServiceWorkerRegistration | null>(null);
 
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return undefined;
@@ -49,6 +53,7 @@ export function ServiceWorkerUpdate() {
       .register(`/sw.js?v=${BUILD_ID}`, { scope: "/", updateViaCache: "none" })
       .then((registered) => {
         if (cancelled) return;
+        registrationRef.current = registered;
         // A worker already parked in the waiting slot means a previous visit installed an update
         // that was never applied.
         if (registered.waiting) {
@@ -78,7 +83,11 @@ export function ServiceWorkerUpdate() {
 
   const applyUpdate = () => {
     // The waiting worker is the one that needs activating; the active worker has nothing to skip.
-    waitingWorker.current?.postMessage({ type: "SKIP_WAITING" });
+    // Prefer the registration's current slot: during a deploy the browser can replace the waiting
+    // worker after the banner appeared, and messaging the stale object would do nothing at all,
+    // leaving the button looking dead.
+    const target = registrationRef.current?.waiting ?? waitingWorker.current;
+    target?.postMessage({ type: "SKIP_WAITING" });
     // `controllerchange` performs the reload; a second call here would reload twice.
     setWaiting(false);
   };
