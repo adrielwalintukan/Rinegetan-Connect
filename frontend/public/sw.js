@@ -25,6 +25,9 @@ const FORBIDDEN_PREFIXES = [
   "/pelajari-alkitab"
 ];
 const OFFLINE_URL = "/offline";
+// P5-002: a stored page is stamped as it is fetched, so the page can say how old its copy is.
+const CACHED_AT_HEADER = "X-Rinegetan-Cached-At";
+const CACHE_STATUS_MESSAGE = "CACHE_STATUS";
 
 function isForbiddenPath(pathname) {
   if (typeof pathname !== "string" || !pathname.startsWith("/")) return true;
@@ -109,7 +112,36 @@ self.addEventListener("message", (event) => {
     // Recovery path: drop every cache and let the next request rebuild from the network.
     event.waitUntil(caches.keys().then((names) => Promise.all(names.map((name) => caches.delete(name)))));
   }
+  if (data.type === CACHE_STATUS_MESSAGE) {
+    // P5-002: how old is the copy of this path? Answered from the stamp taken when it was stored,
+    // so the page can say "saved 3 hours ago" instead of guessing from navigator.onLine.
+    event.waitUntil((async () => {
+      const port = event.ports && event.ports[0];
+      if (!port) return;
+      let cachedAt = null;
+      try {
+        const cache = await caches.open(CACHE);
+        const cached = await cache.match(data.path);
+        cachedAt = cached ? cached.headers.get(CACHED_AT_HEADER) : null;
+      } catch {
+        cachedAt = null;
+      }
+      port.postMessage({ path: data.path, cachedAt });
+    })());
+  }
 });
+
+// Stamps a response before it is stored. The stored copy carries the time; the response handed to
+// the page is the untouched original, so nothing about the page itself changes.
+const stamped = (response) => {
+  const headers = new Headers(response.headers);
+  headers.set(CACHED_AT_HEADER, new Date().toISOString());
+  return response.blob().then((body) => new Response(body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  }));
+};
 
 self.addEventListener("fetch", (event) => {
   const strategy = strategyFor(event.request, self.location.origin);
@@ -132,7 +164,8 @@ self.addEventListener("fetch", (event) => {
     const cache = await caches.open(CACHE);
     try {
       const response = await fetch(event.request);
-      if (response.ok) await cache.put(event.request, response.clone());
+      // Only the stored copy is stamped; the page receives the original response.
+      if (response.ok) await cache.put(event.request, await stamped(response.clone()));
       return response;
     } catch (error) {
       const cached = await cache.match(event.request);
