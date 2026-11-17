@@ -2,6 +2,17 @@
 
 Backlog ini adalah indeks issue tingkat produk. Issue Phase 2 yang aktif memiliki acceptance criteria terperinci di [Phase 2 Issue Backlog](PHASE-2-ISSUE-BACKLOG.md). Sebelum issue masuk sprint, pemiliknya melengkapi scope/non-scope, acceptance criteria, test plan, dependensi, dan checklist privasi/RLS bila relevan.
 
+## Keputusan pemilik 2026-11-17
+
+Empat keputusan yang issue-nya menyebut "belum ditetapkan dokumen" ditetapkan pemilik pada 2026-11-17, sebelum implementasi:
+
+| Kode | Pertanyaan | Keputusan |
+| --- | --- | --- |
+| OPS-FONT | Font resmi Advent Sans atau fallback? | **Fallback permanen.** Stack Plus Jakarta Sans/Noto Sans/system-ui dipertahankan sebagai keputusan desain, bukan keadaan sementara. Tidak ada klaim font resmi dan tidak ada rencana adopsi sampai organisasi menyediakan file berlisensi dengan hak penggunaan web terverifikasi. |
+| IDEA-DARK | Dark Sabbath Mode dibangun, ditolak, atau ditahan? | **Ditahan sebagai ide, tidak dibangun.** Tidak ada toggle tema, token warna gelap, atau preferensi tema. Penutupan issue ini tidak berarti fitur ada. |
+| P5-003 | Identitas langganan notifikasi tanpa akun Member? | **Perangkat/push subscription.** Tidak ada email/nomor tersimpan, tidak ada akun. Preferensi diubah dari perangkat yang berlangganan; stop-all berarti berhenti berlangganan di perangkat itu. |
+| P5-004 | Angka cap/retry/digest/retensi? | **Digest rutin 1x/hari pukul 07.00 WITA; mendesak maksimal 3/hari; retry maksimal 3x jeda 5 menit; catatan pengiriman disimpan 90 hari.** Angka ini titik awal dan dapat diubah lewat migration. |
+
 ## Phase 1 — Website resmi
 
 | ID | Issue | Acceptance ringkas | Status |
