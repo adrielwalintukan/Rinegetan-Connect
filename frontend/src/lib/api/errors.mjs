@@ -1,6 +1,13 @@
 /** An error whose message is written for staff and is safe to show as-is. */
 export class UserFacingError extends Error {}
 
+/**
+ * A rejection caused by the input itself: the message explains what the visitor must fix
+ * and is written for them, so it is safe to show. Routes must still pass it through
+ * `publicErrorMessage`, which is the single place that decides what may reach the browser.
+ */
+export class PublicInputError extends UserFacingError {}
+
 const POSTGRES_MESSAGES = {
   "23502": "Ada kolom wajib yang belum diisi.",
   "23503": "Data terkait tidak ditemukan atau masih dipakai data lain.",
