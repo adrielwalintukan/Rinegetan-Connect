@@ -28,7 +28,7 @@ Cadence usulan adalah satu minggu fokus per sprint. Bila ada blocker konten, izi
 | --- | --- | --- |
 | S3.0 | Bentuk model Course/Lesson dan reader publik untuk Pelajari Alkitab; progres hanya di browser pengguna. | Selesai (P3-001, P3-002; production 2026-10-23) |
 | S3.1 | Buat CMS course/lesson dan impor pihak ketiga yang selalu masuk sebagai draft serta melewati pemeriksaan lisensi. | Selesai dirilis (P3-001, P3-003 lewat PR #99) |
-| S3.2 | Buat form minat belajar, permohonan doa, dan kunjungan dengan consent, anti-spam, dan akses Admin-only. | Selesai dirilis (P3-004, P3-005 lewat PR #99); submit form ke production belum diuji end-to-end |
+| S3.2 | Buat form minat belajar, permohonan doa, dan kunjungan dengan consent, anti-spam, dan akses Admin-only. | Selesai dirilis (P3-004, P3-005 lewat PR #99); rate limit dan Turnstile terbukti aktif di production, insert baris belum diuji end-to-end |
 | S3.3 | Uji retensi 24 bulan, audit akses, ekspor terkontrol, dan prosedur respons data pastoral. | Selesai dirilis (P3-006 lewat PR #99); ekspor tidak disediakan sesuai keputusan pemilik 2026-11-03 |
 
 ## Phase 4 — Sekolah Sabat Digital
