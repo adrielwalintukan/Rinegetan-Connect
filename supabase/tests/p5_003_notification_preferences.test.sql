@@ -13,6 +13,28 @@ select has_column('public', 'notification_subscriptions', 'consented_at', 'subsc
 select hasnt_column('public', 'notification_subscriptions', 'email', 'no email column may exist');
 select hasnt_column('public', 'notification_subscriptions', 'phone', 'no phone column may exist');
 
+-- A CHECK constraint runs with the inserting role's privileges, so service_role must be
+-- able to execute the duplicate helper. Revoking it from service_role made every insert
+-- fail with 42501 before the constraint was even evaluated (caught in CI, not locally).
+select ok(
+  coalesce((
+    select has_function_privilege('service_role', procedure.oid, 'execute')
+    from pg_proc as procedure
+    join pg_namespace as namespace on namespace.oid = procedure.pronamespace
+    where namespace.nspname = 'private' and procedure.proname = 'notification_categories_unique'
+  ), false),
+  'service_role can execute the categories helper used by the CHECK constraint'
+);
+select ok(
+  coalesce((
+    select not has_function_privilege('anon', procedure.oid, 'execute')
+    from pg_proc as procedure
+    join pg_namespace as namespace on namespace.oid = procedure.pronamespace
+    where namespace.nspname = 'private' and procedure.proname = 'notification_categories_unique'
+  ), false),
+  'anon cannot execute the categories helper'
+);
+
 -- The notification routes reuse the shared rate limiter, so its allow-list must accept them.
 select ok(public.check_form_rate('notification_subscribe', repeat('a', 32), 10, '1 hour'),
   'notification subscribe key accepted');
@@ -62,7 +84,8 @@ select throws_ok($$ insert into public.notification_subscriptions (endpoint, p25
   values ('http://push.example.invalid/send/x', 'k', 'a', array['ibadah'], '2026-11-17') $$,
   '23514', null, 'endpoint must be https');
 
--- The consent log records the change, not the person.
+-- The consent log records the change, not the person. service_role deliberately has no
+-- direct SELECT on it, so the checks below run as the test owner (after reset role).
 reset role;
 select is((select count(*)::int from public.notification_consent_log), 1, 'subscribing writes one consent record');
 select results_eq($$ select consent_version, enabled_categories from public.notification_consent_log $$,
@@ -71,14 +94,15 @@ select results_eq($$ select consent_version, enabled_categories from public.noti
 -- service_role must not be able to read the secrets back out in bulk for other devices.
 set local role service_role;
 select throws_ok($$ select * from public.notification_subscriptions $$, '42501', null, 'service_role has no direct read of subscriptions');
+select throws_ok($$ select * from public.notification_consent_log $$, '42501', null, 'service_role has no direct read of the consent log');
 reset role;
 
 -- Changing categories writes another consent record and keeps the endpoint single.
 set local role service_role;
 select lives_ok($$ select public.update_notification_categories('https://push.example.invalid/send/abc', array['pengumuman', 'ibadah'], '2026-11-17') $$,
   'categories can be changed through the function');
-select is((select count(*)::int from public.notification_consent_log), 2, 'changing categories appends a consent record');
 reset role;
+select is((select count(*)::int from public.notification_consent_log), 2, 'changing categories appends a consent record');
 select results_eq($$ select categories from public.notification_subscriptions where endpoint = 'https://push.example.invalid/send/abc' $$,
   $$ values (array['pengumuman', 'ibadah']::text[]) $$, 'categories are replaced, not merged');
 
@@ -104,6 +128,9 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub', '95000000-0000-4000-8000-00000000000a', true);
 select throws_ok($$ select * from public.notification_subscriptions $$, '42501', null, 'Admin cannot read push secrets');
 select throws_ok($$ select * from public.notification_consent_log $$, '42501', null, 'Admin cannot read the consent log');
+select throws_ok($$ select public.notification_recipients('pengumuman') $$, '42501', null, 'Admin cannot list notification recipients');
+select throws_ok($$ select public.update_notification_categories('https://push.example.invalid/send/abc', array['ibadah'], '2026-11-17') $$,
+  '42501', null, 'Admin cannot rewrite a device subscription');
 select set_config('request.jwt.claim.sub', '95000000-0000-4000-8000-00000000000e', true);
 select throws_ok($$ select * from public.notification_subscriptions $$, '42501', null, 'Editor cannot read push secrets');
 reset role;

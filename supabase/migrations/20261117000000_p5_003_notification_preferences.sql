@@ -30,7 +30,12 @@ set search_path = ''
 as $$
   select cardinality(p_categories) = (select count(distinct value) from unnest(p_categories) as value);
 $$;
-revoke all on function private.notification_categories_unique(text[]) from public, anon, authenticated, service_role;
+-- A CHECK constraint runs with the inserting role's privileges, so service_role keeps
+-- execute and USAGE on the schema. Without these every insert fails with 42501 before the
+-- constraint is even evaluated (this was caught in CI, not locally).
+revoke all on function private.notification_categories_unique(text[]) from public, anon, authenticated;
+grant usage on schema private to service_role;
+grant execute on function private.notification_categories_unique(text[]) to service_role;
 
 create table public.notification_subscriptions (
   endpoint text primary key check (
