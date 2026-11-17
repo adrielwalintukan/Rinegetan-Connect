@@ -67,6 +67,37 @@ test("a copy from a few hours ago is announced as saved, with its age", async ({
   await expect(notice.getByRole("button", { name: "Pulihkan" })).toHaveCount(0);
 });
 
+test("the offline fallback stays readable instead of becoming an error", async ({ page, context }) => {
+  // Regression guard for a real defect: the offline page was cached without the chunks it imports,
+  // so hydrating it offline threw ChunkLoadError and the app's error boundary replaced it with
+  // "Halaman belum dapat ditampilkan". Waiting past hydration is the point: the fallback is served
+  // immediately either way, and only the aftermath tells you which page the visitor really got.
+  await page.goto("/kontak", { waitUntil: "load" });
+  await swReady(page);
+  await page.reload({ waitUntil: "load" });
+  await swReady(page);
+
+  await page.evaluate(async () => {
+    for (const name of await caches.keys()) {
+      const cache = await caches.open(name);
+      await cache.delete("/kontak");
+    }
+  });
+
+  await context.setOffline(true);
+  try {
+    await page.goto("/kontak", { waitUntil: "load" });
+    await expect(page.getByRole("heading", { name: "Anda sedang offline" })).toBeVisible();
+
+    // Give the page long enough to hydrate and fail if its scripts are missing.
+    await page.waitForTimeout(3_000);
+    await expect(page.getByRole("heading", { name: "Anda sedang offline" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Halaman belum dapat ditampilkan" })).toHaveCount(0);
+  } finally {
+    await context.setOffline(false);
+  }
+});
+
 test("a copy older than a day is announced as old and offers recovery", async ({ page, context }) => {
   await page.goto("/", { waitUntil: "load" });
   await swReady(page);

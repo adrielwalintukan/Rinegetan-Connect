@@ -66,7 +66,42 @@ self.addEventListener("install", (event) => {
     // its own fallback.
     const offlineResponse = await fetch(new Request(OFFLINE_URL, { cache: "reload" }));
     if (!offlineResponse.ok) throw new Error("Offline page unavailable: " + offlineResponse.status);
+
+    // The offline page is HTML that pulls its own scripts and styles. Serving that HTML without
+    // them is what makes the browser throw ChunkLoadError while offline, and the app's error
+    // boundary then replaces the offline page with "Halaman belum dapat ditampilkan" — the exact
+    // opposite of the reassurance this page exists to give. Reading the markup and storing what it
+    // references is the only way to know which chunks this build actually needs.
+    //
+    // The markup is read before storing, because putting the response consumes its body and a
+    // later clone() would throw — a mistake that fails silently inside the catch below.
+    let markup = "";
+    try {
+      markup = await offlineResponse.clone().text();
+    } catch {
+      // Without the markup the page is still stored; its chunks are retried on the next install.
+    }
     await cache.put(OFFLINE_URL, offlineResponse);
+
+    const offlineAssets = new Set();
+    for (const match of markup.matchAll(/(?:src|href)="([^"]+)"/g)) {
+      try {
+        const url = new URL(match[1], self.location.origin);
+        if (url.origin === self.location.origin && url.pathname.startsWith("/_next/static/")) {
+          offlineAssets.add(url.pathname);
+        }
+      } catch {
+        // A malformed attribute is not worth failing an install over.
+      }
+    }
+    await Promise.all([...offlineAssets].map(async (path) => {
+      try {
+        const response = await fetch(new Request(path, { cache: "reload" }));
+        if (response.ok) await cache.put(path, response);
+      } catch {
+        // Best effort: a missing chunk must not abort an install that already has the page.
+      }
+    }));
 
     // The rest is best effort: one missing page must not abort the install, or a single 404 would
     // leave the site with no offline shell at all.

@@ -113,3 +113,29 @@ test("P5-002 the notice is wired into the public layout only", () => {
   const rootLayout = read("src/app/layout.tsx");
   assert.doesNotMatch(rootLayout, /StoredCopyNotice/);
 });
+
+test("P5-002 the offline page is stored together with the chunks it needs", () => {
+  // Found by a flaky test, not by reading: the offline page was served from cache while its scripts
+  // were not, so the browser threw ChunkLoadError and the app's error boundary replaced the offline
+  // page with "Halaman belum dapat ditampilkan". A visitor offline saw an error, not reassurance.
+  const worker = read("public/sw.js");
+
+  // The markup must be read before the response is stored: storing consumes the body, and a later
+  // clone() throws. That exact mistake was made and it failed silently inside a catch.
+  const markupRead = worker.indexOf("offlineResponse.clone().text()");
+  const pageStored = worker.indexOf("cache.put(OFFLINE_URL, offlineResponse)");
+  assert.ok(markupRead > 0, "the worker must read the offline markup to learn its chunks");
+  assert.ok(pageStored > 0, "the worker must store the offline page");
+  assert.ok(markupRead < pageStored, "the markup must be read before the page is stored");
+
+  // And the collected chunks must actually be stored, not merely collected. This asserts on the
+  // loop that stores them rather than on any mention of cache.put, because a mutation that empties
+  // the list being iterated still leaves the call site in place and would otherwise pass.
+  assert.match(worker, /url\.pathname\.startsWith\("\/_next\/static\/"\)/,
+    "only build assets are collected from the offline markup");
+  assert.match(worker, /offlineAssets\.add\(url\.pathname\)/);
+  assert.match(worker, /\[\.\.\.offlineAssets\]\.map\(async \(path\) =>/,
+    "the collected chunks must be iterated and stored, not collected and dropped");
+  assert.match(worker, /cache\.put\(path, response\)/,
+    "the collected chunks must be written to the cache");
+});
