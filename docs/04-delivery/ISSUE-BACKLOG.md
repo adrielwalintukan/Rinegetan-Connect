@@ -36,7 +36,18 @@ P3-003 (#46): PR #86 merge ke `development` pada 2026-10-25 (`6dc89ed`), CI hasi
 
 **Rilis Phase 3 ke production (pembaruan 2026-11-17).** Keempat commit Phase 3 di atas (`6dc89ed`, `8f1e0c4`, `5c31d55`, `b9172cc`) sudah menjadi leluhur `main`; kode dirilis lewat PR #99 (`4c13fed`, 2026-11-14). Pernyataan "belum dirilis ke production" pada teks lama dan pada [record P3-003](records/P3-003-2026-10-25.md)/[record P3-006](records/P3-006-2026-11-03.md) bersifat historis, bukan status kini.
 
-Batas yang tetap berlaku: PR #99 meminta **8 migration** (`20261025000000`–`20261110000000`) diterapkan manual ke project production, dan repository tidak memiliki workflow yang melakukannya. Tidak ada catatan `migration list --linked` maupun uji submit form end-to-end ke production setelah rilis itu, sehingga penerapan migration production **belum terbukti** dari dokumen. Uji kirim form ke production sengaja tidak dijalankan saat penyelarasan ini karena akan membuat baris data nyata.
+**Batas migration production (pembaruan 2026-11-17).** PR #99 meminta **8 migration** (`20261025000000`–`20261110000000`) diterapkan manual ke project production, dan repository tidak memiliki workflow yang melakukannya. Sebagian keadaan itu sekarang **terbukti** lewat uji HTTP read-only ke production:
+
+| Uji | Hasil live | Yang dibuktikan |
+| --- | --- | --- |
+| `POST /api/minat-belajar` dengan body valid tanpa token | `400 "Verifikasi gagal"` (`field: turnstile`) | `check_form_rate` dan tabel `form_rate_events` dari migration `20261026000000` ada; route berjalan sampai verifikasi Turnstile |
+| `POST /api/doa` dengan body valid tanpa token | `400 "Verifikasi gagal"` (`field: turnstile`) | `check_form_rate` menerima `prayer_attempt`, jadi constraint `form_rate_events_form_check` versi `20261102000000` sudah diterapkan |
+| `POST /api/kunjungan` dengan body valid tanpa token | `400 "Verifikasi gagal"` (`field: turnstile`) | `check_form_rate` menerima `visit_attempt`, constraint yang sama sudah diterapkan |
+| `POST /api/doa` dengan body bentuk form minat belajar (memuat kunci `message` yang tidak dikenal route doa) | `400 "Format permintaan tidak valid."` | Allow-list kunci ditolak sebelum menyentuh database |
+
+Kunci pembuktiannya ada di constraint. Migration `20261026000000` (P3-004) hanya mengizinkan `form in ('study_interest', 'study_interest_attempt')`. Migration `20261102000000` (P3-005) menggantinya dengan daftar yang juga memuat `prayer`, `prayer_attempt`, `visit`, `visit_attempt`. Ketiga route mencapai tahap Turnstile, dan tahap itu hanya dicapai **setelah** `check_form_rate` berhasil. Karena `/api/doa` dan `/api/kunjungan` memakai nama form `prayer_attempt`/`visit_attempt`, keberhasilan itu hanya mungkin bila migration P3-005 sudah diterapkan. Jadi `20261026000000` dan `20261102000000` **terbukti** ada di production.
+
+Yang **belum** terbukti: tabel `prayer_requests`, `visits`, dan `pastoral_retention` belum tersentuh karena Turnstile menolak lebih dulu, sehingga baris tidak pernah di-insert — keberadaan tabelnya tidak bisa disimpulkan dari uji ini. Uji kirim form yang benar-benar membuat baris data sengaja tidak dijalankan pada database gereja. Untuk melengkapinya, pemilik dapat menjalankan `npm run supabase --prefix frontend -- migration list --linked` (read-only) dan mencatat hasilnya.
 
 | ID | Issue | Acceptance ringkas | Dependensi |
 | --- | --- | --- | --- |
