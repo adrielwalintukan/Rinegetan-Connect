@@ -43,11 +43,11 @@ Setiap halaman baru wajib tetap nyaman pada lebar 320px, 375px, 768px, 1024px, d
 | Danger | #C71F1F | status destruktif; bukan warna merek |
 | Radius default | 10px | komponen standar |
 
-Jangan memperkenalkan warna merek baru tanpa memperbarui token dan uji kontras. Dark Sabbath Mode adalah ide backlog, bukan requirement Phase 2.
+Jangan memperkenalkan warna merek baru tanpa memperbarui token dan uji kontras. Dark Sabbath Mode adalah ide backlog yang **ditahan** (keputusan pemilik, 2026-11-17) dan **tidak dibangun**; ini bukan requirement Phase 2 dan bukan pekerjaan yang dijadwalkan. Tidak ada toggle tema, token warna gelap, atau penyimpanan preferensi tema. Bila ide ini dibuka kembali, ia butuh scope, kriteria kontras/fokus, dan pemeriksaan identitas Advent tersendiri.
 
 ## Tipografi
 
-Gunakan stack sans: Plus Jakarta Sans, Noto Sans, system-ui, sans-serif sampai file Advent Sans berlisensi disediakan organisasi. Jangan menyatakan font fallback sebagai Advent Sans resmi.
+Gunakan stack sans: Plus Jakarta Sans, Noto Sans, system-ui, sans-serif. **Keputusan permanen (pemilik, 2026-11-17):** stack fallback ini dipertahankan sebagai keputusan desain, bukan keadaan sementara yang menunggu file Advent Sans. Tidak ada rencana adopsi font resmi sampai organisasi menyediakan file berlisensi beserta hak penggunaan web yang terverifikasi. Jangan menyatakan font fallback sebagai Advent Sans resmi.
 
 | Peran | Skala |
 | --- | --- |
