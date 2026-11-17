@@ -27,9 +27,9 @@ Cadence usulan adalah satu minggu fokus per sprint. Bila ada blocker konten, izi
 | Sprint | Sasaran dan keluaran | Status |
 | --- | --- | --- |
 | S3.0 | Bentuk model Course/Lesson dan reader publik untuk Pelajari Alkitab; progres hanya di browser pengguna. | Selesai (P3-001, P3-002; production 2026-10-23) |
-| S3.1 | Buat CMS course/lesson dan impor pihak ketiga yang selalu masuk sebagai draft serta melewati pemeriksaan lisensi. | Sebagian: CMS selesai (P3-001); impor (P3-003) merge ke `development` (belum production) |
-| S3.2 | Buat form minat belajar, permohonan doa, dan kunjungan dengan consent, anti-spam, dan akses Admin-only. | Backlog |
-| S3.3 | Uji retensi 24 bulan, audit akses, ekspor terkontrol, dan prosedur respons data pastoral. | Backlog |
+| S3.1 | Buat CMS course/lesson dan impor pihak ketiga yang selalu masuk sebagai draft serta melewati pemeriksaan lisensi. | Selesai dirilis (P3-001, P3-003 lewat PR #99) |
+| S3.2 | Buat form minat belajar, permohonan doa, dan kunjungan dengan consent, anti-spam, dan akses Admin-only. | Selesai dirilis (P3-004, P3-005 lewat PR #99); submit form ke production belum diuji end-to-end |
+| S3.3 | Uji retensi 24 bulan, audit akses, ekspor terkontrol, dan prosedur respons data pastoral. | Selesai dirilis (P3-006 lewat PR #99); ekspor tidak disediakan sesuai keputusan pemilik 2026-11-03 |
 
 ## Phase 4 — Sekolah Sabat Digital
 
@@ -44,8 +44,8 @@ Cadence usulan adalah satu minggu fokus per sprint. Bila ada blocker konten, izi
 
 | Sprint | Sasaran dan keluaran | Status |
 | --- | --- | --- |
-| S5.0 | Tambahkan manifest, installability, offline application shell, dan strategi update/recovery yang aman. | Selesai dan terverifikasi di production (P5-001, issue #55 ditutup) |
-| S5.1 | Tambahkan Web Push opt-in: kategori, frekuensi, preference centre, unsubscribe, dan observability pengiriman. | Backlog |
+| S5.0 | Tambahkan manifest, installability, offline application shell, dan strategi update/recovery yang aman. | Selesai dan terverifikasi di production (P5-001 issue #55 dan P5-002 issue #56 ditutup) |
+| S5.1 | Tambahkan Web Push opt-in: kategori, frekuensi, preference centre, unsubscribe, dan observability pengiriman. | Backlog; menunggu keputusan model data dan angka (P5-003, P5-004) |
 | S5.2 | Lakukan security/privacy review, capacity review layanan gratis, dan release readiness untuk domain produksi. | Backlog |
 | S5.3 | Nilai adapter WhatsApp hanya jika ada consent, persetujuan anggaran, dan provider resmi; tidak termasuk pilot gratis. | Deferred |
 

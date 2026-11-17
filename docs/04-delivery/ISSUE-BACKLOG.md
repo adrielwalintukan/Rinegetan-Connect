@@ -25,14 +25,18 @@ Lihat [Phase 2 Issue Backlog](PHASE-2-ISSUE-BACKLOG.md) untuk daftar issue yang 
 
 ## Phase 3 — Pelayanan Digital
 
-Status per 2026-10-23:
+Status per 2026-11-17:
 
 | ID | Integrasi `development` | Production | Bukti |
 | --- | --- | --- | --- |
 | P3-001 | [PR #41](https://github.com/adrielwalintukan/Rinegetan-Connect/pull/41) merge 2026-10-22, commit `42a3d01`; CI hasil merge lulus | Dirilis 2026-10-23 melalui PR #39 (`main` `5b88773`); tiga migration P3-001 diterapkan | [P3-001](records/P3-001-2026-10-19.md), [OPS-001](records/OPS-001-2026-10-23.md) |
 | P3-002 | [PR #42](https://github.com/adrielwalintukan/Rinegetan-Connect/pull/42) merge 2026-10-23 WITA, commit `14bf46a`; CI hasil merge lulus | Dirilis 2026-10-23 melalui PR #39 (`main` `5b88773`) | [P3-002](records/P3-002-2026-10-22.md), [OPS-001](records/OPS-001-2026-10-23.md) |
 
-P3-003 (#46): PR #86 merge ke `development` pada 2026-10-25 (`6dc89ed`), CI hasil merge lulus. Belum dirilis ke production dan migration belum diterapkan di sana. Bukti: [P3-003](records/P3-003-2026-10-25.md). P3-004 (#47): PR #87 merge ke `development` pada 2026-11-01 (`8f1e0c4`); belum production, menunggu gate rilis di record. Bukti: [P3-004](records/P3-004-2026-10-26.md). P3-005 (#48): PR #89 merge ke `development` pada 2026-11-03 (`5c31d55`); belum production. Bukti: [P3-005](records/P3-005-2026-11-02.md). P3-006 (#49): implementasi di branch `feature/p3-006-pastoral-retention`, PR belum merge; retensi tetap 24 bulan tanpa ubah/perpanjangan, tanpa ekspor, sesuai keputusan pemilik 2026-11-03. Bukti: [P3-006](records/P3-006-2026-11-03.md). P3-007 dan seterusnya tetap backlog. Pernyataan lama bahwa P3-003 menunggu keputusan sumber/format/lisensi bersifat historis; keputusan pemilik 2026-10-25 ada di [desain](../superpowers/specs/2026-10-25-p3-003-course-import-design.md).
+P3-003 (#46): PR #86 merge ke `development` pada 2026-10-25 (`6dc89ed`), CI hasil merge lulus. Bukti: [P3-003](records/P3-003-2026-10-25.md). P3-004 (#47): PR #87 merge ke `development` pada 2026-11-01 (`8f1e0c4`). Bukti: [P3-004](records/P3-004-2026-10-26.md). P3-005 (#48): PR #89 merge ke `development` pada 2026-11-03 (`5c31d55`). Bukti: [P3-005](records/P3-005-2026-11-02.md). P3-006 (#49): PR #91 merge ke `development` pada 2026-11-07 (`b9172cc`); retensi tetap 24 bulan tanpa ubah/perpanjangan, tanpa ekspor, sesuai keputusan pemilik 2026-11-03. Bukti: [P3-006](records/P3-006-2026-11-03.md). P3-007 dan seterusnya tetap backlog. Pernyataan lama bahwa P3-003 menunggu keputusan sumber/format/lisensi bersifat historis; keputusan pemilik 2026-10-25 ada di [desain](../superpowers/specs/2026-10-25-p3-003-course-import-design.md).
+
+**Rilis Phase 3 ke production (pembaruan 2026-11-17).** Keempat commit Phase 3 di atas (`6dc89ed`, `8f1e0c4`, `5c31d55`, `b9172cc`) sudah menjadi leluhur `main`; kode dirilis lewat PR #99 (`4c13fed`, 2026-11-14). Pernyataan "belum dirilis ke production" pada teks lama dan pada [record P3-003](records/P3-003-2026-10-25.md)/[record P3-006](records/P3-006-2026-11-03.md) bersifat historis, bukan status kini.
+
+Batas yang tetap berlaku: PR #99 meminta **8 migration** (`20261025000000`–`20261110000000`) diterapkan manual ke project production, dan repository tidak memiliki workflow yang melakukannya. Tidak ada catatan `migration list --linked` maupun uji submit form end-to-end ke production setelah rilis itu, sehingga penerapan migration production **belum terbukti** dari dokumen. Uji kirim form ke production sengaja tidak dijalankan saat penyelarasan ini karena akan membuat baris data nyata.
 
 | ID | Issue | Acceptance ringkas | Dependensi |
 | --- | --- | --- | --- |
@@ -70,10 +74,12 @@ P4-004: kontrak manifest lokal dan gate tertutup disiapkan pada 2026-11-11 tanpa
 | ID | Issue | Acceptance ringkas | Dependensi |
 | --- | --- | --- | --- |
 | P5-001 | PWA foundation. **Selesai, terverifikasi di production.** | Manifest valid, aplikasi installable, dan cache application shell memiliki strategi versioning/recovery. | P2 release foundation |
-| P5-002 | Cache data dan pengelolaan update. | Konten cache tidak tampil usang tanpa penanda; pengguna dapat memperbarui dan pulih dari cache bermasalah. | P5-001 |
+| P5-002 | Cache data dan pengelolaan update. **Selesai, terverifikasi di production.** | Konten cache tidak tampil usang tanpa penanda; pengguna dapat memperbarui dan pulih dari cache bermasalah. | P5-001 |
 | P5-003 | Preference centre notifikasi. | Opt-in per kategori, stop-all, perubahan preferensi, serta audit consent tersedia sebelum pengiriman. | P2 Auth/RLS |
 | P5-004 | Web Push delivery. | VAPID/secrets aman, frequency cap, unsubscribe, retry policy, dan observability diuji end-to-end. | P5-003 |
 | P5-005 | Review layanan dan domain produksi. | Biaya, kebijakan Vercel/Supabase, domain, DNS, dan kebijakan privasi disetujui sebelum skala publik. | P5-001–P5-004 |
 | P5-006 | Evaluasi adapter WhatsApp. | Dilakukan hanya dengan provider resmi, consent, anggaran, dan persetujuan baru; tidak diimplementasikan pada pilot gratis. | P5-003 |
 
 P5-001 dikerjakan 2026-11-16 pada branch `feature/p5-001-pwa-foundation`, dengan perbaikan banner pada `fix/p5-001-update-banner`. Tiga hal yang issue ini sebut belum diputuskan (library service worker, cakupan cache, kebijakan pembaruan) diputuskan pemilik sebelum implementasi: worker tulis tangan tanpa dependency, cache hanya shell publik, dan banner update saat versi berubah. Cache perangkat tidak memuat halaman staf, API, auth, maupun materi Sekolah Sabat; offline materi tetap tertutup oleh P4-005. Installability, shell offline, dan banner pembaruan semuanya diverifikasi pada `https://www.gmahkrinegetan.web.id` setelah rilis. Bukti: [catatan P5-001](records/P5-001-PWA-2026-11-16.md).
+
+P5-002 dikerjakan 2026-11-17 pada branch `feature/p5-002-cache-freshness`. Dua hal yang issue ini sebut belum diputuskan diputuskan pemilik sebelum implementasi: jemaat **perlu** membaca pengumuman dan agenda saat offline (jadi cache data masuk lingkup) dan ambang usang **24 jam**. Pemeriksaan awal menunjukkan halaman publik sudah *network-first* dan dirender server dengan `revalidate = 60`, sehingga pengumuman dan agenda sudah terbaca offline; yang hilang hanya penanda umur salinan. Karena itu P5-002 **tidak** menambah tabel, API, atau lapisan cache data baru — hanya cap waktu saat penyimpanan, penanda "Salinan tersimpan · diperbarui N jam lalu" dengan tombol **Perbarui**, dan tombol **Pulihkan** pada salinan ≥ 24 jam. Verifikasi production mencakup tiga keadaan (segar tanpa penanda, salinan 3 jam, salinan 30 jam) plus kedua tombol. Bukti: [catatan P5-002](records/P5-002-CACHE-FRESHNESS-2026-11-17.md).
