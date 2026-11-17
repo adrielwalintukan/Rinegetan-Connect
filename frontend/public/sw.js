@@ -133,14 +133,18 @@ self.addEventListener("message", (event) => {
 
 // Stamps a response before it is stored. The stored copy carries the time; the response handed to
 // the page is the untouched original, so nothing about the page itself changes.
+//
+// The body is passed through as a stream rather than read into a blob first. Buffering would make
+// storing a page slower than the response that depends on it, and a slow store is not free: a test
+// that removes the stored copy right after loading could race the write and see it reappear.
 const stamped = (response) => {
   const headers = new Headers(response.headers);
   headers.set(CACHED_AT_HEADER, new Date().toISOString());
-  return response.blob().then((body) => new Response(body, {
+  return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
     headers,
-  }));
+  });
 };
 
 self.addEventListener("fetch", (event) => {
