@@ -61,6 +61,16 @@ Form doa dan kunjungan (P3-005) memakai alur yang sama lewat helper bersama `lib
 - Cache diberi nama menurut build id dan dihapus seluruhnya saat build baru aktif. Jalur pemulihan `RESET_CACHE` menghapus semua cache bila shell rusak.
 - Catatan pribadi Sekolah Sabat (P4-006) tetap berada di `window.localStorage`, bukan di cache service worker, dan tidak pernah dikirim ke server.
 
+### Kejujuran salinan tersimpan (P5-002)
+
+- Halaman publik bersifat *network-first* dan dirender server, sehingga salinan tersimpan sudah berisi pengumuman dan agenda. P5-002 **tidak** menambah cache data baru: yang ditambahkan hanya cap waktu dan pemberitahuan, karena jemaat berhak tahu ketika yang dibacanya bukan halaman terbaru.
+- Setiap halaman yang disimpan diberi cap waktu pengambilan. Cap itu hanya menempel pada salinan yang disimpan; respons yang diterima halaman tidak diubah.
+- Salinan berumur ≥ 24 jam dinyatakan **lama**, bukan sekadar tersimpan, dan menawarkan **Pulihkan** yang menjalankan `RESET_CACHE`.
+- Penanda tidak muncul untuk salinan yang baru diambil, agar tidak dilatih untuk diabaikan.
+- Pertanyaan "berapa umur salinan ini" dijawab hanya dengan stempel waktu. Isi respons tidak pernah dikembalikan lewat jalur itu, sehingga penanda tidak dapat dipakai membaca salinan terlarang.
+- Umur salinan **tidak** disimpulkan dari `navigator.onLine`: status online tidak memberi tahu apakah halaman datang dari jaringan atau dari cache.
+- Batas yang diketahui: jam perangkat yang salah membuat umur salah (tidak ada waktu server sebagai pembanding), dan cap di masa depan diperlakukan sebagai usang. Salinan yang tersimpan sebelum rilis ini tidak bercap sehingga tidak memberi penanda sampai kunjungan online berikutnya.
+
 ## Impor course (P3-003)
 - Berkas impor diperlakukan sebagai input tak tepercaya: batas 2 MB dibaca secara streaming, UTF-8 ketat, daftar kunci yang diizinkan, dan URL hanya `https://` tanpa userinfo.
 - Kontrak yang sama ditegakkan di database (`course_imports_payload_contract`) sehingga insert langsung lewat Data API tidak melewati validasi.

@@ -13,6 +13,7 @@ import {
   isShellRoute,
   strategyFor,
 } from "../src/lib/pwa/shell.mjs";
+import { CACHED_AT_HEADER, CACHE_STATUS_MESSAGE } from "../src/lib/pwa/cache-status.mjs";
 
 const list = (values) => values.map((value) => JSON.stringify(value)).join(",\n  ");
 
@@ -40,6 +41,9 @@ const FORBIDDEN_PREFIXES = [
   ${list(FORBIDDEN_PREFIXES)}
 ];
 const OFFLINE_URL = "/offline";
+// P5-002: a stored page is stamped as it is fetched, so the page can say how old its copy is.
+const CACHED_AT_HEADER = ${JSON.stringify(CACHED_AT_HEADER)};
+const CACHE_STATUS_MESSAGE = ${JSON.stringify(CACHE_STATUS_MESSAGE)};
 
 ${serialise(isForbiddenPath)}
 ${serialise(isShellRoute)}
@@ -62,7 +66,42 @@ self.addEventListener("install", (event) => {
     // its own fallback.
     const offlineResponse = await fetch(new Request(OFFLINE_URL, { cache: "reload" }));
     if (!offlineResponse.ok) throw new Error("Offline page unavailable: " + offlineResponse.status);
+
+    // The offline page is HTML that pulls its own scripts and styles. Serving that HTML without
+    // them is what makes the browser throw ChunkLoadError while offline, and the app's error
+    // boundary then replaces the offline page with "Halaman belum dapat ditampilkan" — the exact
+    // opposite of the reassurance this page exists to give. Reading the markup and storing what it
+    // references is the only way to know which chunks this build actually needs.
+    //
+    // The markup is read before storing, because putting the response consumes its body and a
+    // later clone() would throw — a mistake that fails silently inside the catch below.
+    let markup = "";
+    try {
+      markup = await offlineResponse.clone().text();
+    } catch {
+      // Without the markup the page is still stored; its chunks are retried on the next install.
+    }
     await cache.put(OFFLINE_URL, offlineResponse);
+
+    const offlineAssets = new Set();
+    for (const match of markup.matchAll(/(?:src|href)="([^"]+)"/g)) {
+      try {
+        const url = new URL(match[1], self.location.origin);
+        if (url.origin === self.location.origin && url.pathname.startsWith("/_next/static/")) {
+          offlineAssets.add(url.pathname);
+        }
+      } catch {
+        // A malformed attribute is not worth failing an install over.
+      }
+    }
+    await Promise.all([...offlineAssets].map(async (path) => {
+      try {
+        const response = await fetch(new Request(path, { cache: "reload" }));
+        if (response.ok) await cache.put(path, response);
+      } catch {
+        // Best effort: a missing chunk must not abort an install that already has the page.
+      }
+    }));
 
     // The rest is best effort: one missing page must not abort the install, or a single 404 would
     // leave the site with no offline shell at all.
@@ -95,7 +134,40 @@ self.addEventListener("message", (event) => {
     // Recovery path: drop every cache and let the next request rebuild from the network.
     event.waitUntil(caches.keys().then((names) => Promise.all(names.map((name) => caches.delete(name)))));
   }
+  if (data.type === CACHE_STATUS_MESSAGE) {
+    // P5-002: how old is the copy of this path? Answered from the stamp taken when it was stored,
+    // so the page can say "saved 3 hours ago" instead of guessing from navigator.onLine.
+    event.waitUntil((async () => {
+      const port = event.ports && event.ports[0];
+      if (!port) return;
+      let cachedAt = null;
+      try {
+        const cache = await caches.open(CACHE);
+        const cached = await cache.match(data.path);
+        cachedAt = cached ? cached.headers.get(CACHED_AT_HEADER) : null;
+      } catch {
+        cachedAt = null;
+      }
+      port.postMessage({ path: data.path, cachedAt });
+    })());
+  }
 });
+
+// Stamps a response before it is stored. The stored copy carries the time; the response handed to
+// the page is the untouched original, so nothing about the page itself changes.
+//
+// The body is passed through as a stream rather than read into a blob first. Buffering would make
+// storing a page slower than the response that depends on it, and a slow store is not free: a test
+// that removes the stored copy right after loading could race the write and see it reappear.
+const stamped = (response) => {
+  const headers = new Headers(response.headers);
+  headers.set(CACHED_AT_HEADER, new Date().toISOString());
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+};
 
 self.addEventListener("fetch", (event) => {
   const strategy = strategyFor(event.request, self.location.origin);
@@ -118,7 +190,8 @@ self.addEventListener("fetch", (event) => {
     const cache = await caches.open(CACHE);
     try {
       const response = await fetch(event.request);
-      if (response.ok) await cache.put(event.request, response.clone());
+      // Only the stored copy is stamped; the page receives the original response.
+      if (response.ok) await cache.put(event.request, await stamped(response.clone()));
       return response;
     } catch (error) {
       const cached = await cache.match(event.request);
