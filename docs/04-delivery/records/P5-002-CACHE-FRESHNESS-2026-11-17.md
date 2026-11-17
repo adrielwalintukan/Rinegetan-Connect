@@ -1,8 +1,10 @@
 # P5-002 (issue #56) — Penanda cache usang dan pemulihan (2026-11-17)
 
-**Status:** Selesai di kode dan terverifikasi lokal. Verifikasi pada situs production belum dijalankan, sehingga issue #56 belum ditutup.
+**Status:** Selesai dan terverifikasi pada situs production. Penanda salinan tersimpan, tombol **Perbarui** dan **Pulihkan**, serta halaman offline yang tidak lagi berubah menjadi halaman error semuanya terbukti bekerja pada `https://www.gmahkrinegetan.web.id`.
 
 Issue: [#56](https://github.com/adrielwalintukan/Rinegetan-Connect/issues/56). Branch `feature/p5-002-cache-freshness`.
+
+Rilis: PR #132 masuk `development` (`6760a62`), lalu PR #133 masuk `main` (`cd2dfe6`).
 
 ## Keputusan yang harus diambil sebelum kode
 
@@ -80,6 +82,38 @@ Stempel awalnya menyalin respons lewat `blob()`, sehingga menyimpan halaman sele
 
 ## Verifikasi
 
+### Verifikasi pada situs production
+
+Dijalankan pada `https://www.gmahkrinegetan.web.id` setelah PR #133 masuk `main` (`cd2dfe6`).
+
+`node tests/helpers/check-stored-copy-notice.mjs https://www.gmahkrinegetan.web.id`:
+
+| Pemeriksaan | Hasil |
+| --- | --- |
+| Kunjungan segar | penanda **tidak** muncul (0) |
+| Salinan 3 jam, offline | "Salinan tersimpan · diperbarui 3 jam lalu. Perbarui" — hanya Perbarui, tanpa Pulihkan |
+| Salinan 30 jam, offline | "Salinan lama — isinya mungkin sudah berubah..." — Perbarui dan Pulihkan keduanya ada |
+| Klik **Pulihkan** | penanda hilang, `main` tetap tampil |
+| Klik **Perbarui** | penanda hilang |
+
+`node tests/helpers/check-offline-fallback-stable.mjs https://www.gmahkrinegetan.web.id`:
+
+| Pemeriksaan | Hasil |
+| --- | --- |
+| Halaman offline langsung tampil | ya |
+| Tetap tampil setelah 6 detik (lewat hidrasi) | ya |
+| "Halaman belum dapat ditampilkan" muncul | **tidak** (0) |
+
+Tiga helper P5-001 juga dijalankan ulang pada build ini:
+
+| Helper | Hasil |
+| --- | --- |
+| `check-offline-shell.mjs` | `OFFLINE SHELL: pass` — cache `rinegetan-shell-cd2dfe60288f`, 0 entri terlarang, `/staff` tidak pernah dilayani dari cache |
+| `check-update-banner.mjs` | `UPDATE BANNER: pass` — tepat 1 muat dokumen setelah klik |
+| `check-installability.mjs` | `INSTALLABLE: yes`, tanpa parse error |
+
+### Verifikasi lokal
+
 | Pemeriksaan | Hasil |
 | --- | --- |
 | `node --test tests/p5-002-cache-status.test.mjs` | 10/10 |
@@ -104,12 +138,12 @@ Mutasi pertama awalnya **lolos**. Assertion lama hanya mencocokkan keberadaan he
 
 ## Batas verifikasi
 
-- **Verifikasi production belum dijalankan.** Penanda, tombol Perbarui, dan Pulihkan belum dibuktikan pada `https://www.gmahkrinegetan.web.id`. Issue #56 belum ditutup sampai itu terbukti.
+- **Sudah diverifikasi di production**, termasuk halaman offline yang tidak lagi berubah menjadi halaman error.
 - Salinan yang tersimpan **sebelum** rilis ini tidak punya cap, sehingga tidak menampilkan penanda sampai kunjungan online berikutnya. Ini disengaja: mengarang umur lebih buruk daripada diam.
 - Jam perangkat yang salah membuat umur salah, dan tidak ada cara memperbaikinya tanpa waktu server. Cap yang berada di masa depan diperlakukan sebagai **usang**, bukan segar, karena meremehkan keusangan adalah kesalahan yang lebih buruk.
 - `MediaPage.tsx` memanggil `/api/media/download/album/{id}` lewat client fetch. `/api` ada di daftar tolak, jadi unduhan album tetap gagal saat offline. Penanda P5-002 menyatakan halaman itu salinan lama, tetapi tidak menjadikan unduhan bekerja offline.
-- Suite browser berjalan sangat lambat di lokal karena Supabase tidak tersedia (muat halaman ≈ 4,4 detik). Dengan paralelisme penuh, test yang tidak diubah pun (P5-001) gagal karena `page.goto` melewati batas 30 detik. Dengan `--workers=1` seluruh 17 test lulus. Kegagalan itu lingkungan, bukan kode, dan bukan bukti bahwa semuanya baik-baik saja — CI yang menutup.
-- `test:a11y`, `bible-reader`, dan `staff-courses` tidak dapat dijalankan lokal tanpa Supabase.
+- Suite browser berjalan sangat lambat di lokal karena Supabase tidak tersedia (muat halaman ≈ 4,4 detik). Dengan paralelisme penuh, test yang tidak diubah pun (P5-001) gagal karena `page.goto` melewati batas 30 detik. Dengan `--workers=1` seluruh 17 test lulus. Kegagalan itu lingkungan, bukan kode; CI yang menutupnya, dan job "Browser regression (Playwright)" lulus pada kedua PR.
+- `test:a11y`, `bible-reader`, dan `staff-courses` tidak dapat dijalankan lokal tanpa Supabase; CI yang menjalankannya dan lulus.
 
 ## Berkas
 
@@ -120,3 +154,5 @@ Mutasi pertama awalnya **lolos**. Assertion lama hanya mencocokkan keberadaan he
 - `frontend/public/sw.js` — worker ter-generate
 - `frontend/tests/p5-002-cache-status.test.mjs` — 10 test penjaga
 - `frontend/tests/visual/pwa-stored-copy.spec.ts` — 5 test browser
+- `frontend/tests/helpers/check-stored-copy-notice.mjs` — verifikasi live penanda dan tombolnya
+- `frontend/tests/helpers/check-offline-fallback-stable.mjs` — verifikasi live halaman offline bertahan setelah hidrasi
