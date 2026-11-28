@@ -8,7 +8,7 @@
 | 2 | CMS dan fondasi platform | Selesai; rilis production 2026-10-16 (PR #31) dan tindak lanjut 2026-10-23 (PR #39) | Refactor Next.js, Supabase, Admin/Editor, CMS, galeri |
 | 3 | Pelayanan digital | Selesai dirilis: P3-001–P3-006 semuanya menjadi leluhur `main` lewat PR #99 (`4c13fed`, 2026-11-14); dua dari delapan migration production terbukti diterapkan lewat uji HTTP | Course Alkitab, form doa/pengunjung/interest, retensi pastoral |
 | 4 | Sekolah Sabat digital | Berjalan: P4-001, P4-002, P4-003, P4-006 dirilis production; P4-004 kontrak paket lokal merge ke `development` dengan gate tertutup | Integrasi Adventech; cache materi dan offline hanya setelah izin tertulis (P4-005) |
-| 5 | PWA dan notifikasi | Berjalan: P5-001 dan P5-002 selesai dan terverifikasi di production (installability, shell offline, banner pembaruan, penanda salinan tersimpan). P5-003 kode selesai dan seluruh test lulus, tetapi migration belum diterapkan ke production | Installability, Web Push, preferensi |
+| 5 | PWA dan notifikasi | Berjalan: P5-001 dan P5-002 selesai dan terverifikasi di production (installability, shell offline, banner pembaruan, penanda salinan tersimpan). P5-003 (preference centre) selesai dan terverifikasi di production 2026-11-28 | Installability, Web Push, preferensi |
 
 Tidak ada fase Community/Member. Pengalaman publik tetap tanpa akun; progres pembelajaran disimpan lokal pada perangkat pengguna.
 
