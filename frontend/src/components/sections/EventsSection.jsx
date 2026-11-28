@@ -1,9 +1,7 @@
 /* eslint-disable @next/next/no-img-element -- Phase 1 keeps external static fallback images. */
 import Link from "next/link";
 import { ArrowUpRight, CalendarDays, CalendarX, Clock, MapPin } from "lucide-react";
-import { ChapterHeading } from "./ChapterHeading";
 import { Reveal } from "@/components/motion/Reveal";
-import { EmptyState } from "@/components/ui/EmptyState";
 
 export const EventCard = ({ event, featured = false }) => {
     const hasImage = Boolean(event.image_url || event.image);
@@ -15,7 +13,7 @@ export const EventCard = ({ event, featured = false }) => {
     return (
         <article
             data-testid={`event-card-${event.id}`}
-            className="card-surface group flex h-full flex-col overflow-hidden"
+            className="card-surface group flex h-full flex-col overflow-hidden rounded-2xl"
         >
             {hasImage ? (
                 <div className="img-frame relative aspect-[16/9] rounded-b-none border-0">
@@ -85,21 +83,30 @@ export const EventsSection = ({ events = null }) => {
         <section
             data-testid="events-section"
             aria-labelledby="events-heading"
-            className="bg-navy-50/50 py-20 lg:py-28"
+            className="bg-navy-50/60 py-20 sm:py-28 lg:py-32"
         >
-            <div className="container-site">
-                <div className="flex flex-wrap items-end justify-between gap-6">
-                    <ChapterHeading
-                        number="02"
-                        eyebrow="Kegiatan Jemaat"
-                        title={<span id="events-heading">Kegiatan yang akan datang</span>}
-                        description="Dari ibadah Sabat hingga bakti sosial desa — ada ruang untuk Anda ambil bagian."
-                    />
+            <div className="mx-auto w-full max-w-[96rem] px-5 sm:px-8 lg:px-12">
+                <div className="flex flex-wrap items-end justify-between gap-6 border-b border-navy/10 pb-10">
+                    <Reveal className="max-w-3xl">
+                        <p className="flex items-baseline gap-3">
+                            <span className="font-mono text-xs font-medium text-sabbath-600" aria-hidden="true">02</span>
+                            <span className="label-eyebrow">Kegiatan Jemaat</span>
+                        </p>
+                        <h2
+                            id="events-heading"
+                            className="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight text-navy sm:text-5xl lg:text-6xl"
+                        >
+                            Kegiatan yang akan <span className="font-serif italic text-sabbath-600">datang</span>
+                        </h2>
+                        <p className="mt-5 text-base leading-relaxed text-slate-600 sm:text-lg">
+                            Dari ibadah Sabat hingga bakti sosial desa — ada ruang untuk Anda ambil bagian.
+                        </p>
+                    </Reveal>
                     <Reveal delay={0.1}>
                         <Link
                             href="/kegiatan"
                             data-testid="events-view-all"
-                            className="btn-secondary group !px-6 !py-3 text-[0.8125rem]"
+                            className="btn-secondary group"
                         >
                             Semua Kegiatan
                             <ArrowUpRight
@@ -111,7 +118,7 @@ export const EventsSection = ({ events = null }) => {
                 </div>
 
                 {displayEvents.length > 0 ? (
-                    <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {displayEvents.slice(0, 3).map((event, i) => (
                             <Reveal key={event.id} delay={0.1 * i}>
                                 <EventCard event={event} />
@@ -119,16 +126,37 @@ export const EventsSection = ({ events = null }) => {
                         ))}
                     </div>
                 ) : (
-                    <div className="mt-12">
-                        <EmptyState
-                            icon={CalendarX}
-                            title="Belum Ada Kegiatan Mendatang"
-                            description="Saat ini belum ada agenda kegiatan baru yang dijadwalkan. Silakan kunjungi kembali nanti atau hadiri jadwal ibadah rutin."
-                            actionLabel="Lihat Jadwal Ibadah"
-                            actionHref="/sekolah-sabat"
-                            testId="events-empty-state"
-                        />
-                    </div>
+                    <Reveal className="mt-10">
+                        <div
+                            data-testid="events-empty-state"
+                            className="grid gap-6 rounded-2xl border border-navy/[0.08] bg-white p-7 sm:p-10 lg:grid-cols-[auto_1fr_auto] lg:items-center lg:gap-10 lg:p-12"
+                        >
+                            <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-navy-900 text-sabbath-400">
+                                <CalendarX className="h-7 w-7" aria-hidden="true" />
+                            </span>
+                            <div>
+                                <h3 className="text-2xl font-semibold tracking-tight text-navy">
+                                    Belum ada kegiatan mendatang
+                                </h3>
+                                <p className="mt-2 max-w-xl text-base leading-relaxed text-slate-600">
+                                    Saat ini belum ada agenda kegiatan baru yang dijadwalkan. Silakan kunjungi kembali
+                                    nanti atau hadiri jadwal ibadah rutin.
+                                </p>
+                            </div>
+                            <Link
+                                href="/sekolah-sabat"
+                                prefetch={false}
+                                data-testid="events-empty-state-action"
+                                className="btn-primary group justify-self-start"
+                            >
+                                Lihat Jadwal Ibadah
+                                <ArrowUpRight
+                                    className="h-4 w-4 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                                    aria-hidden="true"
+                                />
+                            </Link>
+                        </div>
+                    </Reveal>
                 )}
             </div>
         </section>
