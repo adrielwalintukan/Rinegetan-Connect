@@ -4,20 +4,32 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X, ArrowUpRight } from "lucide-react";
+import { Menu, X, ArrowUpRight, ChevronDown } from "lucide-react";
 import { EntityLockup } from "@/components/identity/EntityLockup";
 import { AdventistSymbol } from "@/components/identity/AdventistSymbol";
-import { NAV_LINKS, SABBATH } from "@/data/content";
+import { NAV_GROUPS, NAV_LINKS, SABBATH } from "@/data/content";
 import { cn } from "@/lib/utils";
 
 export const GlobalNav = () => {
     const [open, setOpen] = useState(false);
+    const [openGroup, setOpenGroup] = useState(null);
+    const [scrolled, setScrolled] = useState(false);
     const pathname = usePathname();
-    const closeMenu = () => setOpen(false);
+    const isHome = pathname === "/";
+    const closeMenu = () => {
+        setOpen(false);
+        setOpenGroup(null);
+    };
+    // Only the home hero sits under the header; everywhere else the header stays solid navy.
+    const transparent = isHome && !scrolled && !open;
 
     useEffect(() => {
         document.body.style.overflow = open ? "hidden" : "";
-        const onKey = (e) => e.key === "Escape" && setOpen(false);
+        const onKey = (e) => {
+            if (e.key !== "Escape") return;
+            setOpen(false);
+            setOpenGroup(null);
+        };
         window.addEventListener("keydown", onKey);
         return () => {
             document.body.style.overflow = "";
@@ -25,66 +37,147 @@ export const GlobalNav = () => {
         };
     }, [open]);
 
+    useEffect(() => {
+        if (!isHome) return undefined;
+        const onScroll = () => setScrolled(window.scrollY > 24);
+        onScroll();
+        window.addEventListener("scroll", onScroll, { passive: true });
+        return () => window.removeEventListener("scroll", onScroll);
+    }, [isHome]);
+
     return (
         <>
             <header
                 data-testid="global-nav"
-                className="sticky top-0 z-50 border-b border-navy/[0.07] bg-background/85 backdrop-blur-xl"
+                data-nav-tone={transparent ? "transparent" : "solid"}
+                className={cn(
+                    "inset-x-0 top-0 z-50 text-white transition-[background-color,box-shadow] duration-500",
+                    isHome ? "fixed" : "sticky",
+                    transparent
+                        ? "bg-gradient-to-b from-navy-900/75 via-navy-900/30 to-transparent"
+                        : "bg-navy shadow-[0_1px_0_rgba(255,255,255,0.08)]"
+                )}
             >
-                <div className="container-site flex h-[4.5rem] items-center justify-between gap-4">
-                <EntityLockup compact onClick={closeMenu} />
+                <div className="flex h-[4.5rem] w-full items-center justify-between gap-6 px-5 sm:px-8 lg:px-12 xl:h-[7.5rem]">
+                    <EntityLockup dark compact onClick={closeMenu} />
 
-                <nav aria-label="Navigasi utama" className="hidden items-center gap-1 xl:flex">
-                    {NAV_LINKS.slice(1).map((link) => (
-                        <Link
-                            key={link.href}
-                            href={link.href}
-                            onClick={closeMenu}
-                            aria-current={pathname === link.href ? "page" : undefined}
-                            data-testid={link.testId}
-                            className={cn(
-                                "rounded-full px-3.5 py-2 text-[0.8125rem] font-medium transition-colors duration-200",
-                                pathname === link.href
-                                    ? "bg-navy/[0.06] text-navy"
-                                    : "text-slate-500 hover:text-navy"
-                            )}
-                        >
-                            {link.label}
-                        </Link>
-                    ))}
-                </nav>
+                    <div className="hidden flex-col items-end gap-4 xl:flex">
+                        <ul className="flex items-center gap-7 text-[0.75rem] font-semibold uppercase tracking-[0.16em] text-white/85">
+                            <li>
+                                <Link
+                                    href="/kontak#berkunjung"
+                                    onClick={closeMenu}
+                                    data-testid="nav-cta-saya-ingin-berkunjung"
+                                    className="transition-colors hover:text-sabbath-400"
+                                >
+                                    Kunjungi Gereja
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/kegiatan" onClick={closeMenu} className="transition-colors hover:text-sabbath-400">
+                                    Kegiatan
+                                </Link>
+                            </li>
+                            <li>
+                                <button
+                                    type="button"
+                                    data-testid="nav-utility-menu"
+                                    aria-expanded={open}
+                                    aria-controls="mobile-menu"
+                                    onClick={() => setOpen((v) => !v)}
+                                    className="inline-flex items-center gap-2 uppercase tracking-[0.16em] transition-colors hover:text-sabbath-400"
+                                >
+                                    {open ? "Tutup" : "Menu"}
+                                    {open ? <X className="h-3.5 w-3.5" aria-hidden="true" /> : <Menu className="h-3.5 w-3.5" aria-hidden="true" />}
+                                </button>
+                            </li>
+                        </ul>
 
-                <div className="hidden items-center gap-2.5 xl:flex">
-                    <Link
-                        href="/kontak#berkunjung"
-                        onClick={closeMenu}
-                        data-testid="nav-cta-saya-ingin-berkunjung"
-                        className="rounded-full px-4 py-2.5 text-[0.8125rem] font-semibold text-navy transition-colors duration-200 hover:bg-navy/[0.06]"
+                        <div className="flex items-center gap-8">
+                            <nav aria-label="Navigasi utama" className="flex items-center gap-7">
+                                {NAV_GROUPS.map((group) => {
+                                    const expanded = openGroup === group.id;
+                                    const active = group.links.some((link) => link.href === pathname);
+                                    return (
+                                        <div
+                                            key={group.id}
+                                            className="relative"
+                                            onMouseEnter={() => setOpenGroup(group.id)}
+                                            onMouseLeave={() => setOpenGroup(null)}
+                                            onBlur={(e) => {
+                                                if (!e.currentTarget.contains(e.relatedTarget)) setOpenGroup(null);
+                                            }}
+                                        >
+                                            <button
+                                                type="button"
+                                                data-testid={`nav-group-${group.id}`}
+                                                aria-expanded={expanded}
+                                                aria-controls={`nav-panel-${group.id}`}
+                                                // Hover already opened it, so a mouse click (detail > 0) must not close it; keyboard toggles.
+                                                onClick={(e) => setOpenGroup(expanded && e.detail === 0 ? null : group.id)}
+                                                className={cn(
+                                                    "inline-flex items-center gap-1.5 border-b-2 py-1.5 font-serif text-[1.125rem] transition-colors",
+                                                    active ? "border-sabbath-400" : "border-transparent hover:border-white/40"
+                                                )}
+                                            >
+                                                {group.label}
+                                                <ChevronDown
+                                                    className={cn("h-4 w-4 transition-transform duration-300", expanded && "rotate-180")}
+                                                    aria-hidden="true"
+                                                />
+                                            </button>
+                                            {expanded && (
+                                                <div id={`nav-panel-${group.id}`} className="absolute left-0 top-full pt-3">
+                                                    <ul className="min-w-56 rounded-xl bg-white p-2 shadow-[0_24px_60px_-20px_rgba(7,27,48,0.55)]">
+                                                        {group.links.map((link) => (
+                                                            <li key={link.href}>
+                                                                <Link
+                                                                    href={link.href}
+                                                                    prefetch={link.href === "/pelajari-alkitab" ? false : undefined}
+                                                                    onClick={closeMenu}
+                                                                    aria-current={pathname === link.href ? "page" : undefined}
+                                                                    data-testid={link.testId}
+                                                                    className={cn(
+                                                                        "block rounded-lg px-4 py-2.5 text-sm font-medium transition-colors",
+                                                                        pathname === link.href
+                                                                            ? "bg-sabbath-100 text-navy"
+                                                                            : "text-slate-600 hover:bg-navy-50 hover:text-navy"
+                                                                    )}
+                                                                >
+                                                                    {link.label}
+                                                                </Link>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </nav>
+                            <Link
+                                href="/pelajari-alkitab" prefetch={false}
+                                onClick={closeMenu}
+                                data-testid="nav-cta-pelajari-alkitab"
+                                className="group inline-flex min-h-11 items-center gap-1.5 rounded-full bg-sabbath-500 px-6 py-2.5 text-sm font-semibold text-navy-900 transition-[background-color,transform] duration-300 hover:-translate-y-0.5 hover:bg-sabbath-400"
+                            >
+                                Pelajari Alkitab
+                                <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                            </Link>
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        data-testid="mobile-menu-button"
+                        aria-expanded={open}
+                        aria-controls="mobile-menu"
+                        aria-label={open ? "Tutup menu" : "Buka menu"}
+                        onClick={() => setOpen((v) => !v)}
+                        className="flex h-11 w-11 items-center justify-center rounded-full border border-white/30 text-white xl:hidden"
                     >
-                        Saya Ingin Berkunjung
-                    </Link>
-                    <Link
-                        href="/pelajari-alkitab" prefetch={false}
-                        onClick={closeMenu}
-                        data-testid="nav-cta-pelajari-alkitab"
-                        className="group inline-flex min-h-11 items-center gap-1.5 rounded-full bg-navy px-5 py-2.5 text-[0.8125rem] font-semibold text-white transition-[background-color,transform] duration-300 hover:-translate-y-0.5 hover:bg-navy-600"
-                    >
-                        Pelajari Alkitab
-                        <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                    </Link>
-                </div>
-
-                <button
-                    type="button"
-                    data-testid="mobile-menu-button"
-                    aria-expanded={open}
-                    aria-controls="mobile-menu"
-                    aria-label={open ? "Tutup menu" : "Buka menu"}
-                    onClick={() => setOpen((v) => !v)}
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-navy/15 text-navy xl:hidden"
-                >
-                    {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                </button>
+                        {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                    </button>
                 </div>
             </header>
 
@@ -98,7 +191,7 @@ export const GlobalNav = () => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="fixed inset-0 top-[4.5rem] z-40 flex flex-col overflow-y-auto bg-navy xl:hidden"
+                        className="fixed inset-0 top-[4.5rem] z-40 flex flex-col overflow-y-auto bg-navy xl:top-[7.5rem]"
                     >
                         <nav aria-label="Navigasi seluler" className="container-site flex flex-1 flex-col justify-center py-10">
                             {NAV_LINKS.map((link, i) => (
@@ -132,9 +225,9 @@ export const GlobalNav = () => {
                             initial={{ opacity: 0, y: 24 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.55, duration: 0.5 }}
-                            className="container-site flex flex-col gap-3 pb-10"
+                            className="container-site flex flex-col gap-3 pb-10 sm:flex-row sm:flex-wrap sm:items-center"
                         >
-                            <div className="mb-2 flex items-center gap-3 text-sabbath-400">
+                            <div className="mb-2 flex items-center gap-3 text-sabbath-400 sm:mb-0 sm:mr-auto">
                                 <AdventistSymbol className="h-6 w-6" />
                                 <span className="font-mono text-xs uppercase tracking-[0.24em]">
                                     Sabat · {SABBATH.items[0].name} {SABBATH.items[0].time}
@@ -144,7 +237,7 @@ export const GlobalNav = () => {
                                 href="/pelajari-alkitab" prefetch={false}
                                 onClick={closeMenu}
                                 data-testid="mobile-cta-pelajari-alkitab"
-                                className="btn-sabbath w-full"
+                                className="btn-sabbath w-full sm:w-auto"
                             >
                                 Pelajari Alkitab
                             </Link>
@@ -152,7 +245,7 @@ export const GlobalNav = () => {
                                 href="/kontak#berkunjung"
                                 onClick={closeMenu}
                                 data-testid="mobile-cta-berkunjung"
-                                className="inline-flex w-full items-center justify-center rounded-full border border-white/25 px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                                className="inline-flex w-full items-center justify-center rounded-full border border-white/25 px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-white/10 sm:w-auto"
                             >
                                 Saya Ingin Berkunjung
                             </Link>

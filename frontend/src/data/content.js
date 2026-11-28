@@ -31,6 +31,19 @@ export const NAV_LINKS = [
     { label: "Kontak", href: "/kontak", testId: "nav-link-kontak" },
 ];
 
+const navLink = (href) => NAV_LINKS.find((link) => link.href === href);
+
+// Desktop dropdown grouping; the mobile menu keeps the flat NAV_LINKS list.
+export const NAV_GROUPS = [
+    { id: "tentang", label: "Tentang", links: ["/tentang-kami", "/pelayanan", "/kontak"].map(navLink) },
+    {
+        id: "ibadah-belajar",
+        label: "Ibadah & Belajar",
+        links: [navLink("/sekolah-sabat"), { label: "Pelajari Alkitab", href: "/pelajari-alkitab", testId: "nav-link-pelajari-alkitab" }],
+    },
+    { id: "kegiatan-media", label: "Kegiatan & Media", links: ["/kegiatan", "/media"].map(navLink) },
+];
+
 export const SABBATH = {
     title: "SABAT",
     verse: "Ingatlah dan kuduskanlah hari Sabat",
@@ -92,33 +105,34 @@ export const EVENT_CATEGORIES = [
     "Sosial",
 ];
 
+// Photos are placeholders from IMAGES until the church supplies its own.
 export const MINISTRY_CARDS = [
     {
-        id: "pelajari-alkitab",
-        title: "Pelajari Alkitab",
+        id: "pertama-kali-berkunjung",
+        title: "Kunjungi Gereja",
         description:
-            "Belajar Alkitab secara pribadi atau kelompok kecil, daring maupun tatap muka — gratis dan terbuka untuk semua.",
-        icon: "book-open",
-        href: "/pelajari-alkitab",
-        cta: "Buka pelajaran",
+            "Panduan ramah untuk kunjungan pertama: apa yang diharapkan, apa yang dikenakan, dan siapa yang akan menyambut Anda.",
+        image: IMAGES.fellowship,
+        href: "/kontak#berkunjung",
+        cta: "Rencanakan kunjungan",
     },
     {
         id: "permohonan-doa",
         title: "Permohonan Doa",
         description:
             "Kirimkan pokok doa Anda secara pribadi. Permohonan hanya dibaca Admin gereja dan tidak dipublikasikan.",
-        icon: "hands-praying",
+        image: IMAGES.sabbath,
         href: "/kontak#permohonan-doa",
         cta: "Kirim permohonan",
     },
     {
-        id: "pertama-kali-berkunjung",
-        title: "Pertama Kali Berkunjung?",
+        id: "pelajari-alkitab",
+        title: "Pelajari Alkitab",
         description:
-            "Panduan ramah untuk kunjungan pertama: apa yang diharapkan, apa yang dikenakan, dan siapa yang akan menyambut Anda.",
-        icon: "door-open",
-        href: "/kontak#berkunjung",
-        cta: "Rencanakan kunjungan",
+            "Belajar Alkitab secara pribadi atau kelompok kecil, daring maupun tatap muka — gratis dan terbuka untuk semua.",
+        image: IMAGES.bibleStudy,
+        href: "/pelajari-alkitab",
+        cta: "Buka pelajaran",
     },
 ];
 
