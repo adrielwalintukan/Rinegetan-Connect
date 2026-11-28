@@ -29,7 +29,8 @@ test("hero is full-bleed and keeps its tested hooks", () => {
   assert.equal((html.match(/<h1/g) || []).length, 1);
   assert.doesNotMatch(html, /<figcaption/);
   assert.match(html, /data-testid="hero-cta-sekolah-sabat"/);
-  assert.match(html, /data-testid="hero-cta-jadwal-ibadah"/);
+  // The owner removed the "Jadwal Ibadah" button on 2026-11-28.
+  assert.doesNotMatch(html, /data-testid="hero-cta-jadwal-ibadah"/);
 });
 
 test("action cards: visit, prayer, bible order, each a photo card over a wave section", () => {

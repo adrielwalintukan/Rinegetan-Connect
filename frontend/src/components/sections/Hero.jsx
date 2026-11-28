@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowDown, BookOpen } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { KineticLines } from "@/components/motion/KineticLines";
 import { AdventistSymbol } from "@/components/identity/AdventistSymbol";
 import { CHURCH, IMAGES, SABBATH } from "@/data/content";
@@ -70,7 +70,7 @@ export const Hero = ({ sectionMedia = null }) => {
                 <div aria-hidden="true" className="absolute inset-0 hidden bg-gradient-to-r from-navy-900/80 via-navy-900/25 to-transparent lg:block" />
             </motion.figure>
 
-            <div className="relative w-full px-5 pb-6 pt-32 sm:px-8 lg:px-12 lg:pb-24 xl:pt-44">
+            <div className="relative w-full px-5 pb-6 pt-28 sm:px-8 sm:pt-32 lg:px-12 lg:pb-24 xl:pt-44">
                 <div className="max-w-3xl">
                     <motion.p
                         initial={{ opacity: 0, y: 16 }}
@@ -136,23 +136,12 @@ export const Hero = ({ sectionMedia = null }) => {
                             Pelajaran Sekolah Sabat
                             <BookOpen className="h-4 w-4" aria-hidden="true" />
                         </Link>
-                        <a
-                            href="#sabat"
-                            data-testid="hero-cta-jadwal-ibadah"
-                            className="group inline-flex items-center justify-center gap-2 rounded-full border border-white/40 px-7 py-3.5 text-sm font-semibold text-white transition duration-300 hover:-translate-y-0.5 hover:bg-white/10"
-                        >
-                            Jadwal Ibadah
-                            <ArrowDown
-                                className="h-4 w-4 transition-transform duration-300 group-hover:translate-y-0.5"
-                                aria-hidden="true"
-                            />
-                        </a>
                     </motion.div>
                 </div>
             </div>
 
-            {/* Mobile: keeps the building (lower ~60% of the band's width-based height) clear of the text on short screens. */}
-            <div aria-hidden="true" className="h-[62vw] shrink-0 lg:hidden" />
+            {/* Mobile: reserves room for the building below the text; on short screens the hero grows instead of covering it. */}
+            <div aria-hidden="true" className="h-[40vw] shrink-0 lg:hidden" />
 
             {/* Creation Grid: the seventh-day column becomes a thin amber rail on the right edge. */}
             <motion.aside

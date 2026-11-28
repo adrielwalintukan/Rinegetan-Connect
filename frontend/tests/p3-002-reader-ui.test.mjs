@@ -52,7 +52,6 @@ test('desktop nav and Hero CTA point at reader and ministry cards link to live s
  const nav=render(React.createElement(load('src/components/layout/GlobalNav.jsx').GlobalNav));assert.match(nav,/<a[^>]*href="\/pelajari-alkitab"[^>]*data-testid="nav-cta-pelajari-alkitab"/);
  const hero=render(React.createElement(load('src/components/sections/Hero.jsx').Hero));
  assert.match(hero,/<a[^>]*href="\/sekolah-sabat"[^>]*data-testid="hero-cta-sekolah-sabat"[^>]*>Pelajaran Sekolah Sabat</);
- assert.match(hero,/<a[^>]*href="#sabat"[^>]*data-testid="hero-cta-jadwal-ibadah"/);
  assert.match(hero,/Jumat matahari terbenam sampai Sabtu matahari terbenam/);
  assert.doesNotMatch(hero,/Jumat petang/);
  const digital=render(React.createElement(load('src/components/sections/DigitalMinistrySection.jsx').DigitalMinistrySection));assert.match(digital,/href="\/pelajari-alkitab"/);assert.equal((digital.match(/Segera hadir/g)||[]).length,0);assert.match(digital,/href="\/kontak#permohonan-doa"/);assert.match(digital,/href="\/kontak#berkunjung"/);
