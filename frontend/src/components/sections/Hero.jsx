@@ -13,6 +13,7 @@ const OBJECT_POSITION = {
     contain: "h-full object-contain",
     bottom: "h-[112%] object-cover object-bottom will-change-transform",
     top: "h-[112%] object-cover object-top will-change-transform",
+    right: "h-[112%] object-cover object-[80%_center] will-change-transform",
 };
 
 export const Hero = ({ sectionMedia = null }) => {
@@ -26,7 +27,7 @@ export const Hero = ({ sectionMedia = null }) => {
     const heroSrc = sectionMedia?.home_hero?.image_url || sectionMedia?.home_hero?.url || IMAGES.hero.src;
     const heroAlt = sectionMedia?.home_hero?.alt_text || IMAGES.hero.alt;
     const heroCaption = sectionMedia?.home_hero?.caption || IMAGES.hero.caption;
-    const heroPosition = sectionMedia?.home_hero?.object_position || "center";
+    const heroPosition = sectionMedia?.home_hero?.object_position || (sectionMedia?.home_hero ? "center" : IMAGES.hero.position);
 
     return (
         <section
