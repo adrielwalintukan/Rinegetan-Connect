@@ -1,10 +1,12 @@
 # P5-003 (issue #57) — Preference centre notifikasi perangkat (2026-11-17)
 
-**Status:** Kode selesai, seluruh test lulus, **belum terverifikasi di production**. Migration `20261117000000` belum diterapkan ke project production, sehingga #57 **belum ditutup**.
+**Status:** **Selesai dan terverifikasi di production pada 2026-11-28.** Migration diterapkan, env VAPID terisi, rilis masuk `main`, dan 11 butir verifikasi production lulus (lihat [Verifikasi production](#verifikasi-production-2026-11-28)). #57 ditutup.
+
+Riwayat status: 2026-11-17 sampai 2026-11-27 tercatat "kode selesai, belum terverifikasi di production" karena migration belum diterapkan.
 
 Issue: [#57](https://github.com/adrielwalintukan/Rinegetan-Connect/issues/57). Branch `feature/p5-003-notification-preferences`.
 
-Rilis: PR #139 masuk `development` (`c1ed67d`).
+Rilis: PR #139 masuk `development` (`c1ed67d`); rilis ke `main` lewat PR #142 (`82e8709`, merge commit, 2026-11-28).
 
 ## Keputusan pemilik yang mengikat
 
@@ -131,11 +133,46 @@ Tiga POST terakhir memakai body yang **ditolak sebelum** menyentuh database, jad
 
 Mutasi terakhir **tidak tertangkap lokal** karena Docker tidak tersedia. Itu dicatat sebagai batas, bukan diabaikan.
 
+### Production (2026-11-28)
+
+#### Persiapan
+
+| Langkah | Hasil |
+| --- | --- |
+| `supabase migration list --remote` sebelum push | 24/25 sudah ada di remote; hanya `20261117000000` tertunda |
+| Backup terenkripsi pra-migration | `rinegetan-20261127T131759Z.tar.age`, 181.480 B, SHA-256 `1f97438871c1ba08153e4b79d0599024880575fae7cd12187e38f13c559bb14b`; roles + schema + data (`--use-copy`) + manifest; terbukti terdekripsi identik dengan kunci pemilik backup, plaintext dihapus; media tidak disertakan karena migration tidak menyentuh Storage |
+| `supabase db push --remote --dry-run` | hanya `20261117000000`, tanpa seed/roles |
+| `supabase db push --remote` | berhasil; `migration list` 25/25, tidak ada yang tertunda |
+| Pemeriksaan privilege pasca-push | kedua tabel ada; `service_role` dapat mengeksekusi helper CHECK; `anon` tidak; `anon`/`authenticated` tidak dapat membaca/insert tabel maupun memanggil RPC; `service_role` tidak dapat membaca consent log |
+| Kunci VAPID | dibuat baru dengan `scripts/generate-vapid-keys.mjs` ke file di luar repo; `VAPID_SUBJECT` berisi alamat kontak gereja yang diberikan pemilik |
+| Env Vercel Production | `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` (sensitive), `VAPID_SUBJECT` |
+| Rilis | PR #142 `development` → `main`, CI hijau (Playwright, pgTAP & RLS, quality gate & build, backend syntax), merge commit `82e8709`; `/notifikasi` berubah 404 → 200 sekitar satu menit kemudian |
+
+Catatan alat: pada Supabase CLI v3, `db push` tanpa `--remote` menargetkan database **lokal**. Dump memakai Podman lewat `DOCKER_HOST=npipe:////./pipe/podman-machine-default` karena Docker Desktop tidak berjalan.
+
+#### Verifikasi production
+
+| # | Butir | Bukti | Hasil |
+| --- | --- | --- | --- |
+| 1 | Halaman `200` | `GET /notifikasi` | lulus |
+| 2 | `noindex`, tidak di sitemap | `<meta name="robots" content="noindex, follow">`; `/notifikasi` tidak ada di `/sitemap.xml` | lulus |
+| 3 | Tautan footer | `data-testid="footer-link-notifikasi"` → `href="/notifikasi"` di beranda | lulus |
+| 4 | Empat kategori | Pengumuman Gereja, Ibadah & Kegiatan, Pelajari Alkitab, Sekolah Sabat (HTML + tangkapan layar pemilik) | lulus |
+| 5 | Opt-in satu kategori | UI: "Notifikasi diaktifkan untuk perangkat ini."; consent `{pengumuman}` | lulus |
+| 6 | Ubah ke dua kategori | UI: "Preferensi notifikasi diperbarui." (jalur `23505` → RPC); consent `{pengumuman,ibadah}` | lulus |
+| 7 | Stop-all | UI: "Notifikasi untuk perangkat ini sudah dihentikan."; consent `{}`; endpoint hilang dari `notification_subscriptions` | lulus |
+| 8 | Tanpa akun Member | seluruh alur tanpa login | lulus |
+| 9 | Audit consent per tindakan | satu baris per tindakan, versi `2026-11-17` | lulus |
+| 10 | Body tidak valid ditolak tanpa menulis | body kosong, endpoint `http://`, kunci `email` → `400` (langganan); body kosong → `400` (berhenti); jumlah baris subscriptions/consent/rate tetap 0/0/0 | lulus |
+| 11 | Akses tabel | `anon`/`authenticated` tidak dapat `select` kedua tabel; `service_role` tidak dapat `select` consent log | lulus |
+
+Uji UI memakai Chrome pemilik dengan endpoint FCM, sehingga kunci VAPID production terbukti terbaca oleh build. Satu langganan uji dari sesi sebelumnya tertinggal aktif (endpoint berbeda, kemungkinan perangkat/profil lain); dihentikan lewat RPC resmi `stop_notification_subscription` dengan persetujuan pemilik, menambah satu baris consent `{}`. Akhir verifikasi: `notification_subscriptions` 0 baris; consent log 9 baris, semuanya dari uji pemilik. Endpoint, IP, dan isi baris tidak dicatat di sini.
+
 ## Batas verifikasi
 
-- **Belum terverifikasi di production.** Migration `20261117000000` belum diterapkan ke project production, dan tidak ada workflow yang menerapkannya. Sampai itu dilakukan manual, kedua route akan menjawab `503` (tanpa `SUPABASE_SECRET_KEY`) atau `500` (RPC belum ada). Karena acceptance menuntut preference centre dan audit consent **tersedia**, #57 belum ditutup.
-- Kunci VAPID belum dibuat. Tanpa `NEXT_PUBLIC_VAPID_PUBLIC_KEY` dan `VAPID_PRIVATE_KEY` di environment production, `canSubscribe` mengembalikan alasan "Layanan notifikasi belum tersedia saat ini" dan tidak ada langganan yang bisa dibuat. Membuat kunci adalah tindakan pemilik, bukan tindakan otomatis.
-- Belum ada pengirim notifikasi. Digest 07.00 WITA, cap 3/hari, retry 3×5 menit, dan retensi 90 hari adalah lingkup P5-004 (#58). `notification_recipients` sudah ada agar P5-004 tidak perlu mengubah skema, tetapi belum ada pemanggilnya.
+- ~~**Belum terverifikasi di production.**~~ Diselesaikan 2026-11-28 (lihat di atas). Catatan asli: Migration `20261117000000` belum diterapkan ke project production, dan tidak ada workflow yang menerapkannya. Sampai itu dilakukan manual, kedua route akan menjawab `503` (tanpa `SUPABASE_SECRET_KEY`) atau `500` (RPC belum ada). Karena acceptance menuntut preference centre dan audit consent **tersedia**, #57 belum ditutup.
+- ~~Kunci VAPID belum dibuat.~~ Diselesaikan 2026-11-28; kunci baru diisi di Vercel Production. Catatan asli: Tanpa `NEXT_PUBLIC_VAPID_PUBLIC_KEY` dan `VAPID_PRIVATE_KEY` di environment production, `canSubscribe` mengembalikan alasan "Layanan notifikasi belum tersedia saat ini" dan tidak ada langganan yang bisa dibuat. Membuat kunci adalah tindakan pemilik, bukan tindakan otomatis.
+- Belum ada pengirim notifikasi. Digest 07.00 WITA, cap 3/hari, retry 3×5 menit, dan retensi 90 hari adalah lingkup P5-004 (#58). `notification_recipients` sudah ada agar P5-004 tidak perlu mengubah skema, tetapi belum ada pemanggilnya. Endpoint yatim (data situs dihapus tanpa stop-all) baru akan dibersihkan saat P5-004 menangani balasan `404`/`410` dari layanan push.
 - `OFFLINE_ENABLED` tetap `false`. Gate P4-005 tidak tersentuh.
 - Preview Vercel pada PR #139 dilindungi login Vercel, sehingga verifikasi halaman dilakukan pada build lokal, bukan pada URL preview.
 
