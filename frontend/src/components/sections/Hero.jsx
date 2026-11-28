@@ -9,11 +9,13 @@ import { KineticLines } from "@/components/motion/KineticLines";
 import { AdventistSymbol } from "@/components/identity/AdventistSymbol";
 import { CHURCH, IMAGES, SABBATH } from "@/data/content";
 
+// shortcut: below lg the crop leans right (90%) because the church building sits on the right of the
+// current hero photo; add a horizontal focus option to the portal if a future photo needs another anchor.
 const OBJECT_POSITION = {
     contain: "h-full object-contain",
-    bottom: "h-[112%] object-cover object-bottom will-change-transform",
-    top: "h-[112%] object-cover object-top will-change-transform",
-    right: "h-[112%] object-cover object-[80%_center] will-change-transform",
+    bottom: "h-[112%] object-cover object-[90%_100%] lg:object-bottom will-change-transform",
+    top: "h-[112%] object-cover object-[90%_0%] lg:object-top will-change-transform",
+    center: "h-[112%] object-cover object-[90%_50%] lg:object-center will-change-transform",
 };
 
 export const Hero = ({ sectionMedia = null }) => {
@@ -26,20 +28,20 @@ export const Hero = ({ sectionMedia = null }) => {
 
     const heroSrc = sectionMedia?.home_hero?.image_url || sectionMedia?.home_hero?.url || IMAGES.hero.src;
     const heroAlt = sectionMedia?.home_hero?.alt_text || IMAGES.hero.alt;
-    const heroCaption = sectionMedia?.home_hero?.caption || IMAGES.hero.caption;
-    const heroPosition = sectionMedia?.home_hero?.object_position || (sectionMedia?.home_hero ? "center" : IMAGES.hero.position);
+    const heroPosition = sectionMedia?.home_hero?.object_position || "center";
 
     return (
         <section
             data-testid="hero"
-            className="relative isolate flex min-h-[100svh] flex-col justify-end overflow-hidden bg-navy-900 text-white"
+            className="relative isolate flex flex-col overflow-hidden bg-navy-900 text-white lg:min-h-[100svh] lg:justify-end"
         >
+            {/* Mobile: the photo is a 60svh band above the text so the building stays visible; desktop: full-bleed. */}
             <motion.figure
                 ref={frameRef}
                 initial={{ opacity: 0, scale: 1.04 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
-                className="absolute inset-0 -z-10 m-0"
+                className="relative -z-10 m-0 h-[60svh] min-h-[22rem] overflow-hidden lg:absolute lg:inset-0 lg:h-auto lg:min-h-0"
                 data-testid="hero-image-frame"
             >
                 <motion.img
@@ -48,20 +50,16 @@ export const Hero = ({ sectionMedia = null }) => {
                     style={heroPosition === "contain" ? undefined : { y: imgY }}
                     // Scroll-linked parallax is not an animation, so skipAnimations cannot stop it; CSS can.
                     className={`absolute inset-x-0 top-0 w-full motion-reduce:![transform:none] ${
-                        OBJECT_POSITION[heroPosition] || "h-[112%] object-cover object-center will-change-transform"
+                        OBJECT_POSITION[heroPosition] || OBJECT_POSITION.center
                     }`}
                     fetchPriority="high"
                 />
-                {/* Two scrims: bottom-up for mobile text, left-to-right for the desktop text column. */}
-                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-navy-900/95 via-navy-900/50 to-navy-900/25" />
+                {/* Mobile: dark top for the header, fade into navy at the bottom. Desktop: two scrims for the text column. */}
+                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-navy-900 via-navy-900/10 to-navy-900/60 lg:from-navy-900/95 lg:via-navy-900/50 lg:to-navy-900/25" />
                 <div aria-hidden="true" className="absolute inset-0 hidden bg-gradient-to-r from-navy-900/80 via-navy-900/25 to-transparent lg:block" />
-                <figcaption className="absolute bottom-8 right-5 hidden items-center gap-2 rounded-full bg-navy-900/60 px-4 py-2 text-xs font-medium text-white/90 backdrop-blur-md sm:flex lg:right-28">
-                    <span className="h-1.5 w-1.5 rounded-full bg-sabbath-400" aria-hidden="true" />
-                    {heroCaption}
-                </figcaption>
             </motion.figure>
 
-            <div className="w-full px-5 pb-14 pt-32 sm:px-8 sm:pb-20 lg:px-12 lg:pb-24 xl:pt-44">
+            <div className="relative -mt-14 w-full px-5 pb-12 sm:-mt-20 sm:px-8 sm:pb-20 lg:mt-0 lg:px-12 lg:pb-24 lg:pt-32 xl:pt-44">
                 <div className="max-w-3xl">
                     <motion.p
                         initial={{ opacity: 0, y: 16 }}

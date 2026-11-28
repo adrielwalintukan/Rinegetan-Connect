@@ -27,6 +27,7 @@ test("hero is full-bleed and keeps its tested hooks", () => {
   assert.match(html, /data-testid="hero"[^>]*class="[^"]*min-h-\[100svh\]/);
   assert.match(html, /data-testid="hero-image-frame"[\s\S]*?<img[^>]*alt="[^"]+"/);
   assert.equal((html.match(/<h1/g) || []).length, 1);
+  assert.doesNotMatch(html, /<figcaption/);
   assert.match(html, /data-testid="hero-cta-sekolah-sabat"/);
   assert.match(html, /data-testid="hero-cta-jadwal-ibadah"/);
 });
@@ -38,4 +39,11 @@ test("action cards: visit, prayer, bible order, each a photo card over a wave se
   assert.match(html, />Kunjungi Gereja</);
   assert.equal((html.match(/<img[^>]*alt="[^"]+"/g) || []).length, 3);
   assert.match(html, /data-testid="wave-edge"/);
+});
+
+test("Sekolah Sabat shows a loading state while the catalog loads", () => {
+  const Loading = loader("/sekolah-sabat")("src/app/(public)/sekolah-sabat/loading.tsx").default;
+  const html = render(React.createElement(Loading));
+  assert.match(html, /role="status"/);
+  assert.match(html, /Memuat pelajaran Sekolah Sabat/);
 });

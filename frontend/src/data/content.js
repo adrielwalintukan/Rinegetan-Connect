@@ -73,8 +73,6 @@ export const IMAGES = {
         src: "/images/gereja.jpeg",
         alt: "Gedung gereja GMAHK Jemaat Rinegetan",
         caption: "Gedung Gereja — Jemaat Rinegetan",
-        // The building sits on the right of the photo; keep it in frame on portrait screens.
-        position: "right",
     },
     sabbath: {
         src: "https://images.unsplash.com/photo-1662151900393-97f6bc1567ef?crop=entropy&cs=srgb&fm=jpg&w=1200&q=80",
