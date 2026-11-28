@@ -9,13 +9,13 @@ import { KineticLines } from "@/components/motion/KineticLines";
 import { AdventistSymbol } from "@/components/identity/AdventistSymbol";
 import { CHURCH, IMAGES, SABBATH } from "@/data/content";
 
-// shortcut: below lg the crop leans right (90%) because the church building sits on the right of the
-// current hero photo; add a horizontal focus option to the portal if a future photo needs another anchor.
+// shortcut: below lg the photo fills the top 80% of the screen and the crop leans right (84%) because the church
+// building sits low and right in the current hero photo; add a focus option to the portal if a future photo needs another anchor.
 const OBJECT_POSITION = {
     contain: "h-full object-contain",
-    bottom: "h-[112%] object-cover object-[90%_100%] lg:object-bottom will-change-transform",
-    top: "h-[112%] object-cover object-[90%_0%] lg:object-top will-change-transform",
-    center: "h-[112%] object-cover object-[90%_50%] lg:object-center will-change-transform",
+    bottom: "h-[80%] lg:h-[112%] object-cover object-[84%_100%] lg:object-bottom will-change-transform",
+    top: "h-[80%] lg:h-[112%] object-cover object-[84%_0%] lg:object-top will-change-transform",
+    center: "h-[80%] lg:h-[112%] object-cover object-[84%_50%] lg:object-center will-change-transform",
 };
 
 export const Hero = ({ sectionMedia = null }) => {
@@ -33,15 +33,14 @@ export const Hero = ({ sectionMedia = null }) => {
     return (
         <section
             data-testid="hero"
-            className="relative isolate flex flex-col overflow-hidden bg-navy-900 text-white lg:min-h-[100svh] lg:justify-end"
+            className="relative isolate flex min-h-[100svh] flex-col justify-end overflow-hidden bg-navy-900 text-white"
         >
-            {/* Mobile: the photo is a 60svh band above the text so the building stays visible; desktop: full-bleed. */}
             <motion.figure
                 ref={frameRef}
                 initial={{ opacity: 0, scale: 1.04 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
-                className="relative -z-10 m-0 h-[60svh] min-h-[22rem] overflow-hidden lg:absolute lg:inset-0 lg:h-auto lg:min-h-0"
+                className="absolute inset-0 -z-10 m-0 overflow-hidden"
                 data-testid="hero-image-frame"
             >
                 <motion.img
@@ -55,24 +54,24 @@ export const Hero = ({ sectionMedia = null }) => {
                     fetchPriority="high"
                 />
                 {/* Mobile: dark top for the header, fade into navy at the bottom. Desktop: two scrims for the text column. */}
-                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-navy-900 via-navy-900/10 to-navy-900/60 lg:from-navy-900/95 lg:via-navy-900/50 lg:to-navy-900/25" />
+                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-navy-900 from-35% via-navy-900/30 via-60% to-navy-900/20 lg:from-navy-900/95 lg:from-0% lg:via-navy-900/50 lg:via-50% lg:to-navy-900/25" />
                 <div aria-hidden="true" className="absolute inset-0 hidden bg-gradient-to-r from-navy-900/80 via-navy-900/25 to-transparent lg:block" />
             </motion.figure>
 
-            <div className="relative -mt-14 w-full px-5 pb-12 sm:-mt-20 sm:px-8 sm:pb-20 lg:mt-0 lg:px-12 lg:pb-24 lg:pt-32 xl:pt-44">
+            <div className="relative w-full px-5 pb-6 pt-24 sm:px-8 sm:pb-20 lg:px-12 lg:pb-24 lg:pt-32 xl:pt-44">
                 <div className="max-w-3xl">
                     <motion.p
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.7, delay: 0.3 }}
-                        className="font-mono text-[0.6875rem] font-medium uppercase tracking-[0.28em] text-white/75"
+                        className="hidden font-mono text-[0.6875rem] font-medium uppercase tracking-[0.28em] text-white/75 sm:block"
                     >
                         {CHURCH.fullName} — {CHURCH.entity}
                     </motion.p>
 
                     <h1
                         data-testid="hero-headline"
-                        className="mt-6 text-[2.5rem] font-extrabold leading-[1.04] tracking-tight text-white sm:text-6xl lg:text-[4.75rem]"
+                        className="text-[2.25rem] font-extrabold leading-[1.05] sm:mt-6 tracking-tight text-white sm:text-6xl lg:text-[4.75rem]"
                     >
                         <KineticLines
                             lines={[
@@ -103,7 +102,7 @@ export const Hero = ({ sectionMedia = null }) => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.7 }}
-                        className="mt-7 max-w-xl text-base leading-relaxed text-white/85 sm:text-lg"
+                        className="mt-4 max-w-xl text-[0.9375rem] leading-relaxed text-white/85 sm:mt-7 sm:text-lg"
                     >
                         Selamat datang di keluarga {CHURCH.name} — jemaat Kristen Advent hari
                         ketujuh di {CHURCH.region}. Kami berkumpul setiap Sabat untuk beribadah,
@@ -115,12 +114,12 @@ export const Hero = ({ sectionMedia = null }) => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.85 }}
-                        className="mt-9 flex flex-wrap items-center gap-3"
+                        className="mt-6 flex flex-wrap items-center gap-2.5 sm:mt-9 sm:gap-3"
                     >
                         <Link
                             prefetch={false} href="/sekolah-sabat"
                             data-testid="hero-cta-sekolah-sabat"
-                            className="btn-sabbath group"
+                            className="btn-sabbath group px-4 py-3 text-[0.8125rem] sm:px-7 sm:py-3.5 sm:text-sm"
                         >
                             Pelajaran Sekolah Sabat
                             <BookOpen className="h-4 w-4" aria-hidden="true" />
@@ -128,7 +127,7 @@ export const Hero = ({ sectionMedia = null }) => {
                         <a
                             href="#sabat"
                             data-testid="hero-cta-jadwal-ibadah"
-                            className="group inline-flex items-center justify-center gap-2 rounded-full border border-white/40 px-7 py-3.5 text-sm font-semibold text-white transition duration-300 hover:-translate-y-0.5 hover:bg-white/10"
+                            className="group inline-flex items-center justify-center gap-2 rounded-full border border-white/40 px-4 py-3 text-[0.8125rem] font-semibold sm:px-7 sm:py-3.5 sm:text-sm text-white transition duration-300 hover:-translate-y-0.5 hover:bg-white/10"
                         >
                             Jadwal Ibadah
                             <ArrowDown
@@ -147,7 +146,7 @@ export const Hero = ({ sectionMedia = null }) => {
                 transition={{ duration: 0.9, delay: 1.1 }}
                 data-testid="hero-sabbath-column"
                 aria-label="Kolom Sabat"
-                className="flex items-center gap-4 border-t border-white/15 px-5 py-4 sm:px-8 lg:absolute lg:bottom-24 lg:right-12 lg:top-44 lg:flex-col lg:justify-between lg:border-l lg:border-t-0 lg:border-sabbath-400/60 lg:p-0 lg:pl-5"
+                className="flex items-center gap-4 border-t border-white/15 px-5 py-3 sm:px-8 sm:py-4 lg:absolute lg:bottom-24 lg:right-12 lg:top-44 lg:flex-col lg:justify-between lg:border-l lg:border-t-0 lg:border-sabbath-400/60 lg:p-0 lg:pl-5"
             >
                 <span className="font-mono text-[0.625rem] font-medium uppercase tracking-[0.26em] text-sabbath-300 lg:rotate-180 lg:[writing-mode:vertical-rl]">
                     Sabat · Jumat matahari terbenam sampai Sabtu matahari terbenam
