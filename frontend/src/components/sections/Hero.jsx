@@ -39,6 +39,13 @@ export const Hero = ({ sectionMedia = null }) => {
             data-testid="hero"
             className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-navy-900 text-white lg:justify-end"
         >
+            {/* Mobile sky: the same photo blurred, behind the sharp band, so the extra height matches its colours. */}
+            <img
+                src={heroSrc}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 -z-20 h-full w-full scale-125 object-cover object-top blur-2xl lg:hidden"
+            />
             <motion.figure
                 ref={frameRef}
                 initial={{ opacity: 0, scale: 1.04 }}
@@ -57,33 +64,26 @@ export const Hero = ({ sectionMedia = null }) => {
                     }`}
                     fetchPriority="high"
                 />
-                {/* Mobile sky: the same photo blurred, behind the sharp band, so the extra height matches its colours. */}
-                <img
-                    src={heroSrc}
-                    alt=""
-                    aria-hidden="true"
-                    className="absolute inset-0 -z-10 h-full w-full scale-125 object-cover object-top blur-2xl lg:hidden"
-                />
                 {/* Mobile: darker top behind the text, a thin fade at the bottom. Desktop: two scrims for the text column. */}
                 <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-navy-900/85 via-navy-900/40 via-40% to-transparent to-60% lg:hidden" />
                 <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-navy-900/80 to-transparent to-20% lg:from-navy-900/95 lg:via-navy-900/50 lg:to-navy-900/25 lg:to-100%" />
                 <div aria-hidden="true" className="absolute inset-0 hidden bg-gradient-to-r from-navy-900/80 via-navy-900/25 to-transparent lg:block" />
             </motion.figure>
 
-            <div className="relative w-full px-5 pb-6 pt-24 sm:px-8 sm:pt-32 lg:px-12 lg:pb-24 xl:pt-44">
+            <div className="relative w-full px-5 pb-6 pt-32 sm:px-8 lg:px-12 lg:pb-24 xl:pt-44">
                 <div className="max-w-3xl">
                     <motion.p
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.7, delay: 0.3 }}
-                        className="hidden font-mono text-[0.6875rem] font-medium uppercase tracking-[0.28em] text-white/75 sm:block"
+                        className="font-mono text-[0.6875rem] font-medium uppercase leading-relaxed tracking-[0.28em] text-white/75"
                     >
                         {CHURCH.fullName} — {CHURCH.entity}
                     </motion.p>
 
                     <h1
                         data-testid="hero-headline"
-                        className="text-[2.25rem] font-extrabold leading-[1.05] sm:mt-6 tracking-tight text-white sm:text-6xl lg:text-[4.75rem]"
+                        className="mt-6 text-[2.25rem] font-extrabold leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-[4.75rem]"
                     >
                         <KineticLines
                             lines={[
@@ -114,7 +114,7 @@ export const Hero = ({ sectionMedia = null }) => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.7 }}
-                        className="mt-4 max-w-xl text-[0.9375rem] leading-relaxed text-white/85 sm:mt-7 sm:text-lg"
+                        className="mt-7 max-w-xl text-base leading-relaxed text-white/85 sm:text-lg"
                     >
                         Selamat datang di keluarga {CHURCH.name} — jemaat Kristen Advent hari
                         ketujuh di {CHURCH.region}. Kami berkumpul setiap Sabat untuk beribadah,
@@ -126,12 +126,12 @@ export const Hero = ({ sectionMedia = null }) => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.85 }}
-                        className="mt-6 flex flex-wrap items-center gap-2.5 sm:mt-9 sm:gap-3"
+                        className="mt-9 flex flex-wrap items-center gap-3"
                     >
                         <Link
                             prefetch={false} href="/sekolah-sabat"
                             data-testid="hero-cta-sekolah-sabat"
-                            className="btn-sabbath group px-4 py-3 text-[0.8125rem] sm:px-7 sm:py-3.5 sm:text-sm"
+                            className="btn-sabbath group"
                         >
                             Pelajaran Sekolah Sabat
                             <BookOpen className="h-4 w-4" aria-hidden="true" />
@@ -139,7 +139,7 @@ export const Hero = ({ sectionMedia = null }) => {
                         <a
                             href="#sabat"
                             data-testid="hero-cta-jadwal-ibadah"
-                            className="group inline-flex items-center justify-center gap-2 rounded-full border border-white/40 px-4 py-3 text-[0.8125rem] font-semibold sm:px-7 sm:py-3.5 sm:text-sm text-white transition duration-300 hover:-translate-y-0.5 hover:bg-white/10"
+                            className="group inline-flex items-center justify-center gap-2 rounded-full border border-white/40 px-7 py-3.5 text-sm font-semibold text-white transition duration-300 hover:-translate-y-0.5 hover:bg-white/10"
                         >
                             Jadwal Ibadah
                             <ArrowDown
