@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { connection } from "next/server";
-import { GridGuides } from "@/components/layout/CreationGrid";
+import { ArrowRight, BookOpen } from "lucide-react";
+import { PageHero, Accent } from "@/components/sections/PageHero";
 import { getPublicCourses } from "@/lib/courses/public-queries";
 import { StudyInterestForm } from "@/components/learning/StudyInterestForm";
 
@@ -22,25 +23,36 @@ export async function generateMetadata() {
 export default async function BibleCatalogue() {
   await connection();
   const courses = await getPublicCourses();
-  return <section className="relative py-12 lg:py-20" aria-labelledby="reader-title">
-    <GridGuides />
-    <div className="container-site relative grid gap-8 lg:grid-cols-7">
-      <div className="min-w-0 break-words lg:col-span-6 [overflow-wrap:anywhere]">
-        <p className="label-eyebrow">Belajar bersama</p>
-        <h1 id="reader-title" className="mt-4 text-3xl font-bold text-navy sm:text-5xl">Pelajari Alkitab</h1>
-        <p className="mt-5 max-w-2xl leading-relaxed text-slate-600">Baca pelajaran Alkitab yang tersedia, tanpa akun. Pilih materi dan belajar sesuai waktu Anda.</p>
-        {courses.length === 0 ? <p className="mt-8 rounded-xl border border-navy/10 p-6">Belum ada materi yang tersedia. Silakan kunjungi kembali.</p> : <ul className="mt-8 grid gap-5 sm:grid-cols-2">
-          {courses.map(course => <li key={course.id} className="card-surface min-w-0 p-6">
-            <h2 className="text-xl font-semibold text-navy"><Link prefetch={false} href={`/pelajari-alkitab/${course.slug}`} className="inline-flex min-h-11 min-w-11 items-center underline decoration-sabbath-500 underline-offset-4">{course.title}</Link></h2>
-            {course.summary && <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-600">{course.summary}</p>}
-          </li>)}
-        </ul>}
-        <section id="ingin-belajar" aria-labelledby="ingin-belajar-title" className="mt-16 scroll-mt-24 border-t border-navy/10 pt-12">
-          <h2 id="ingin-belajar-title" className="text-2xl font-bold text-navy sm:text-3xl">Ingin belajar bersama?</h2>
-          <p className="mt-3 max-w-2xl leading-relaxed text-slate-600">Tinggalkan nama dan kontak Anda. Admin gereja akan menghubungi Anda untuk belajar Alkitab bersama.</p>
-          <StudyInterestForm />
-        </section>
-      </div>
+  return <section className="pb-20 sm:pb-28" aria-labelledby="reader-title">
+    <PageHero
+      eyebrow="Belajar bersama"
+      titleId="reader-title"
+      title={<>Pelajari <Accent>Alkitab</Accent></>}
+      description="Baca pelajaran Alkitab yang tersedia, tanpa akun. Pilih materi dan belajar sesuai waktu Anda."
+    >
+      <a href="#ingin-belajar" className="btn-sabbath">Ingin belajar bersama?</a>
+    </PageHero>
+    <div className="mx-auto w-full min-w-0 max-w-[96rem] break-words px-5 sm:px-8 lg:px-12 [overflow-wrap:anywhere]">
+      {courses.length === 0 ? <p className="rounded-2xl border border-navy/[0.08] bg-white p-7 text-slate-600">Belum ada materi yang tersedia. Silakan kunjungi kembali.</p> : <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {courses.map((course, i) => <li key={course.id} className="group relative flex min-w-0 flex-col rounded-2xl border border-navy/[0.08] bg-white p-7 transition duration-300 hover:-translate-y-1 hover:border-sabbath-500/40">
+          <div className="flex items-center justify-between">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-navy-900 text-sabbath-400"><BookOpen className="h-5 w-5" aria-hidden="true" /></span>
+            <span className="font-mono text-xs text-slate-500" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+          </div>
+          <h2 className="mt-6 text-xl font-semibold tracking-tight text-navy">
+            {/* The ::after makes the whole card the link target. */}
+            <Link prefetch={false} href={`/pelajari-alkitab/${course.slug}`} className="after:absolute after:inset-0 after:rounded-2xl focus-visible:outline-none focus-visible:after:outline focus-visible:after:outline-2 focus-visible:after:outline-navy">{course.title}</Link>
+          </h2>
+          {course.summary && <p className="mt-3 flex-1 whitespace-pre-line text-sm leading-relaxed text-slate-600">{course.summary}</p>}
+          <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-sabbath-700" aria-hidden="true">Mulai belajar <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" /></span>
+        </li>)}
+      </ul>}
+      <section id="ingin-belajar" aria-labelledby="ingin-belajar-title" className="mt-16 scroll-mt-28 rounded-2xl border border-sabbath-500/30 bg-sabbath-50 p-6 sm:p-10 lg:p-12">
+        <p className="label-eyebrow">Gratis · tanpa tekanan</p>
+        <h2 id="ingin-belajar-title" className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">Ingin belajar bersama?</h2>
+        <p className="mt-3 max-w-2xl leading-relaxed text-slate-600">Tinggalkan nama dan kontak Anda. Admin gereja akan menghubungi Anda untuk belajar Alkitab bersama.</p>
+        <div className="max-w-2xl"><StudyInterestForm /></div>
+      </section>
     </div>
   </section>;
 }

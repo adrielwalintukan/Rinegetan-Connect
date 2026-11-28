@@ -51,8 +51,10 @@ test("reduced motion skips every framer-motion animation and the scroll parallax
 
 test("every public page has exactly one h1 page title", () => {
   assert.match(read("src/components/sections/ChapterHeading.jsx"), /as: Heading = "h2"/);
+  assert.equal(read("src/components/sections/PageHero.jsx").match(/<h1[ >]/g)?.length, 1);
   for (const page of ["KegiatanPage.jsx", "KontakPage.jsx", "MediaPage.tsx", "PelayananPage.jsx", "SekolahSabatPage.jsx", "TentangKamiPage.jsx"]) {
     const source = read(`src/components/pages/${page}`);
-    assert.equal(source.match(/<ChapterHeading as="h1"/g)?.length, 1, page);
+    assert.equal(source.match(/<PageHero\b/g)?.length, 1, page);
+    assert.doesNotMatch(source, /<h1[ >]|as="h1"/, page);
   }
 });
