@@ -2,6 +2,17 @@
 
 Backlog ini adalah indeks issue tingkat produk. Issue Phase 2 yang aktif memiliki acceptance criteria terperinci di [Phase 2 Issue Backlog](PHASE-2-ISSUE-BACKLOG.md). Sebelum issue masuk sprint, pemiliknya melengkapi scope/non-scope, acceptance criteria, test plan, dependensi, dan checklist privasi/RLS bila relevan.
 
+## Keputusan pemilik 2026-11-17
+
+Empat keputusan yang issue-nya menyebut "belum ditetapkan dokumen" ditetapkan pemilik pada 2026-11-17, sebelum implementasi:
+
+| Kode | Pertanyaan | Keputusan |
+| --- | --- | --- |
+| OPS-FONT | Font resmi Advent Sans atau fallback? | **Fallback permanen.** Stack Plus Jakarta Sans/Noto Sans/system-ui dipertahankan sebagai keputusan desain, bukan keadaan sementara. Tidak ada klaim font resmi dan tidak ada rencana adopsi sampai organisasi menyediakan file berlisensi dengan hak penggunaan web terverifikasi. |
+| IDEA-DARK | Dark Sabbath Mode dibangun, ditolak, atau ditahan? | **Ditahan sebagai ide, tidak dibangun.** Tidak ada toggle tema, token warna gelap, atau preferensi tema. Penutupan issue ini tidak berarti fitur ada. |
+| P5-003 | Identitas langganan notifikasi tanpa akun Member? | **Perangkat/push subscription.** Tidak ada email/nomor tersimpan, tidak ada akun. Preferensi diubah dari perangkat yang berlangganan; stop-all berarti berhenti berlangganan di perangkat itu. |
+| P5-004 | Angka cap/retry/digest/retensi? | **Digest rutin 1x/hari pukul 07.00 WITA; mendesak maksimal 3/hari; retry maksimal 3x jeda 5 menit; catatan pengiriman disimpan 90 hari.** Angka ini titik awal dan dapat diubah lewat migration. |
+
 ## Phase 1 — Website resmi
 
 | ID | Issue | Acceptance ringkas | Status |
@@ -25,14 +36,29 @@ Lihat [Phase 2 Issue Backlog](PHASE-2-ISSUE-BACKLOG.md) untuk daftar issue yang 
 
 ## Phase 3 — Pelayanan Digital
 
-Status per 2026-10-23:
+Status per 2026-11-17:
 
 | ID | Integrasi `development` | Production | Bukti |
 | --- | --- | --- | --- |
 | P3-001 | [PR #41](https://github.com/adrielwalintukan/Rinegetan-Connect/pull/41) merge 2026-10-22, commit `42a3d01`; CI hasil merge lulus | Dirilis 2026-10-23 melalui PR #39 (`main` `5b88773`); tiga migration P3-001 diterapkan | [P3-001](records/P3-001-2026-10-19.md), [OPS-001](records/OPS-001-2026-10-23.md) |
 | P3-002 | [PR #42](https://github.com/adrielwalintukan/Rinegetan-Connect/pull/42) merge 2026-10-23 WITA, commit `14bf46a`; CI hasil merge lulus | Dirilis 2026-10-23 melalui PR #39 (`main` `5b88773`) | [P3-002](records/P3-002-2026-10-22.md), [OPS-001](records/OPS-001-2026-10-23.md) |
 
-P3-003 (#46): PR #86 merge ke `development` pada 2026-10-25 (`6dc89ed`), CI hasil merge lulus. Belum dirilis ke production dan migration belum diterapkan di sana. Bukti: [P3-003](records/P3-003-2026-10-25.md). P3-004 (#47): PR #87 merge ke `development` pada 2026-11-01 (`8f1e0c4`); belum production, menunggu gate rilis di record. Bukti: [P3-004](records/P3-004-2026-10-26.md). P3-005 (#48): PR #89 merge ke `development` pada 2026-11-03 (`5c31d55`); belum production. Bukti: [P3-005](records/P3-005-2026-11-02.md). P3-006 (#49): implementasi di branch `feature/p3-006-pastoral-retention`, PR belum merge; retensi tetap 24 bulan tanpa ubah/perpanjangan, tanpa ekspor, sesuai keputusan pemilik 2026-11-03. Bukti: [P3-006](records/P3-006-2026-11-03.md). P3-007 dan seterusnya tetap backlog. Pernyataan lama bahwa P3-003 menunggu keputusan sumber/format/lisensi bersifat historis; keputusan pemilik 2026-10-25 ada di [desain](../superpowers/specs/2026-10-25-p3-003-course-import-design.md).
+P3-003 (#46): PR #86 merge ke `development` pada 2026-10-25 (`6dc89ed`), CI hasil merge lulus. Bukti: [P3-003](records/P3-003-2026-10-25.md). P3-004 (#47): PR #87 merge ke `development` pada 2026-11-01 (`8f1e0c4`). Bukti: [P3-004](records/P3-004-2026-10-26.md). P3-005 (#48): PR #89 merge ke `development` pada 2026-11-03 (`5c31d55`). Bukti: [P3-005](records/P3-005-2026-11-02.md). P3-006 (#49): PR #91 merge ke `development` pada 2026-11-07 (`b9172cc`); retensi tetap 24 bulan tanpa ubah/perpanjangan, tanpa ekspor, sesuai keputusan pemilik 2026-11-03. Bukti: [P3-006](records/P3-006-2026-11-03.md). P3-007 dan seterusnya tetap backlog. Pernyataan lama bahwa P3-003 menunggu keputusan sumber/format/lisensi bersifat historis; keputusan pemilik 2026-10-25 ada di [desain](../superpowers/specs/2026-10-25-p3-003-course-import-design.md).
+
+**Rilis Phase 3 ke production (pembaruan 2026-11-17).** Keempat commit Phase 3 di atas (`6dc89ed`, `8f1e0c4`, `5c31d55`, `b9172cc`) sudah menjadi leluhur `main`; kode dirilis lewat PR #99 (`4c13fed`, 2026-11-14). Pernyataan "belum dirilis ke production" pada teks lama dan pada [record P3-003](records/P3-003-2026-10-25.md)/[record P3-006](records/P3-006-2026-11-03.md) bersifat historis, bukan status kini.
+
+**Batas migration production (pembaruan 2026-11-17).** PR #99 meminta **8 migration** (`20261025000000`–`20261110000000`) diterapkan manual ke project production, dan repository tidak memiliki workflow yang melakukannya. Sebagian keadaan itu sekarang **terbukti** lewat uji HTTP read-only ke production:
+
+| Uji | Hasil live | Yang dibuktikan |
+| --- | --- | --- |
+| `POST /api/minat-belajar` dengan body valid tanpa token | `400 "Verifikasi gagal"` (`field: turnstile`) | `check_form_rate` dan tabel `form_rate_events` dari migration `20261026000000` ada; route berjalan sampai verifikasi Turnstile |
+| `POST /api/doa` dengan body valid tanpa token | `400 "Verifikasi gagal"` (`field: turnstile`) | `check_form_rate` menerima `prayer_attempt`, jadi constraint `form_rate_events_form_check` versi `20261102000000` sudah diterapkan |
+| `POST /api/kunjungan` dengan body valid tanpa token | `400 "Verifikasi gagal"` (`field: turnstile`) | `check_form_rate` menerima `visit_attempt`, constraint yang sama sudah diterapkan |
+| `POST /api/doa` dengan body bentuk form minat belajar (memuat kunci `message` yang tidak dikenal route doa) | `400 "Format permintaan tidak valid."` | Allow-list kunci ditolak sebelum menyentuh database |
+
+Kunci pembuktiannya ada di constraint. Migration `20261026000000` (P3-004) hanya mengizinkan `form in ('study_interest', 'study_interest_attempt')`. Migration `20261102000000` (P3-005) menggantinya dengan daftar yang juga memuat `prayer`, `prayer_attempt`, `visit`, `visit_attempt`. Ketiga route mencapai tahap Turnstile, dan tahap itu hanya dicapai **setelah** `check_form_rate` berhasil. Karena `/api/doa` dan `/api/kunjungan` memakai nama form `prayer_attempt`/`visit_attempt`, keberhasilan itu hanya mungkin bila migration P3-005 sudah diterapkan. Jadi `20261026000000` dan `20261102000000` **terbukti** ada di production.
+
+Yang **belum** terbukti: tabel `prayer_requests`, `visits`, dan `pastoral_retention` belum tersentuh karena Turnstile menolak lebih dulu, sehingga baris tidak pernah di-insert — keberadaan tabelnya tidak bisa disimpulkan dari uji ini. Uji kirim form yang benar-benar membuat baris data sengaja tidak dijalankan pada database gereja. Untuk melengkapinya, pemilik dapat menjalankan `npm run supabase --prefix frontend -- migration list --linked` (read-only) dan mencatat hasilnya.
 
 | ID | Issue | Acceptance ringkas | Dependensi |
 | --- | --- | --- | --- |
@@ -70,10 +96,14 @@ P4-004: kontrak manifest lokal dan gate tertutup disiapkan pada 2026-11-11 tanpa
 | ID | Issue | Acceptance ringkas | Dependensi |
 | --- | --- | --- | --- |
 | P5-001 | PWA foundation. **Selesai, terverifikasi di production.** | Manifest valid, aplikasi installable, dan cache application shell memiliki strategi versioning/recovery. | P2 release foundation |
-| P5-002 | Cache data dan pengelolaan update. | Konten cache tidak tampil usang tanpa penanda; pengguna dapat memperbarui dan pulih dari cache bermasalah. | P5-001 |
-| P5-003 | Preference centre notifikasi. | Opt-in per kategori, stop-all, perubahan preferensi, serta audit consent tersedia sebelum pengiriman. | P2 Auth/RLS |
+| P5-002 | Cache data dan pengelolaan update. **Selesai, terverifikasi di production.** | Konten cache tidak tampil usang tanpa penanda; pengguna dapat memperbarui dan pulih dari cache bermasalah. | P5-001 |
+| P5-003 | Preference centre notifikasi. **Kode selesai dan seluruh test lulus; belum terverifikasi di production** karena migration belum diterapkan. | Opt-in per kategori, stop-all, perubahan preferensi, serta audit consent tersedia sebelum pengiriman. | P2 Auth/RLS |
 | P5-004 | Web Push delivery. | VAPID/secrets aman, frequency cap, unsubscribe, retry policy, dan observability diuji end-to-end. | P5-003 |
 | P5-005 | Review layanan dan domain produksi. | Biaya, kebijakan Vercel/Supabase, domain, DNS, dan kebijakan privasi disetujui sebelum skala publik. | P5-001–P5-004 |
 | P5-006 | Evaluasi adapter WhatsApp. | Dilakukan hanya dengan provider resmi, consent, anggaran, dan persetujuan baru; tidak diimplementasikan pada pilot gratis. | P5-003 |
 
 P5-001 dikerjakan 2026-11-16 pada branch `feature/p5-001-pwa-foundation`, dengan perbaikan banner pada `fix/p5-001-update-banner`. Tiga hal yang issue ini sebut belum diputuskan (library service worker, cakupan cache, kebijakan pembaruan) diputuskan pemilik sebelum implementasi: worker tulis tangan tanpa dependency, cache hanya shell publik, dan banner update saat versi berubah. Cache perangkat tidak memuat halaman staf, API, auth, maupun materi Sekolah Sabat; offline materi tetap tertutup oleh P4-005. Installability, shell offline, dan banner pembaruan semuanya diverifikasi pada `https://www.gmahkrinegetan.web.id` setelah rilis. Bukti: [catatan P5-001](records/P5-001-PWA-2026-11-16.md).
+
+P5-002 dikerjakan 2026-11-17 pada branch `feature/p5-002-cache-freshness`. Dua hal yang issue ini sebut belum diputuskan diputuskan pemilik sebelum implementasi: jemaat **perlu** membaca pengumuman dan agenda saat offline (jadi cache data masuk lingkup) dan ambang usang **24 jam**. Pemeriksaan awal menunjukkan halaman publik sudah *network-first* dan dirender server dengan `revalidate = 60`, sehingga pengumuman dan agenda sudah terbaca offline; yang hilang hanya penanda umur salinan. Karena itu P5-002 **tidak** menambah tabel, API, atau lapisan cache data baru — hanya cap waktu saat penyimpanan, penanda "Salinan tersimpan · diperbarui N jam lalu" dengan tombol **Perbarui**, dan tombol **Pulihkan** pada salinan ≥ 24 jam. Verifikasi production mencakup tiga keadaan (segar tanpa penanda, salinan 3 jam, salinan 30 jam) plus kedua tombol. Bukti: [catatan P5-002](records/P5-002-CACHE-FRESHNESS-2026-11-17.md).
+
+P5-003 dikerjakan 2026-11-17 pada branch `feature/p5-003-notification-preferences` (PR #139, `c1ed67d`). Identitas langganan diputuskan pemilik: **perangkat/push subscription**, tanpa email, nomor, atau akun Member. Yang dibangun: halaman `/notifikasi` (`noindex`, di luar sitemap), dua route server ber-rate-limit, migration `20261117000000` dengan tabel langganan + consent log + tiga fungsi `SECURITY DEFINER`, dan 63 test node + 39 assertion pgTAP. CI menemukan cacat nyata yang tidak dapat ditemukan lokal tanpa Docker: `revoke ... from service_role` pada helper CHECK membuat **setiap** insert gagal `42501` sebelum constraint dievaluasi. **Migration belum diterapkan ke production**, sehingga kedua route belum berfungsi di sana dan #57 belum ditutup. Bukti: [catatan P5-003](records/P5-003-NOTIFICATION-PREFERENCES-2026-11-17.md).

@@ -51,6 +51,15 @@ export const GlobalFooter = () => (
                             </Link>
                         </li>
                     ))}
+                    <li>
+                        <Link
+                            href="/notifikasi"
+                            data-testid="footer-link-notifikasi"
+                            className="text-sm text-white/70 transition-colors hover:text-sabbath-400"
+                        >
+                            Preferensi Notifikasi
+                        </Link>
+                    </li>
                 </ul>
             </nav>
 

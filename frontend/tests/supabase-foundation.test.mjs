@@ -31,6 +31,10 @@ test("public Supabase environment example contains only blank public values", ()
     "SUPABASE_SECRET_KEY=",
     "NEXT_PUBLIC_TURNSTILE_SITE_KEY=",
     "TURNSTILE_SECRET_KEY=",
+    // P5-003: both are safe to publish — one is the public VAPID key, the other a
+    // contact address. The private VAPID key stays out of this committed file.
+    "NEXT_PUBLIC_VAPID_PUBLIC_KEY=",
+    "VAPID_SUBJECT=",
   ]);
   assert.doesNotMatch(source, /SERVICE_ROLE|DATABASE_URL|kjxkmmjumrpafdublrbk|supabase\.co/i);
   assert.doesNotMatch(source, /=.+$/m);

@@ -32,6 +32,10 @@ test("P2-203 environment contract keeps server credentials blank and private", (
     "SUPABASE_SECRET_KEY=",
     "NEXT_PUBLIC_TURNSTILE_SITE_KEY=",
     "TURNSTILE_SECRET_KEY=",
+    // P5-003: the public VAPID key is shipped to the browser; the private key is not
+    // listed at all, because this file is committed and a placeholder invites a leak.
+    "NEXT_PUBLIC_VAPID_PUBLIC_KEY=",
+    "VAPID_SUBJECT=",
   ]);
   assert.doesNotMatch(environmentExample, /=.+$/m);
   assert.doesNotMatch(environmentExample, /SERVICE_ROLE|DATABASE_URL|supabase\.co/i);
