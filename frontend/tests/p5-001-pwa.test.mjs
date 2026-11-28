@@ -157,6 +157,20 @@ test("P5-001 the update banner announces a replacement, never a first install", 
   }
 });
 
+test("P5-001 a worker of the page's own release activates silently instead of asking for a second refresh", async () => {
+  const update = await import("../src/lib/pwa/update.mjs");
+  const same = { state: "installed", hasController: true, workerBuild: "abc123", pageBuild: "abc123" };
+  assert.equal(update.shouldActivateSilently(same), true);
+  assert.equal(update.shouldAnnounceUpdate(same), false);
+  // A tab left open across a deploy is older than the waiting worker: that one still gets the banner.
+  const older = { ...same, pageBuild: "old999" };
+  assert.equal(update.shouldActivateSilently(older), false);
+  assert.equal(update.shouldAnnounceUpdate(older), true);
+  assert.equal(update.shouldActivateSilently({ ...same, hasController: false }), false);
+  assert.equal(update.shouldActivateSilently({ ...same, workerBuild: null, pageBuild: null }), false);
+  assert.equal(update.shouldReloadOnControllerChange({ controlledOnLoad: true, silentUpdate: true }), false);
+});
+
 test("P5-001 a controller change reloads once, and never on the first claim", async () => {
   const update = await import("../src/lib/pwa/update.mjs");
 

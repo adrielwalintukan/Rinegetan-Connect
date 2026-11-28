@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { shouldAnnounceUpdate, shouldReloadOnControllerChange } from "@/lib/pwa/update.mjs";
+import { shouldActivateSilently, shouldAnnounceUpdate, shouldReloadOnControllerChange } from "@/lib/pwa/update.mjs";
 
 // P5-001: the worker is registered from the public layout only. The staff area is never given a
 // service worker, so an authenticated page cannot end up cached and replayed to another user on
@@ -11,6 +11,7 @@ const BUILD_ID = process.env.NEXT_PUBLIC_BUILD_ID || "dev";
 export function ServiceWorkerUpdate() {
   const [waiting, setWaiting] = useState(false);
   const reloading = useRef(false);
+  const silentUpdate = useRef(false);
   // The worker parked behind the active one. A ref, not state: it is used inside the click handler
   // and must not trigger a render when the browser hands us a new worker object.
   const waitingWorker = useRef<ServiceWorker | null>(null);
@@ -35,12 +36,20 @@ export function ServiceWorkerUpdate() {
       // at `updatefound` the state is "installing", never "installed".
       const check = () => {
         if (cancelled) return;
-        if (
-          shouldAnnounceUpdate({
-            state: worker.state,
-            hasController: Boolean(navigator.serviceWorker.controller),
-          })
-        ) {
+        const input = {
+          state: worker.state,
+          hasController: Boolean(navigator.serviceWorker.controller),
+          workerBuild: new URL(worker.scriptURL).searchParams.get("v"),
+          pageBuild: BUILD_ID,
+        };
+        // A refresh after a deploy already shows the new release (network-first), so asking the
+        // visitor to reload again would only make them refresh twice.
+        if (shouldActivateSilently(input)) {
+          silentUpdate.current = true;
+          worker.postMessage({ type: "SKIP_WAITING" });
+          return;
+        }
+        if (shouldAnnounceUpdate(input)) {
           waitingWorker.current = worker;
           setWaiting(true);
         }
@@ -69,7 +78,7 @@ export function ServiceWorkerUpdate() {
     // If the worker was replaced while this page stayed open, reload once so the visitor is not
     // left on a shell whose cached assets are already gone.
     const onControllerChange = () => {
-      if (!shouldReloadOnControllerChange({ controlledOnLoad, alreadyReloading: reloading.current })) return;
+      if (!shouldReloadOnControllerChange({ controlledOnLoad, alreadyReloading: reloading.current, silentUpdate: silentUpdate.current })) return;
       reloading.current = true;
       window.location.reload();
     };
