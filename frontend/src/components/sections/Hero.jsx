@@ -9,13 +9,17 @@ import { KineticLines } from "@/components/motion/KineticLines";
 import { AdventistSymbol } from "@/components/identity/AdventistSymbol";
 import { CHURCH, IMAGES, SABBATH } from "@/data/content";
 
-// shortcut: below lg the photo fills the top 80% of the screen and the crop leans right (84%) because the church
-// building sits low and right in the current hero photo; add a focus option to the portal if a future photo needs another anchor.
+// Below lg the photo is a 220%-wide band pinned to the bottom, shifted so the right part of the frame is centred,
+// and its top fades into a blurred copy of the same photo: the sky is extended upward instead of cropping the building.
+// shortcut: the -115% shift suits the current church photo (building on the right); add a focus option to the
+// portal if a future photo needs another anchor.
+const MOBILE_BAND =
+    "bottom-0 left-[-115%] h-auto w-[220%] max-w-none [mask-image:linear-gradient(to_bottom,transparent,black_22%)] lg:bottom-auto lg:left-0 lg:top-0 lg:w-full lg:[mask-image:none]";
 const OBJECT_POSITION = {
-    contain: "h-full object-contain",
-    bottom: "h-[80%] lg:h-[112%] object-cover object-[84%_100%] lg:object-bottom will-change-transform",
-    top: "h-[80%] lg:h-[112%] object-cover object-[84%_0%] lg:object-top will-change-transform",
-    center: "h-[80%] lg:h-[112%] object-cover object-[84%_50%] lg:object-center will-change-transform",
+    contain: "inset-x-0 top-0 h-full w-full object-contain",
+    bottom: `${MOBILE_BAND} lg:h-[112%] lg:object-cover lg:object-bottom will-change-transform`,
+    top: `${MOBILE_BAND} lg:h-[112%] lg:object-cover lg:object-top will-change-transform`,
+    center: `${MOBILE_BAND} lg:h-[112%] lg:object-cover lg:object-center will-change-transform`,
 };
 
 export const Hero = ({ sectionMedia = null }) => {
@@ -33,7 +37,7 @@ export const Hero = ({ sectionMedia = null }) => {
     return (
         <section
             data-testid="hero"
-            className="relative isolate flex min-h-[100svh] flex-col justify-end overflow-hidden bg-navy-900 text-white"
+            className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-navy-900 text-white lg:justify-end"
         >
             <motion.figure
                 ref={frameRef}
@@ -48,17 +52,25 @@ export const Hero = ({ sectionMedia = null }) => {
                     alt={heroAlt}
                     style={heroPosition === "contain" ? undefined : { y: imgY }}
                     // Scroll-linked parallax is not an animation, so skipAnimations cannot stop it; CSS can.
-                    className={`absolute inset-x-0 top-0 w-full motion-reduce:![transform:none] ${
+                    className={`absolute motion-reduce:![transform:none] ${
                         OBJECT_POSITION[heroPosition] || OBJECT_POSITION.center
                     }`}
                     fetchPriority="high"
                 />
-                {/* Mobile: dark top for the header, fade into navy at the bottom. Desktop: two scrims for the text column. */}
-                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-navy-900 from-35% via-navy-900/30 via-60% to-navy-900/20 lg:from-navy-900/95 lg:from-0% lg:via-navy-900/50 lg:via-50% lg:to-navy-900/25" />
+                {/* Mobile sky: the same photo blurred, behind the sharp band, so the extra height matches its colours. */}
+                <img
+                    src={heroSrc}
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute inset-0 -z-10 h-full w-full scale-125 object-cover object-top blur-2xl lg:hidden"
+                />
+                {/* Mobile: darker top behind the text, a thin fade at the bottom. Desktop: two scrims for the text column. */}
+                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-navy-900/85 via-navy-900/40 via-40% to-transparent to-60% lg:hidden" />
+                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-navy-900/80 to-transparent to-20% lg:from-navy-900/95 lg:via-navy-900/50 lg:to-navy-900/25 lg:to-100%" />
                 <div aria-hidden="true" className="absolute inset-0 hidden bg-gradient-to-r from-navy-900/80 via-navy-900/25 to-transparent lg:block" />
             </motion.figure>
 
-            <div className="relative w-full px-5 pb-6 pt-24 sm:px-8 sm:pb-20 lg:px-12 lg:pb-24 lg:pt-32 xl:pt-44">
+            <div className="relative w-full px-5 pb-6 pt-24 sm:px-8 sm:pt-32 lg:px-12 lg:pb-24 xl:pt-44">
                 <div className="max-w-3xl">
                     <motion.p
                         initial={{ opacity: 0, y: 16 }}
@@ -139,6 +151,9 @@ export const Hero = ({ sectionMedia = null }) => {
                 </div>
             </div>
 
+            {/* Mobile: keeps the building (lower ~60% of the band's width-based height) clear of the text on short screens. */}
+            <div aria-hidden="true" className="h-[62vw] shrink-0 lg:hidden" />
+
             {/* Creation Grid: the seventh-day column becomes a thin amber rail on the right edge. */}
             <motion.aside
                 initial={{ opacity: 0 }}
@@ -146,7 +161,7 @@ export const Hero = ({ sectionMedia = null }) => {
                 transition={{ duration: 0.9, delay: 1.1 }}
                 data-testid="hero-sabbath-column"
                 aria-label="Kolom Sabat"
-                className="flex items-center gap-4 border-t border-white/15 px-5 py-3 sm:px-8 sm:py-4 lg:absolute lg:bottom-24 lg:right-12 lg:top-44 lg:flex-col lg:justify-between lg:border-l lg:border-t-0 lg:border-sabbath-400/60 lg:p-0 lg:pl-5"
+                className="mt-auto flex items-center gap-4 px-5 py-3 sm:px-8 sm:py-4 lg:absolute lg:bottom-24 lg:right-12 lg:top-44 lg:flex-col lg:justify-between lg:border-l lg:border-t-0 lg:border-sabbath-400/60 lg:p-0 lg:pl-5"
             >
                 <span className="font-mono text-[0.625rem] font-medium uppercase tracking-[0.26em] text-sabbath-300 lg:rotate-180 lg:[writing-mode:vertical-rl]">
                     Sabat · Jumat matahari terbenam sampai Sabtu matahari terbenam
