@@ -59,7 +59,7 @@ export const GlobalNav = () => {
                 )}
             >
                 <div className="flex h-[4.5rem] w-full items-center justify-between gap-6 px-5 sm:px-8 lg:px-12 xl:h-[7.5rem]">
-                    <EntityLockup dark compact onClick={closeMenu} />
+                    <EntityLockup dark compact plain onClick={closeMenu} />
 
                     <div className="hidden flex-col items-end gap-4 xl:flex">
                         <ul className="flex items-center gap-7 text-[0.75rem] font-semibold uppercase tracking-[0.16em] text-white/85">

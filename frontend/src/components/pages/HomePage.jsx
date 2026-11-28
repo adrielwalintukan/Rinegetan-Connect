@@ -2,7 +2,6 @@ import { Hero } from "@/components/sections/Hero";
 import { AnnouncementBanner } from "@/components/sections/AnnouncementBanner";
 import { SabbathMarquee } from "@/components/sections/SabbathMarquee";
 import { SabbathSection } from "@/components/sections/SabbathSection";
-import { WelcomeSection } from "@/components/sections/WelcomeSection";
 import { EventsSection } from "@/components/sections/EventsSection";
 import { DepartmentsSection } from "@/components/sections/DepartmentsSection";
 import { MediaSection } from "@/components/sections/MediaSection";
@@ -21,7 +20,6 @@ export default function HomePage({ announcements = [], events = null, sectionMed
             )}
             <SabbathMarquee />
             <SabbathSection />
-            <WelcomeSection sectionMedia={sectionMedia} />
             <EventsSection events={events} />
             {departments.length > 0 && <DepartmentsSection departments={departments} />}
             <MediaSection photos={photos} />

@@ -36,7 +36,7 @@ export const DepartmentsSection = ({ departments = null }) => {
         >
             <div className="container-site">
                 <ChapterHeading
-                    number="04"
+                    number="03"
                     eyebrow="Pelayanan Jemaat"
                     title={<span id="departments-heading">Departemen & pelayanan</span>}
                     description="Sembilan pelayanan, satu tujuan: membangun jemaat dan melayani sesama. Setiap anggota punya tempat untuk bertumbuh dan berkontribusi."

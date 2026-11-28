@@ -90,7 +90,7 @@ export const EventsSection = ({ events = null }) => {
             <div className="container-site">
                 <div className="flex flex-wrap items-end justify-between gap-6">
                     <ChapterHeading
-                        number="03"
+                        number="02"
                         eyebrow="Kegiatan Jemaat"
                         title={<span id="events-heading">Kegiatan yang akan datang</span>}
                         description="Dari ibadah Sabat hingga bakti sosial desa — ada ruang untuk Anda ambil bagian."

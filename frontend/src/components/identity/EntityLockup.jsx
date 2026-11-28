@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { AdventistSymbol } from "./AdventistSymbol";
+import { AdventistSymbol, AdventistSymbolPlain } from "./AdventistSymbol";
 import { CHURCH } from "@/data/content";
 import { cn } from "@/lib/utils";
 
-export const EntityLockup = ({ dark = false, compact = false, onClick }) => (
+export const EntityLockup = ({ dark = false, compact = false, plain = false, onClick }) => (
     <Link
         href="/"
         onClick={onClick}
@@ -17,7 +17,7 @@ export const EntityLockup = ({ dark = false, compact = false, onClick }) => (
                 dark ? "text-white" : "text-navy"
             )}
         >
-            <AdventistSymbol className="h-10 w-10" />
+            {plain ? <AdventistSymbolPlain className="h-11 w-11" /> : <AdventistSymbol className="h-10 w-10" />}
         </span>
         <span className="flex flex-col leading-none">
             <span

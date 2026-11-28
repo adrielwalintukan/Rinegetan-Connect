@@ -13,6 +13,7 @@ test("header: three closed dropdown groups, amber CTA, no search, transparent on
     assert.match(home, new RegExp(`data-testid="nav-group-${id}"[^>]*aria-expanded="false"|aria-expanded="false"[^>]*data-testid="nav-group-${id}"`));
   }
   assert.match(home, /data-nav-tone="transparent"/);
+  assert.match(home, /data-testid="adventist-symbol-plain"/);
   assert.match(home, /data-testid="nav-utility-menu"/);
   assert.match(home, /href="\/pelajari-alkitab"[^>]*data-testid="nav-cta-pelajari-alkitab"[^>]*class="[^"]*bg-sabbath-500/);
   assert.doesNotMatch(home, /SEARCH|>Cari</);
