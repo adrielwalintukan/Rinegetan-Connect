@@ -83,7 +83,7 @@ test("mobile navigation scrolls itself under smooth scrolling", async ({ page })
 });
 
 for (const width of [320, 375, 768, 1024, 1440]) {
-    for (const available of [false, true]) test(`Sabbath catalog ${available ? "available long text" : "unavailable"} and local classes remain readable at ${width}px`, async ({ page }) => {
+    for (const available of [false, true]) test(`Sabbath catalog ${available ? "available long text" : "unavailable"} and weekly schedule remain readable at ${width}px`, async ({ page }) => {
         await page.setViewportSize({ width, height: 900 });
         await page.emulateMedia({ reducedMotion: "reduce" });
         const sourceRequests: string[] = [];
@@ -117,11 +117,7 @@ for (const width of [320, 375, 768, 1024, 1440]) {
         }
         await expect(materials.locator("button, img, [role=tab]")).toHaveCount(0);
         await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
-        for (let i = 0; i < 4; i++) {
-            const card = page.getByTestId(`ss-class-${i}`);
-            await expect(card).toBeVisible();
-            await expect(card).toContainText("08.45 WITA");
-        }
+        await expect(page.getByTestId("ss-weekly-schedule")).toBeVisible();
         expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
         expect(sourceRequests).toEqual([]);
     });

@@ -13,7 +13,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { ChapterHeading } from "@/components/sections/ChapterHeading";
+import { PageHero, Accent } from "@/components/sections/PageHero";
 import { Reveal } from "@/components/motion/Reveal";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { MediaLightbox } from "@/components/media/MediaLightbox";
@@ -116,24 +116,17 @@ export default function MediaPage({
   };
 
   return (
-    <section data-testid="media-page" className="py-16 lg:py-24">
-      <div className="container-site">
-        <ChapterHeading as="h1"
-          number="01"
-          eyebrow="Dokumentasi & Galeri"
-          title={
-            <>
-              Galeri foto dan arsip{" "}
-              <span className="font-serif italic text-sabbath-600">kegiatan</span>{" "}
-              jemaat
-            </>
-          }
-          description="Arsip dokumentasi visual ibadah, pelayanan masyarakat, dan kegiatan keluarga besar GMAHK Jemaat Rinegetan."
-        />
-
+    <section data-testid="media-page" className="pb-20 sm:pb-28">
+      <PageHero
+        number="01"
+        eyebrow="Dokumentasi & Galeri"
+        title={<>Galeri foto dan arsip <Accent>kegiatan</Accent> jemaat</>}
+        description="Arsip dokumentasi visual ibadah, pelayanan masyarakat, dan kegiatan keluarga besar GMAHK Jemaat Rinegetan."
+      />
+      <div className="mx-auto w-full max-w-[96rem] px-5 sm:px-8 lg:px-12">
         {/* TIER 1: Featured Albums Section */}
         {initialAlbums.length > 0 && (
-          <div className="mt-12">
+          <div className="mb-16">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
                 <Folder className="h-5 w-5 text-sabbath-600" />
@@ -213,7 +206,7 @@ export default function MediaPage({
         )}
 
         {/* TIER 2: Category Filter Pills Bar & Photo Grid */}
-        <div className="mt-16">
+        <div>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div
               role="group"
@@ -228,7 +221,7 @@ export default function MediaPage({
                   aria-pressed={selectedCategory === type}
                   onClick={() => setSelectedCategory(type)}
                   className={cn(
-                    "rounded-full border px-4 py-2 text-xs sm:text-[0.8125rem] font-semibold transition-all duration-200",
+                    "min-h-11 rounded-full border px-5 py-2 text-xs sm:text-[0.8125rem] font-semibold transition-all duration-200",
                     selectedCategory === type
                       ? "border-navy bg-navy text-white shadow-sm"
                       : "border-navy/15 bg-white text-slate-600 hover:border-navy/40 hover:text-navy"

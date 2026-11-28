@@ -143,30 +143,3 @@ export const MARQUEE_ITEMS = [
     "GMAHK Rinegetan · Minahasa, Sulawesi Utara",
     "Datanglah kepada-Ku, semua yang letih lesu dan berbeban berat — Matius 11:28",
 ];
-
-export const SABBATH_SCHOOL_CLASSES = [
-    {
-        name: "Kelas Anak-Anak",
-        age: "0–9 tahun",
-        time: "08.45 WITA",
-        description: "Cerita Alkitab, lagu, dan aktivitas kreatif bersama guru-guru yang mengasihi anak.",
-    },
-    {
-        name: "Kelas Remaja (Pathfinder)",
-        age: "10–15 tahun",
-        time: "08.45 WITA",
-        description: "Diskusi Alkitab yang jujur dan relevan dengan dunia remaja.",
-    },
-    {
-        name: "Kelas Pemuda",
-        age: "16–25 tahun",
-        time: "08.45 WITA",
-        description: "Pendalaman Firman dan percakapan iman untuk mahasiswa dan profesional muda.",
-    },
-    {
-        name: "Kelas Dewasa",
-        age: "26+ tahun",
-        time: "08.45 WITA",
-        description: "Pelajaran triwulan Gereja Masehi Advent Hari Ketujuh sedunia, dibahas bersama.",
-    },
-];

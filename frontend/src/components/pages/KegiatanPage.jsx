@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CalendarX } from "lucide-react";
-import { ChapterHeading } from "@/components/sections/ChapterHeading";
+import { PageHero, Accent } from "@/components/sections/PageHero";
 import { EventCard } from "@/components/sections/EventsSection";
 import { Reveal } from "@/components/motion/Reveal";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -19,26 +19,19 @@ export default function KegiatanPage({ initialEvents = null }) {
         filter === "Semua" ? allEvents : allEvents.filter((e) => e.category === filter);
 
     return (
-        <section data-testid="kegiatan-page" className="py-16 lg:py-24">
-            <div className="container-site">
-                <ChapterHeading as="h1"
-                    number="01"
-                    eyebrow="Kegiatan"
-                    title={
-                        <>
-                            Agenda{" "}
-                            <span className="font-serif italic text-sabbath-600">jemaat</span>{" "}
-                            Rinegetan
-                        </>
-                    }
-                    description="Ibadah, persekutuan pemuda, pelajaran Sekolah Sabat, dan pelayanan masyarakat — semua terbuka untuk dihadiri."
-                />
-
+        <section data-testid="kegiatan-page" className="pb-20 sm:pb-28">
+            <PageHero
+                number="01"
+                eyebrow="Kegiatan"
+                title={<>Agenda <Accent>jemaat</Accent> Rinegetan</>}
+                description="Ibadah, persekutuan pemuda, pelajaran Sekolah Sabat, dan pelayanan masyarakat — semua terbuka untuk dihadiri."
+            />
+            <div className="mx-auto w-full max-w-[96rem] px-5 sm:px-8 lg:px-12">
                 {allEvents.length > 0 && (
                     <div
                         role="group"
                         aria-label="Saring kegiatan berdasarkan kategori"
-                        className="mt-10 flex flex-wrap gap-2"
+                        className="flex flex-wrap gap-2 border-b border-navy/10 pb-8"
                     >
                         {["Semua", ...EVENT_CATEGORIES].map((cat) => (
                             <button
@@ -48,7 +41,7 @@ export default function KegiatanPage({ initialEvents = null }) {
                                 aria-pressed={filter === cat}
                                 onClick={() => setFilter(cat)}
                                 className={cn(
-                                    "rounded-full border px-4 py-2 text-[0.8125rem] font-semibold transition-[background-color,color,border-color] duration-200",
+                                    "min-h-11 rounded-full border px-5 py-2 text-[0.8125rem] font-semibold transition-[background-color,color,border-color] duration-200",
                                     filter === cat
                                         ? "border-navy bg-navy text-white"
                                         : "border-navy/15 bg-white text-slate-600 hover:border-navy/40 hover:text-navy"
@@ -69,7 +62,7 @@ export default function KegiatanPage({ initialEvents = null }) {
                         ))}
                     </div>
                 ) : allEvents.length === 0 ? (
-                    <div className="mt-12">
+                    <div className="mt-4">
                         <EmptyState
                             icon={CalendarX}
                             title="Belum Ada Kegiatan Mendatang"
